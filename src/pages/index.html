@@ -25,7 +25,7 @@
     <div class="hero-copy">
       <div class="hero-eyebrow"><span class="pulse-dot"></span>BUILT FOR DTC ECOMMERCE</div>
       <h2 class="hero-title">Higher rank.<br>Wider <span class="accent">reach.</span></h2>
-      <p class="hero-sub">Rank is in our name for a reason. The same structural fixes that raise your accessibility score are the ones that boost <strong>SEO ranking, AI readiness and speed</strong>.</p>
+      <p class="hero-sub">Rank is in our name for a reason. The same structural fixes that raise your accessibility score boost <strong>SEO ranking and AI readiness</strong> too.</p>
     </div>
     <div class="hero-audit">
       {{> audit-widget }}
@@ -33,11 +33,18 @@
   </div>
 </section>
 
-<div class="marquee" aria-hidden="true"><div class="marquee-track">
+<div class="marquee">
+  <div class="marquee-track" id="marquee-track" aria-hidden="true">
   <span class="item">SHOPIFY <span class="sep">/</span> WORDPRESS <span class="sep">/</span> WOOCOMMERCE <span class="sep">/</span> BIGCOMMERCE <span class="sep">/</span> CUSTOM <span class="sep">/</span></span>
   <span class="item">SHOPIFY <span class="sep">/</span> WORDPRESS <span class="sep">/</span> WOOCOMMERCE <span class="sep">/</span> BIGCOMMERCE <span class="sep">/</span> CUSTOM <span class="sep">/</span></span>
   <span class="item">SHOPIFY <span class="sep">/</span> WORDPRESS <span class="sep">/</span> WOOCOMMERCE <span class="sep">/</span> BIGCOMMERCE <span class="sep">/</span> CUSTOM <span class="sep">/</span></span>
-</div></div>
+</div>
+  <button class="marquee-toggle" id="marquee-toggle" type="button" aria-pressed="false">
+    <svg class="marquee-icon-pause" width="12" height="12" viewBox="0 0 12 12" aria-hidden="true" focusable="false"><rect x="2" y="1.5" width="2.6" height="9" fill="currentColor"/><rect x="7.4" y="1.5" width="2.6" height="9" fill="currentColor"/></svg>
+    <svg class="marquee-icon-play" width="12" height="12" viewBox="0 0 12 12" aria-hidden="true" focusable="false" hidden><path d="M2.5 1.5 L10 6 L2.5 10.5 Z" fill="currentColor"/></svg>
+    <span class="visually-hidden">Pause scrolling platform list</span>
+  </button>
+</div>
 
 <section class="wcag-section" id="wcag">
   <div class="section-eyebrow">WCAG 2.2 EXPLAINED</div>

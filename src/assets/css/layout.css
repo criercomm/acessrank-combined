@@ -68,7 +68,7 @@
 .footer-disclaimer { font-size: 11.5px; line-height: 1.65; color: #8A8E9A; margin: 0; padding: 0; max-width: 960px; text-wrap: balance; } /* TODO(contrast): verify against WCAG 1.4.3 */
 .footer-legalrow { display: flex; justify-content: space-between; align-items: flex-end; gap: 48px; flex-wrap: wrap; }
 .footer-bottom { display: flex; justify-content: flex-end; align-items: center; gap: 18px; flex-wrap: wrap; padding-top: 0; font-size: 12px; color: var(--text-faint); white-space: nowrap; } /* TODO(contrast): verify against WCAG 1.4.3 */
-.footer-legal p { font-size: 12px; line-height: 1.65; color: var(--text-faint); max-width: 880px; margin: 0 0 12px; }
+.footer-legal p { font-size: 12px; line-height: 1.65; color: var(--text-faint); margin: 0 0 12px; }
 .footer-copy { font-size: 11.5px; color: var(--text-faint); margin: 0; }
 
 @media (max-width: 720px) {

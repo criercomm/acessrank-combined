@@ -244,4 +244,30 @@
   window.Accessrank.reducedMotion = function () {
     return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   };
+
+  /* -------------------------------------------------------- marquee --- */
+  /* The scrolling platform-name strip runs continuously and auto-starts,
+   * so WCAG 2.2.2 (Pause, Stop, Hide) calls for an on-screen way to stop
+   * it -- the OS-level prefers-reduced-motion switch (home.css) covers
+   * people who've set that, not everyone else who'd still like to pause it. */
+  var marqueeTrack = document.getElementById('marquee-track');
+  var marqueeToggle = document.getElementById('marquee-toggle');
+
+  if (marqueeTrack && marqueeToggle) {
+    var setMarqueePaused = function (paused) {
+      marqueeTrack.classList.toggle('is-paused', paused);
+      marqueeToggle.setAttribute('aria-pressed', paused ? 'true' : 'false');
+      marqueeToggle.querySelector('.marquee-icon-pause').hidden = paused;
+      marqueeToggle.querySelector('.marquee-icon-play').hidden = !paused;
+      marqueeToggle.querySelector('.visually-hidden').textContent =
+        paused ? 'Play scrolling platform list' : 'Pause scrolling platform list';
+    };
+
+    marqueeToggle.addEventListener('click', function () {
+      setMarqueePaused(!marqueeTrack.classList.contains('is-paused'));
+    });
+
+    if (window.Accessrank.reducedMotion()) setMarqueePaused(true);
+  }
+
 }());
