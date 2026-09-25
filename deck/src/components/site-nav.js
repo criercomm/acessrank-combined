@@ -7,7 +7,7 @@
 import { el } from '@lib/util/dom.js'
 
 const LINKS = [
-  { label: 'How it works', href: '/#product' },
+  { label: 'How it works', href: '/#product', active: true },
   { label: 'WCAG explained', href: '/#wcag' },
   { label: 'Pricing', href: '/#pricing' },
 ]
@@ -17,7 +17,7 @@ export function SiteNav({ mainSiteHref = '/' } = {}) {
     el('span', { class: 'ar-nav-mark', 'aria-hidden': 'true', html: '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 12.5 9.5 18 20 6.5"></polyline></svg>' }),
     el('span', { class: 'ar-nav-word', text: 'Accessrank' }))
 
-  const links = LINKS.map((l) => el('a', { class: 'ar-nav-link', href: mainSiteHref.replace(/\/$/, '') + l.href, target: '_top', text: l.label }))
+  const links = LINKS.map((l) => el('a', { class: 'ar-nav-link' + (l.active ? ' is-active' : ''), href: mainSiteHref.replace(/\/$/, '') + l.href, target: '_top', text: l.label }))
 
   const mainSite = el('a', { class: 'ar-nav-link ar-nav-cta', href: mainSiteHref, target: '_top', text: 'Main website' })
 

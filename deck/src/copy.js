@@ -6,12 +6,16 @@ export const copy = {
   brand: 'Accessrank',
   spine: "The web's biggest blind spot. Accessrank finds it, fixes it, and proves it.",
   legal: '<b>Accessrank</b> · Investor presentation · Not legal advice · Statistics from cited third-party sources · Confidential',
-  chapters: ['Blind spot', 'The letter', 'Plug-ins', 'The fix', 'Safe', 'Engine', 'Model', 'Market', 'Today', 'Libraries', 'Contact'],
+  chapters: ['The blind spot', 'The letter', 'Plug-ins', 'The fix', 'Safe', 'Engine', 'Model', 'Market', 'Libraries', 'Contact'],
 
   s01: {
     title: ["THE WEB'S BIGGEST", 'BLIND SPOT.'],
     sub: "95% of websites fail accessibility standards — a blind spot most companies don't know they have until a demand letter arrives. Accessrank finds it, fixes it, and turns the fix into faster, more visible, more sellable pages.",
-    source: 'WebAIM Million 2026: 95.9% of the top one million home pages have detectable WCAG failures',
+    stats: [
+      { value: '95.9%', label: 'of the top 1M sites fail WCAG' },
+      { value: '70M+', label: 'U.S. adults live with a disability' },
+      { value: '5,114', label: 'ADA website lawsuits filed in 2025' },
+    ],
     notes: 'Open slow. "Ninety-five percent of websites fail accessibility standards. Most companies find out when a demand letter arrives. We find it, we fix it in the code, and the fix makes the pages faster and more visible." Then advance.',
   },
 
@@ -168,35 +172,9 @@ export const copy = {
     notes: '"Four states carry 87 percent of the filings and two industries, food and fashion, carry 60 percent. That is where the first customers are. The rails below are where the same engine goes next: platforms and standards."',
   },
 
-  s09: {
-    title: ['Functional alpha,', 'end to end.'],
-    engLabel: 'Engineering, today',
-    eng: [
-      { value: '99,000', label: 'lines of TypeScript in the API' },
-      { value: '1,200', label: 'automated test cases' },
-      { value: '140', label: 'API routes' },
-      { value: '39', label: 'data models' },
-    ],
-    tractionLabel: 'Traction',
-    traction: [
-      { value: null, label: 'sites audited' },
-      { value: null, label: 'findings fixed' },
-      { value: null, label: 'paying customers' },
-      { value: null, label: 'pipeline' },
-    ],
-    tbd: 'TBD',
-    builtLabel: 'How it is built',
-    built: [
-      { name: 'Founded 2025', role: 'Remote-first', line: 'A small team across U.S. and EU time zones that would rather stay hands-on than scale as a report-only vendor.' },
-      { name: 'Operated', role: 'People in the loop', line: 'Trained operators run every scan and write every fix; clients grant access and approve changes from their own portal.' },
-      { name: 'Integrations live', role: 'Shipping today', line: 'Shopify end to end, WordPress, GitHub and Bitbucket pull requests, code ZIPs, Cloudflare.' },
-    ],
-    notes: 'Be exact: "The full cycle works end to end today: scan, remediate on a draft, validate, report, rollback. It is an alpha in maturity and an operated service in delivery." The team is deliberately not named on screen; if asked, describe the operating model, not people. Fill the traction tiles before the room; TBD is on purpose so nothing invented ships.',
-  },
-
 
   s11: {
-    eyebrow: 'Next market · Accessrank for Libraries',
+    eyebrow: 'Coming soon · Accessrank for Libraries',
     title: ['Public libraries serve everyone.', 'Their websites should too.'],
     lede: 'Same engine, second market. ADA Title II now holds every public library website to WCAG, with deadlines in 2027 and 2028. Catalogs, e-resources and event pages get the same scan, fix and documentation.',
     stats: [

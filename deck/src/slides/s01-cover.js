@@ -4,7 +4,7 @@ import { gsap, T, sec } from '@lib/motion/ease.js'
 import { Stagger } from '@lib/motion/stagger.js'
 import { Parallax } from '@lib/motion/parallax.js'
 import { el, prefersReduced } from '@lib/util/dom.js'
-import { heading, label } from '../components/ui.js'
+import { heading, tile } from '../components/ui.js'
 
 const MOCK = 'dR-s01-mockup-single'
 export default {
@@ -15,25 +15,27 @@ export default {
     this._notes = copy.s01.notes
     const title = heading(copy.s01.title, { tag: 'h1', cls: 'h-display s01-title', accent: 1, accentClass: 'is-accent' })
     const sub = el('p', { class: 's01-sub', text: copy.s01.sub })
-    const source = label(copy.s01.source, 's01-source')
+    const stats = copy.s01.stats.map((s) => tile(s, { cls: 's01-stat tile--bare', size: 'm' }))
+    const statsRow = el('div', { class: 's01-stats' }, ...stats.map((s) => s.el))
     const beam = el('div', { class: 'beam beam--bg', 'aria-hidden': 'true' })
     const anim = el('div', { class: 's01-mock-anim' }, assets.img(MOCK, { w: 1600, sizes: '58vw', alt: 'A floating ecommerce home page' }), beam)
     const inner = el('div', { class: 's01-mock-inner' }, anim)
     const mock = el('figure', { class: 's01-mock' }, inner)
-    root.append(el('div', { class: 's01-copy' }, title.el, sub, source), mock)
-    this.els = { title, sub, source, mock, inner, anim, beam }
+    root.append(el('div', { class: 's01-copy' }, title.el, sub, statsRow), mock)
+    this.els = { title, sub, stats, statsRow, mock, inner, anim, beam }
     this.parallax = Parallax([{ el: inner, depth: .35 }], { pointer: 18, scroll: 0 })
-    gsap.set([sub, source], { opacity: 0 })
+    gsap.set([sub, statsRow], { opacity: 0 })
     gsap.set(anim, { opacity: 0 })
   },
   preload(ctx) { return ctx.assets.preload([MOCK], 1600) },
   enter(ctx) {
-    const { title, sub, source, anim, inner, beam } = this.els
+    const { title, sub, stats, statsRow, anim, inner, beam } = this.els
     this.tl?.kill(); this.loop?.kill(); this.drift?.kill()
     const tl = gsap.timeline()
     tl.fromTo(anim, { opacity: 0, y: 40, scale: .96 }, { opacity: 1, y: 0, scale: 1, duration: sec(T[6]), ease: 'out-expo' }, .3)
     tl.add(() => title.restart(), .5)
-    tl.add(Stagger([sub, source], { dur: T[4], y: 10, delay: 140 }), 1.5)
+    tl.add(Stagger([sub, statsRow], { dur: T[4], y: 10, delay: 140 }), 1.5)
+    stats.forEach((s, i) => tl.call(() => s.play(), [], 1.9 + i * .12))
     this.tl = tl
     if (!prefersReduced()) {
       this.drift = gsap.to(inner.querySelector('img'), { y: -8, duration: 5, ease: 'sine.inOut', yoyo: true, repeat: -1 })
