@@ -73,6 +73,25 @@
  * section keeps the standard full-bleed edge padding; the card itself is
  * sized and centered to match .risk-grid above it (see .audit-card). */
 .hero { padding: 36px var(--edge) 44px; }
+.hero-split { display: flex; align-items: flex-start; gap: 56px; max-width: 1180px; margin: 0 auto; }
+.hero-copy { flex: 1 1 360px; min-width: 280px; transform: translate(32px, 20px); }
+.hero-audit { flex: 1 1 480px; min-width: 320px; transform: translateX(-20px); }
+.hero-audit .audit-card { margin: 0; max-width: none; padding-bottom: 32px; background: var(--surface); border-color: var(--keyline); box-shadow: 0 0 48px -6px rgba(59, 130, 246, .5), 0 0 0 1px rgba(59, 130, 246, .22); }
+.hero-audit .audit-top { gap: 14px; }
+.hero-audit .scan-status { min-height: 0; margin: 0; }
+.hero-audit .audit-title { color: var(--text); }
+.hero-audit .audit-hint { color: var(--text-soft); }
+.hero-audit .audit-note { color: rgba(212, 208, 197, 0.65); }
+.hero-audit .audit-meta { color: var(--blue-500); }
+.hero-eyebrow { display: inline-flex; align-items: center; gap: 8px; font-size: 11px; letter-spacing: 3px; color: var(--brand); font-weight: 600; margin-bottom: 16px; }
+.hero-title { font-size: 40px; line-height: 1.08; letter-spacing: -1.4px; font-weight: 800; color: #FFFFFF; margin: 0 0 16px; text-align: left; }
+.hero-title .accent { color: var(--brand); }
+.hero-sub { font-size: 15px; line-height: 1.6; color: var(--text-soft); margin: 0; max-width: 46ch; }
+.hero-sub strong { color: #FFFFFF; font-weight: 600; }
+@media (max-width: 900px) {
+  .hero-split { flex-direction: column; align-items: stretch; gap: 32px; }
+  .hero-title { font-size: 32px; }
+}
 .pulse-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--brand); animation: p14 2s ease-in-out infinite; }
 @keyframes p14 { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
 
@@ -87,7 +106,7 @@
 /* Explicit, tight margins: with no rule at all this <p> carried the browser's
  * default 1em top+bottom, which is most of the dead air the card had. */
 .audit-hint { margin: 0; color: rgba(14, 14, 16, 0.72); font-size: 14px; line-height: 1.55; }
-.audit-note { margin: 10px 0 0; color: rgba(14, 14, 16, 0.55); font-size: 12.5px; line-height: 1.5; }
+.audit-note { margin: 6px 0 0; color: rgba(14, 14, 16, 0.55); font-size: 12.5px; line-height: 1.5; }
 /* This is a real <h2> now, not the old decorative "LIVE AUDIT" label, so it is
  * styled as a card heading rather than a micro-caption. */
 .audit-title { font-size: 25px; line-height: 1.2; letter-spacing: -0.6px; color: var(--bg); font-weight: 800; text-align: left; margin: 0 0 10px; }
