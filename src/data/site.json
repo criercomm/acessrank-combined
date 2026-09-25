@@ -9,10 +9,10 @@
   "locale": "en",
 
   "nav": [
-    { "label": "How it works", "href": "/#product", "deck": true },
-    { "label": "WCAG explained", "href": "/#wcag" },
-    { "label": "Pricing", "href": "/#pricing" },
-    { "label": "Free audit", "href": "/#audit", "cta": true }
+    { "label": "How it works", "href": "/home#product", "deck": true },
+    { "label": "WCAG explained", "href": "/home#wcag" },
+    { "label": "Pricing", "href": "/home#pricing" },
+    { "label": "Free audit", "href": "/home#audit", "cta": true }
   ],
 
   "footer": [
@@ -28,7 +28,7 @@
     {
       "heading": "Learn",
       "links": [
-        { "label": "WCAG 2.2 explained", "href": "/#wcag" },
+        { "label": "WCAG 2.2 explained", "href": "/home#wcag" },
         { "label": "ADA & EAA guide", "href": "/guide/ada-eaa" },
         { "label": "Resources", "href": "/resources" }
       ]
@@ -47,7 +47,7 @@
   "pages": [
     {
       "file": "index.html",
-      "url": "/",
+      "url": "/home",
       "layout": "home",
       "title": "Accessrank — ADA accessibility score & SEO for DTC ecommerce",
       "description": "A low accessibility score is a lawsuit waiting to happen. Accessrank raises your ADA/WCAG 2.2 AA score with real code fixes, and lifts your SEO at the same time.",

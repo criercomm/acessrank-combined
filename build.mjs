@@ -188,6 +188,19 @@ function build() {
   console.log(`  js   ${jsName} (${(jsSource.length / 1024).toFixed(1)} kB)`);
   console.log(`  copy ${copied} static files`);
 
+  // The investor deck is the site root now (accessrank.ai/ opens on it; the
+  // marketing site moved to /home — see site.json). Its own build already
+  // landed at DIST/deck (copied above from src/assets/static/deck), and that
+  // HTML references its assets with absolute /deck/... paths — so copying it
+  // to the root works unmodified, since those files still live right there.
+  const deckIndex = path.join(DIST, 'deck', 'index.html');
+  if (fs.existsSync(deckIndex)) {
+    fs.copyFileSync(deckIndex, path.join(DIST, 'index.html'));
+    console.log('  root / now serves the deck (dist/deck/index.html)');
+  } else {
+    console.warn('  ! dist/deck/index.html not found — root "/" will not serve the deck');
+  }
+
   // --- pages --------------------------------------------------------------
   const shell = fs.readFileSync(path.join(SRC, 'partials', 'shell.html'), 'utf8');
   const written = [];
@@ -274,9 +287,18 @@ function build() {
   </url>`)
     .join('\n');
 
+  // The deck at "/" isn't a templated page (see the copy step above), so it
+  // gets its own hand-written sitemap entry as the actual homepage.
+  const rootUrl = `  <url>
+    <loc>${SITE_URL}/</loc>
+    <lastmod>${today}</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>`;
+
   fs.writeFileSync(
     path.join(DIST, 'sitemap.xml'),
-    `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls}\n</urlset>\n`,
+    `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${rootUrl}\n${urls}\n</urlset>\n`,
   );
 
   fs.writeFileSync(
