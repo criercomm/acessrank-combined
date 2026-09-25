@@ -1,0 +1,828 @@
+{
+  "deck": "R",
+  "name": "Accessrank · Fix the code. Prove it.",
+  "brand": "Accessrank (nombre solo en texto)",
+  "spine": "Widgets hide the problem. AccessRank fixes the code — and proves it.",
+  "styleLock": {
+    "lock": "Dark studio product photography, deep navy seamless background, single cool key light from top-left, warm amber rim light, 85mm lens, matte surfaces, plain matte floor, clean silhouette edges for cut-out.",
+    "plate": "deep navy sky, a few warm amber windows, still water reflection in the foreground, restrained palette of navy, amber and white, subtle film grain, negative space in the upper third for typography. 24mm lens, full-frame cinema camera.",
+    "negatives": "No logos, no text, no watermark, no visible faces, no brand names, no screens with UI.",
+    "note": "Todo prompt lleva LOCK + NEG. Productos = diseños originales de la tienda ficticia \"Northline Goods\". Siluetas siempre de espaldas."
+  },
+  "credits": {
+    "ceiling": 10000,
+    "warnAt": 8000,
+    "generationsCeiling": 60,
+    "balanceStart": 23035,
+    "balanceDate": "2026-09-14",
+    "spent": 3160,
+    "generations": 16,
+    "log": [
+      {
+        "date": "2026-09-14T20:15:38",
+        "credits": 1000,
+        "generations": 10,
+        "note": "Lote 1: hojas producto A/B, sobre, trío siluetas, placa Dallas (seedream-5-pro 2k, count 2 c/u)"
+      },
+      {
+        "date": "2026-09-14T20:21:06",
+        "credits": 160,
+        "generations": 1,
+        "note": "Cama musical 90 s (google-lyria-3-pro)"
+      },
+      {
+        "date": "2026-09-15T13:10:54",
+        "credits": 1400,
+        "generations": 4,
+        "note": "V2: mockup home gpt-2 transparente x2 (600 c/u) + Seedream x2 (100 c/u)"
+      },
+      {
+        "date": "2026-09-15T23:11:31",
+        "credits": 600,
+        "generations": 1,
+        "note": "V3: mockup home sola (gpt-2 transparente x1)"
+      }
+    ]
+  },
+  "audio": {
+    "bed": false,
+    "muted": false,
+    "sfx": {
+      "click": "assets/audio/sfx-click.opus",
+      "whoosh": "assets/audio/sfx-whoosh.opus",
+      "clack": [
+        "assets/audio/sfx-clack-1.opus",
+        "assets/audio/sfx-clack-2.opus",
+        "assets/audio/sfx-clack-3.opus"
+      ],
+      "tick": "assets/audio/sfx-tick.opus",
+      "blip": "assets/audio/sfx-blip.opus",
+      "braam": "assets/audio/sfx-braam.opus",
+      "power": "assets/audio/sfx-room-on.opus",
+      "power-off": "assets/audio/sfx-room-off.opus"
+    }
+  },
+  "updated": "2026-09-15",
+  "assets": [
+    {
+      "id": "dR-s01-product-sheet-A",
+      "slide": 1,
+      "group": "sheet",
+      "kind": "image",
+      "status": "pending",
+      "file": null,
+      "files": null,
+      "w": 2048,
+      "h": 1152,
+      "anchor": "center",
+      "z": 1,
+      "shadow": false,
+      "contactY": null,
+      "ratio": "16:9",
+      "note": "Lote 1 · hoja A (count 2, curada la 2: WDhfmFjcXe). Se trocea en 4 cut-outs.",
+      "source": {
+        "model": "seedream-5-pro (Magnific) 2k",
+        "prompt": "Contact sheet of four separate ecommerce products evenly spaced in a single row, generous gaps between them, none touching: an original-design running sneaker in off-white and slate with no brand marks; a frosted glass skincare pump bottle with a blank label area; a matte cream ceramic candle in a short vessel; a pair of matte black over-ear headphones standing upright. Dark studio product photography, deep navy seamless background, single cool key light from top-left, warm amber rim light, 85mm lens, matte surfaces, plain matte floor, clean silhouette edges for cut-out. No logos, no text, no watermark, no visible faces, no brand names, no screens with UI.",
+        "refs": [],
+        "candidates": [
+          "VXCQf5yMMU",
+          "WDhfmFjcXe"
+        ],
+        "creation": "WDhfmFjcXe",
+        "date": "2026-09-14",
+        "credits": 100,
+        "count": 2,
+        "chosen_by": "Claude (nitidez, luz, textura)"
+      },
+      "qa": null
+    },
+    {
+      "id": "dR-s01-product-sheet-B",
+      "slide": 1,
+      "group": "sheet",
+      "kind": "image",
+      "status": "pending",
+      "file": null,
+      "files": null,
+      "w": 2048,
+      "h": 1152,
+      "anchor": "center",
+      "z": 1,
+      "shadow": false,
+      "contactY": null,
+      "ratio": "16:9",
+      "note": "Lote 1 · hoja B (count 2, curada la 1: cpvChb40eP, lámpara apagada como pedía el prompt).",
+      "source": {
+        "model": "seedream-5-pro (Magnific) 2k",
+        "prompt": "Contact sheet of four separate ecommerce products evenly spaced in a single row, generous gaps between them, none touching: a neatly folded oatmeal knit sweater; a tan full-grain leather bifold wallet standing slightly open; a matte sage-green insulated steel water bottle; a small brass and black articulated desk lamp switched off. Dark studio product photography, deep navy seamless background, single cool key light from top-left, warm amber rim light, 85mm lens, matte surfaces, plain matte floor, clean silhouette edges for cut-out. No logos, no text, no watermark, no visible faces, no brand names, no screens with UI.",
+        "refs": [],
+        "candidates": [
+          "cpvChb40eP",
+          "xS6RNYKjfW"
+        ],
+        "creation": "cpvChb40eP",
+        "date": "2026-09-14",
+        "credits": 100,
+        "count": 2,
+        "chosen_by": "Claude"
+      },
+      "qa": null
+    },
+    {
+      "id": "dR-s05-silhouette-sheet",
+      "slide": 5,
+      "group": "sheet",
+      "kind": "image",
+      "status": "pending",
+      "file": null,
+      "files": null,
+      "w": 2048,
+      "h": 1152,
+      "anchor": "center",
+      "z": 1,
+      "shadow": false,
+      "contactY": null,
+      "ratio": "16:9",
+      "note": "Lote 1 · trío de siluetas (count 2, curada la 2: xS6RNMXjfW; las tres estrictamente de espaldas). QA: ningún rasgo facial.",
+      "source": {
+        "model": "seedream-5-pro (Magnific) 2k",
+        "prompt": "Three separate human figures seen strictly from behind, widely spaced in a single row with generous gaps, none touching, faces never visible: on the left a person seated at a desk typing on a laptop, in the middle a standing person holding a phone in one hand, on the right a person in a manual wheelchair at a desk. Backlit by a warm amber rim light with a cool key from top-left, dark studio, Dark studio product photography, deep navy seamless background, single cool key light from top-left, warm amber rim light, 85mm lens, matte surfaces, plain matte floor, clean silhouette edges for cut-out. No logos, no text, no watermark, no visible faces, no brand names, no screens with UI.",
+        "refs": [],
+        "candidates": [
+          "mErL197hJQ",
+          "xS6RNMXjfW"
+        ],
+        "creation": "xS6RNMXjfW",
+        "date": "2026-09-14",
+        "credits": 100,
+        "count": 2,
+        "chosen_by": "Claude (regla de rostros)"
+      },
+      "qa": null
+    },
+    {
+      "id": "dR-s01-product-sneaker",
+      "slide": 1,
+      "group": "product",
+      "kind": "image",
+      "status": "final",
+      "file": "assets/final/dr-s01-product-sneaker-791.avif",
+      "files": {
+        "avif": {
+          "791": "assets/final/dr-s01-product-sneaker-791.avif"
+        },
+        "webp": {
+          "791": "assets/final/dr-s01-product-sneaker-791.webp"
+        }
+      },
+      "w": 791,
+      "h": 645,
+      "anchor": "center",
+      "z": 3,
+      "shadow": true,
+      "contactY": 539,
+      "ratio": null,
+      "note": "S01/S04 · cut-out sneaker recortado de la hoja A → cutout-factory (QA + sombra) → AVIF/WebP.",
+      "source": {
+        "model": "crop local de una hoja (sin costo)",
+        "prompt": "",
+        "refs": [
+          "dR-s01-product-sheet-A"
+        ],
+        "candidates": [],
+        "creation": null,
+        "date": "2026-09-14",
+        "credits": 0,
+        "count": 1,
+        "chosen_by": null
+      },
+      "qa": "pass"
+    },
+    {
+      "id": "dR-s01-product-skincare",
+      "slide": 1,
+      "group": "product",
+      "kind": "image",
+      "status": "final",
+      "file": "assets/final/dr-s01-product-skincare-293.avif",
+      "files": {
+        "avif": {
+          "293": "assets/final/dr-s01-product-skincare-293.avif"
+        },
+        "webp": {
+          "293": "assets/final/dr-s01-product-skincare-293.webp"
+        }
+      },
+      "w": 293,
+      "h": 643,
+      "anchor": "center",
+      "z": 3,
+      "shadow": true,
+      "contactY": 580,
+      "ratio": null,
+      "note": "S01/S04 · cut-out skincare recortado de la hoja A → cutout-factory (QA + sombra) → AVIF/WebP.",
+      "source": {
+        "model": "crop local de una hoja (sin costo)",
+        "prompt": "",
+        "refs": [
+          "dR-s01-product-sheet-A"
+        ],
+        "candidates": [],
+        "creation": null,
+        "date": "2026-09-14",
+        "credits": 0,
+        "count": 1,
+        "chosen_by": null
+      },
+      "qa": "pass"
+    },
+    {
+      "id": "dR-s01-product-candle",
+      "slide": 1,
+      "group": "product",
+      "kind": "image",
+      "status": "final",
+      "file": "assets/final/dr-s01-product-candle-402.avif",
+      "files": {
+        "avif": {
+          "402": "assets/final/dr-s01-product-candle-402.avif"
+        },
+        "webp": {
+          "402": "assets/final/dr-s01-product-candle-402.webp"
+        }
+      },
+      "w": 402,
+      "h": 411,
+      "anchor": "center",
+      "z": 3,
+      "shadow": true,
+      "contactY": 352,
+      "ratio": null,
+      "note": "S01/S04 · cut-out candle recortado de la hoja A → cutout-factory (QA + sombra) → AVIF/WebP.",
+      "source": {
+        "model": "crop local de una hoja (sin costo)",
+        "prompt": "",
+        "refs": [
+          "dR-s01-product-sheet-A"
+        ],
+        "candidates": [],
+        "creation": null,
+        "date": "2026-09-14",
+        "credits": 0,
+        "count": 1,
+        "chosen_by": null
+      },
+      "qa": "pass"
+    },
+    {
+      "id": "dR-s01-product-headphones",
+      "slide": 1,
+      "group": "product",
+      "kind": "image",
+      "status": "final",
+      "file": "assets/final/dr-s01-product-headphones-703.avif",
+      "files": {
+        "avif": {
+          "703": "assets/final/dr-s01-product-headphones-703.avif"
+        },
+        "webp": {
+          "703": "assets/final/dr-s01-product-headphones-703.webp"
+        }
+      },
+      "w": 703,
+      "h": 841,
+      "anchor": "center",
+      "z": 3,
+      "shadow": true,
+      "contactY": 730,
+      "ratio": null,
+      "note": "S01/S04 · cut-out headphones recortado de la hoja A → cutout-factory (QA + sombra) → AVIF/WebP.",
+      "source": {
+        "model": "crop local de una hoja (sin costo)",
+        "prompt": "",
+        "refs": [
+          "dR-s01-product-sheet-A"
+        ],
+        "candidates": [],
+        "creation": null,
+        "date": "2026-09-14",
+        "credits": 0,
+        "count": 1,
+        "chosen_by": null
+      },
+      "qa": "pass"
+    },
+    {
+      "id": "dR-s01-product-sweater",
+      "slide": 1,
+      "group": "product",
+      "kind": "image",
+      "status": "final",
+      "file": "assets/final/dr-s01-product-sweater-930.avif",
+      "files": {
+        "avif": {
+          "800": "assets/final/dr-s01-product-sweater-800.avif",
+          "930": "assets/final/dr-s01-product-sweater-930.avif"
+        },
+        "webp": {
+          "800": "assets/final/dr-s01-product-sweater-800.webp",
+          "930": "assets/final/dr-s01-product-sweater-930.webp"
+        }
+      },
+      "w": 930,
+      "h": 551,
+      "anchor": "center",
+      "z": 3,
+      "shadow": true,
+      "contactY": 441,
+      "ratio": null,
+      "note": "S01/S04 · cut-out sweater recortado de la hoja B → cutout-factory (QA + sombra) → AVIF/WebP.",
+      "source": {
+        "model": "crop local de una hoja (sin costo)",
+        "prompt": "",
+        "refs": [
+          "dR-s01-product-sheet-B"
+        ],
+        "candidates": [],
+        "creation": null,
+        "date": "2026-09-14",
+        "credits": 0,
+        "count": 1,
+        "chosen_by": null
+      },
+      "qa": "pass"
+    },
+    {
+      "id": "dR-s01-product-wallet",
+      "slide": 1,
+      "group": "product",
+      "kind": "image",
+      "status": "final",
+      "file": "assets/final/dr-s01-product-wallet-391.avif",
+      "files": {
+        "avif": {
+          "391": "assets/final/dr-s01-product-wallet-391.avif"
+        },
+        "webp": {
+          "391": "assets/final/dr-s01-product-wallet-391.webp"
+        }
+      },
+      "w": 391,
+      "h": 463,
+      "anchor": "center",
+      "z": 3,
+      "shadow": true,
+      "contactY": 402,
+      "ratio": null,
+      "note": "S01/S04 · cut-out wallet recortado de la hoja B → cutout-factory (QA + sombra) → AVIF/WebP.",
+      "source": {
+        "model": "crop local de una hoja (sin costo)",
+        "prompt": "",
+        "refs": [
+          "dR-s01-product-sheet-B"
+        ],
+        "candidates": [],
+        "creation": null,
+        "date": "2026-09-14",
+        "credits": 0,
+        "count": 1,
+        "chosen_by": null
+      },
+      "qa": "fail"
+    },
+    {
+      "id": "dR-s01-product-bottle",
+      "slide": 1,
+      "group": "product",
+      "kind": "image",
+      "status": "final",
+      "file": "assets/final/dr-s01-product-bottle-286.avif",
+      "files": {
+        "avif": {
+          "286": "assets/final/dr-s01-product-bottle-286.avif"
+        },
+        "webp": {
+          "286": "assets/final/dr-s01-product-bottle-286.webp"
+        }
+      },
+      "w": 286,
+      "h": 762,
+      "anchor": "center",
+      "z": 3,
+      "shadow": true,
+      "contactY": 691,
+      "ratio": null,
+      "note": "S01/S04 · cut-out bottle recortado de la hoja B → cutout-factory (QA + sombra) → AVIF/WebP.",
+      "source": {
+        "model": "crop local de una hoja (sin costo)",
+        "prompt": "",
+        "refs": [
+          "dR-s01-product-sheet-B"
+        ],
+        "candidates": [],
+        "creation": null,
+        "date": "2026-09-14",
+        "credits": 0,
+        "count": 1,
+        "chosen_by": null
+      },
+      "qa": "pass"
+    },
+    {
+      "id": "dR-s01-product-lamp",
+      "slide": 1,
+      "group": "product",
+      "kind": "image",
+      "status": "final",
+      "file": "assets/final/dr-s01-product-lamp-805.avif",
+      "files": {
+        "avif": {
+          "800": "assets/final/dr-s01-product-lamp-800.avif",
+          "805": "assets/final/dr-s01-product-lamp-805.avif"
+        },
+        "webp": {
+          "800": "assets/final/dr-s01-product-lamp-800.webp",
+          "805": "assets/final/dr-s01-product-lamp-805.webp"
+        }
+      },
+      "w": 805,
+      "h": 785,
+      "anchor": "center",
+      "z": 3,
+      "shadow": true,
+      "contactY": 669,
+      "ratio": null,
+      "note": "S01/S04 · cut-out lamp recortado de la hoja B → cutout-factory (QA + sombra) → AVIF/WebP.",
+      "source": {
+        "model": "crop local de una hoja (sin costo)",
+        "prompt": "",
+        "refs": [
+          "dR-s01-product-sheet-B"
+        ],
+        "candidates": [],
+        "creation": null,
+        "date": "2026-09-14",
+        "credits": 0,
+        "count": 1,
+        "chosen_by": null
+      },
+      "qa": "pass"
+    },
+    {
+      "id": "dR-s05-silhouette-operator",
+      "slide": 5,
+      "group": "silhouette",
+      "kind": "image",
+      "status": "final",
+      "file": "assets/final/dr-s05-silhouette-operator-862.avif",
+      "files": {
+        "avif": {
+          "800": "assets/final/dr-s05-silhouette-operator-800.avif",
+          "862": "assets/final/dr-s05-silhouette-operator-862.avif"
+        },
+        "webp": {
+          "800": "assets/final/dr-s05-silhouette-operator-800.webp",
+          "862": "assets/final/dr-s05-silhouette-operator-862.webp"
+        }
+      },
+      "w": 862,
+      "h": 1029,
+      "anchor": "center",
+      "z": 2,
+      "shadow": true,
+      "contactY": 893,
+      "ratio": null,
+      "note": "S05 · silueta operator (de espaldas) recortada del trío → cutout-factory.",
+      "source": {
+        "model": "crop local de una hoja (sin costo)",
+        "prompt": "",
+        "refs": [
+          "dR-s05-silhouette-sheet"
+        ],
+        "candidates": [],
+        "creation": null,
+        "date": "2026-09-14",
+        "credits": 0,
+        "count": 1,
+        "chosen_by": null
+      },
+      "qa": "review"
+    },
+    {
+      "id": "dR-s05-silhouette-client",
+      "slide": 5,
+      "group": "silhouette",
+      "kind": "image",
+      "status": "final",
+      "file": "assets/final/dr-s05-silhouette-client-426.avif",
+      "files": {
+        "avif": {
+          "426": "assets/final/dr-s05-silhouette-client-426.avif"
+        },
+        "webp": {
+          "426": "assets/final/dr-s05-silhouette-client-426.webp"
+        }
+      },
+      "w": 426,
+      "h": 1227,
+      "anchor": "center",
+      "z": 2,
+      "shadow": true,
+      "contactY": 1114,
+      "ratio": null,
+      "note": "S05 · silueta client (de espaldas) recortada del trío → cutout-factory.",
+      "source": {
+        "model": "crop local de una hoja (sin costo)",
+        "prompt": "",
+        "refs": [
+          "dR-s05-silhouette-sheet"
+        ],
+        "candidates": [],
+        "creation": null,
+        "date": "2026-09-14",
+        "credits": 0,
+        "count": 1,
+        "chosen_by": null
+      },
+      "qa": "fail"
+    },
+    {
+      "id": "dR-s05-silhouette-shopper",
+      "slide": 5,
+      "group": "silhouette",
+      "kind": "image",
+      "status": "final",
+      "file": "assets/final/dr-s05-silhouette-shopper-847.avif",
+      "files": {
+        "avif": {
+          "800": "assets/final/dr-s05-silhouette-shopper-800.avif",
+          "847": "assets/final/dr-s05-silhouette-shopper-847.avif"
+        },
+        "webp": {
+          "800": "assets/final/dr-s05-silhouette-shopper-800.webp",
+          "847": "assets/final/dr-s05-silhouette-shopper-847.webp"
+        }
+      },
+      "w": 847,
+      "h": 995,
+      "anchor": "center",
+      "z": 2,
+      "shadow": true,
+      "contactY": 862,
+      "ratio": null,
+      "note": "S05 · silueta shopper (de espaldas) recortada del trío → cutout-factory.",
+      "source": {
+        "model": "crop local de una hoja (sin costo)",
+        "prompt": "",
+        "refs": [
+          "dR-s05-silhouette-sheet"
+        ],
+        "candidates": [],
+        "creation": null,
+        "date": "2026-09-14",
+        "credits": 0,
+        "count": 1,
+        "chosen_by": null
+      },
+      "qa": "review"
+    },
+    {
+      "id": "dR-s02-letter-envelope",
+      "slide": 2,
+      "group": "letter",
+      "kind": "image",
+      "status": "final",
+      "file": "assets/final/dr-s02-letter-envelope-1343.avif",
+      "files": {
+        "avif": {
+          "800": "assets/final/dr-s02-letter-envelope-800.avif",
+          "1343": "assets/final/dr-s02-letter-envelope-1343.avif"
+        },
+        "webp": {
+          "800": "assets/final/dr-s02-letter-envelope-800.webp",
+          "1343": "assets/final/dr-s02-letter-envelope-1343.webp"
+        }
+      },
+      "w": 1343,
+      "h": 591,
+      "anchor": "center",
+      "z": 3,
+      "shadow": true,
+      "contactY": 445,
+      "ratio": "3:2",
+      "note": "S02 · el sobre de demanda (count 2, curado el 1: gO2zZpASXO, plano y centrado). Cut-out con sombra.",
+      "source": {
+        "model": "seedream-5-pro (Magnific) 2k",
+        "prompt": "A single closed cream-colored legal envelope with a dark red wax seal, seen from a slight three-quarter angle, resting flat on a plain surface, the corner of a folded formal letter showing at the flap, the envelope centered with generous empty space around it. Dark studio product photography, deep navy seamless background, single cool key light from top-left, warm amber rim light, 85mm lens, matte surfaces, plain matte floor, clean silhouette edges for cut-out. No logos, no text, no watermark, no visible faces, no brand names, no screens with UI. No handwriting, no stamps.",
+        "refs": [],
+        "candidates": [
+          "gO2zZpASXO",
+          "rgN39cnxtc"
+        ],
+        "creation": "gO2zZpASXO",
+        "date": "2026-09-14",
+        "credits": 100,
+        "count": 2,
+        "chosen_by": "Claude"
+      },
+      "qa": "pass"
+    },
+    {
+      "id": "dR-s08-plate-dallas",
+      "slide": 8,
+      "group": "plate",
+      "kind": "image",
+      "status": "final",
+      "file": "assets/final/dr-s08-plate-dallas-2048.avif",
+      "files": {
+        "avif": {
+          "960": "assets/final/dr-s08-plate-dallas-960.avif",
+          "1440": "assets/final/dr-s08-plate-dallas-1440.avif",
+          "2000": "assets/final/dr-s08-plate-dallas-2000.avif",
+          "2048": "assets/final/dr-s08-plate-dallas-2048.avif"
+        },
+        "webp": {
+          "960": "assets/final/dr-s08-plate-dallas-960.webp",
+          "1440": "assets/final/dr-s08-plate-dallas-1440.webp",
+          "2000": "assets/final/dr-s08-plate-dallas-2000.webp",
+          "2048": "assets/final/dr-s08-plate-dallas-2048.webp"
+        }
+      },
+      "w": 2048,
+      "h": 878,
+      "anchor": "center",
+      "z": 0,
+      "shadow": false,
+      "contactY": null,
+      "ratio": "21:9",
+      "note": "S08 · placa de Dallas 21:9 (count 2). Sin uso desde la V2 (JP quitó Dallas); se conserva como asset.",
+      "source": {
+        "model": "seedream-5-pro (Magnific) 2k",
+        "prompt": "Wide cinematic view of the downtown Dallas, Texas skyline at blue-hour dusk seen from across the Trinity River floodplain, the ball-topped observation tower and the tall skyscrapers outlined in soft light, deep navy sky, a few warm amber windows, still water reflection in the foreground, restrained palette of navy, amber and white, subtle film grain, negative space in the upper third for typography. 24mm lens, full-frame cinema camera. No logos, no text, no signage, no watermark, no visible faces, no people, no billboards.",
+        "refs": [],
+        "candidates": [
+          "ks46PDg16B",
+          "Lw32iBnswO"
+        ],
+        "creation": null,
+        "date": "2026-09-14",
+        "credits": 100,
+        "count": 2,
+        "chosen_by": null
+      },
+      "qa": null
+    },
+    {
+      "id": "dR-s01-mockup-home",
+      "slide": 1,
+      "group": "mockup",
+      "kind": "image",
+      "status": "final",
+      "file": "assets/final/dr-s01-mockup-home-2000.avif",
+      "files": {
+        "avif": {
+          "800": "assets/final/dr-s01-mockup-home-800.avif",
+          "1600": "assets/final/dr-s01-mockup-home-1600.avif",
+          "2000": "assets/final/dr-s01-mockup-home-2000.avif"
+        },
+        "webp": {
+          "800": "assets/final/dr-s01-mockup-home-800.webp",
+          "1600": "assets/final/dr-s01-mockup-home-1600.webp",
+          "2000": "assets/final/dr-s01-mockup-home-2000.webp"
+        }
+      },
+      "w": 2000,
+      "h": 1346,
+      "anchor": "center",
+      "z": 3,
+      "shadow": true,
+      "contactY": 1573,
+      "ratio": "16:9",
+      "note": "S01 (V2) · home de ecommerce en 3D (JP). gpt-2 con fondo transparente, count 2; candidato Seedream (P30CEey42C, 1l9Dp2Gr4r) como plan B. Cut-out + sombra vía cutout-factory --keep-alpha.",
+      "source": {
+        "model": "gpt-2 (Magnific) 2k high, transparent background",
+        "prompt": "A floating 3D mockup of an ecommerce website home page for a fictional outdoor lifestyle brand called \"Northline Goods\", rendered as a tilted browser window in perspective with a few product cards lifted out of the page as separate floating layers; nav, hero \"Built for cold mornings.\", yellow button, six product cards, newsletter strip; deep navy UI, white text, single yellow accent; single cool key light from top-left with a warm amber rim light. Isolated on a transparent background. No real brand logos, no watermark, no visible faces.",
+        "refs": [],
+        "candidates": [
+          "CqlAGl1EEy",
+          "lJZo8Zcgv9"
+        ],
+        "creation": "lJZo8Zcgv9",
+        "date": "2026-09-15",
+        "credits": 600,
+        "count": 2,
+        "chosen_by": "Claude (composición más limpia, tarjetas flotando a los lados, texto legible)"
+      },
+      "qa": "review"
+    },
+    {
+      "id": "dR-s01-mockup-single",
+      "slide": 1,
+      "group": "mockup",
+      "kind": "image",
+      "status": "final",
+      "file": "assets/final/dr-s01-mockup-single-2000.avif",
+      "files": {
+        "avif": {
+          "800": "assets/final/dr-s01-mockup-single-800.avif",
+          "1600": "assets/final/dr-s01-mockup-single-1600.avif",
+          "2000": "assets/final/dr-s01-mockup-single-2000.avif"
+        },
+        "webp": {
+          "800": "assets/final/dr-s01-mockup-single-800.webp",
+          "1600": "assets/final/dr-s01-mockup-single-1600.webp",
+          "2000": "assets/final/dr-s01-mockup-single-2000.webp"
+        }
+      },
+      "w": 2000,
+      "h": 1353,
+      "anchor": "center",
+      "z": 3,
+      "shadow": true,
+      "contactY": 1574,
+      "ratio": "16:9",
+      "note": "S01 (V3, JP): solo la ventana principal, sin tarjetas flotantes; se muestra un 12 % más grande. gpt-2 fondo transparente, count 1 (el segundo candidato lo rechazó el límite de uso de gpt-2).",
+      "source": {
+        "model": "gpt-2 (Magnific) 2k high, transparent background",
+        "prompt": "A single floating 3D mockup of an ecommerce website home page for a fictional outdoor lifestyle brand called \"Northline Goods\", one tilted browser window in perspective, nothing floating outside it; nav, hero \"Built for cold mornings.\", yellow button, six product cards, newsletter strip; deep navy UI, white text, single yellow accent; single cool key light from top-left with a warm amber rim light. Isolated on a transparent background. No real brand logos, no watermark, no visible faces.",
+        "refs": [],
+        "candidates": [
+          "mErc2HuhJQ"
+        ],
+        "creation": "mErc2HuhJQ",
+        "date": "2026-09-15",
+        "credits": 600,
+        "count": 1,
+        "chosen_by": null
+      },
+      "qa": "fail"
+    },
+    {
+      "id": "dR-s02-letter-page",
+      "slide": 2,
+      "group": "page",
+      "kind": "image",
+      "status": "final",
+      "file": "assets/final/dr-s02-letter-page-1714.avif",
+      "files": {
+        "avif": {
+          "900": "assets/final/dr-s02-letter-page-900.avif",
+          "1714": "assets/final/dr-s02-letter-page-1714.avif"
+        },
+        "webp": {
+          "900": "assets/final/dr-s02-letter-page-900.webp",
+          "1714": "assets/final/dr-s02-letter-page-1714.webp"
+        }
+      },
+      "w": 1714,
+      "h": 2218,
+      "anchor": "center",
+      "z": 2,
+      "shadow": false,
+      "contactY": null,
+      "ratio": null,
+      "note": "S02 (V2) · página 1 del complaint real (Martinez v. Ecofish, Kings County, 2026-03-18) renderizada con scripts/letter-page.py; 24 regiones desenfocadas (personas, direcciones, teléfono, email, bufete, cliente, índice). Sin costo.",
+      "source": {
+        "model": "render local del PDF (PyMuPDF) + desenfoque (sin costo)",
+        "prompt": "",
+        "refs": [],
+        "candidates": [],
+        "creation": null,
+        "date": "2026-09-15",
+        "credits": 0,
+        "count": 1,
+        "chosen_by": null
+      },
+      "qa": null
+    },
+    {
+      "id": "dR-bed",
+      "slide": 0,
+      "group": "audio",
+      "kind": "audio",
+      "status": "retired",
+      "file": "assets/source/audio/dr-bed.opus",
+      "files": null,
+      "w": 0,
+      "h": 0,
+      "anchor": "center",
+      "z": 1,
+      "shadow": false,
+      "contactY": null,
+      "ratio": null,
+      "note": "Cama 90 s (Lyria 3 Pro, 160 cr.) → −16 LUFS, loop, Opus. Arranca al entrar con sonido. · Retirada 2026-09-18: Carlos quiere solo efectos, sin cama musical (archivo en assets/source/audio).",
+      "source": {
+        "model": "audio_music_generate google-lyria-3-pro 90s",
+        "prompt": "quiet confident electronic pulse, warm analog pads, subtle sub bass, minimal percussion, 96 bpm, instrumental, cinematic corporate, narrow stereo, no vocals",
+        "refs": [],
+        "candidates": [],
+        "creation": "SyAnYt1Ub8",
+        "date": "2026-09-14",
+        "credits": 160,
+        "count": 1,
+        "chosen_by": null
+      },
+      "qa": null
+    }
+  ]
+}

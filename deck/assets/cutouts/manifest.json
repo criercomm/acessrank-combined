@@ -1,0 +1,1367 @@
+{
+  "version": 1,
+  "assets": {
+    "dr-s01-product-bottle": {
+      "id": "dr-s01-product-bottle",
+      "source": "C:/Developer/Decks/deck-accessrank/assets/source/curados/dR-s01-product-bottle.png",
+      "source_size": [
+        286,
+        724
+      ],
+      "method": "keep-alpha",
+      "cutout": "cutouts/dr-s01-product-bottle.png",
+      "size": [
+        286,
+        724
+      ],
+      "pad": 32,
+      "bbox_in_source": [
+        32,
+        32,
+        254,
+        692
+      ],
+      "clipped": false,
+      "seconds": 0.04,
+      "qa": {
+        "status": "pass",
+        "hard": 0,
+        "soft_width": 3.13,
+        "halo": 0.068,
+        "dark": 0.035,
+        "specks": 0,
+        "islands": 0,
+        "pinholes": 1,
+        "notes": []
+      },
+      "shadow": "shadows/dr-s01-product-bottle.png",
+      "shadow_size": [
+        286,
+        762
+      ],
+      "shadow_offset": [
+        0,
+        0
+      ],
+      "contact_y": 691,
+      "shadow_params": {
+        "mode": "contact",
+        "opacity": 0.45,
+        "blur": 0.035,
+        "squash": 0.14,
+        "spread": 1,
+        "ao_opacity": 0.45,
+        "ao_blur": 0.012,
+        "ao_squash": 0.05,
+        "lift": 0,
+        "color": [
+          0,
+          0,
+          0
+        ],
+        "drop_dx": 0.02,
+        "drop_dy": 0.03,
+        "drop_blur": 0.02,
+        "drop_opacity": 0.3
+      },
+      "outputs": {
+        "avif": [
+          {
+            "w": 286,
+            "h": 762,
+            "file": "../final/dr-s01-product-bottle-286.avif",
+            "bytes": 8303
+          }
+        ],
+        "webp": [
+          {
+            "w": 286,
+            "h": 762,
+            "file": "../final/dr-s01-product-bottle-286.webp",
+            "bytes": 20448
+          }
+        ]
+      },
+      "srcset": {
+        "avif": "../final/dr-s01-product-bottle-286.avif 286w",
+        "webp": "../final/dr-s01-product-bottle-286.webp 286w"
+      },
+      "web_source": "shadows/dr-s01-product-bottle.png",
+      "picture_html": "<picture>\n  <source type=\"image/avif\" srcset=\"../final/dr-s01-product-bottle-286.avif 286w\" sizes=\"(max-width: 600px) 90vw, 50vw\">\n  <source type=\"image/webp\" srcset=\"../final/dr-s01-product-bottle-286.webp 286w\" sizes=\"(max-width: 600px) 90vw, 50vw\">\n  <img src=\"../final/dr-s01-product-bottle-286.webp\" width=\"286\" height=\"762\" alt=\"\" decoding=\"async\" loading=\"lazy\">\n</picture>"
+    },
+    "dr-s01-product-candle": {
+      "id": "dr-s01-product-candle",
+      "source": "C:/Developer/Decks/deck-accessrank/assets/source/curados/dR-s01-product-candle.png",
+      "source_size": [
+        396,
+        385
+      ],
+      "method": "keep-alpha",
+      "cutout": "cutouts/dr-s01-product-candle.png",
+      "size": [
+        396,
+        385
+      ],
+      "pad": 32,
+      "bbox_in_source": [
+        32,
+        32,
+        364,
+        353
+      ],
+      "clipped": false,
+      "seconds": 0.03,
+      "qa": {
+        "status": "pass",
+        "hard": 0,
+        "soft_width": 2.78,
+        "halo": 0.065,
+        "dark": 0.009,
+        "specks": 0,
+        "islands": 0,
+        "pinholes": 0,
+        "notes": []
+      },
+      "shadow": "shadows/dr-s01-product-candle.png",
+      "shadow_size": [
+        402,
+        411
+      ],
+      "shadow_offset": [
+        3,
+        0
+      ],
+      "contact_y": 352,
+      "shadow_params": {
+        "mode": "contact",
+        "opacity": 0.45,
+        "blur": 0.035,
+        "squash": 0.14,
+        "spread": 1,
+        "ao_opacity": 0.45,
+        "ao_blur": 0.012,
+        "ao_squash": 0.05,
+        "lift": 0,
+        "color": [
+          0,
+          0,
+          0
+        ],
+        "drop_dx": 0.02,
+        "drop_dy": 0.03,
+        "drop_blur": 0.02,
+        "drop_opacity": 0.3
+      },
+      "outputs": {
+        "avif": [
+          {
+            "w": 402,
+            "h": 411,
+            "file": "../final/dr-s01-product-candle-402.avif",
+            "bytes": 6406
+          }
+        ],
+        "webp": [
+          {
+            "w": 402,
+            "h": 411,
+            "file": "../final/dr-s01-product-candle-402.webp",
+            "bytes": 14836
+          }
+        ]
+      },
+      "srcset": {
+        "avif": "../final/dr-s01-product-candle-402.avif 402w",
+        "webp": "../final/dr-s01-product-candle-402.webp 402w"
+      },
+      "web_source": "shadows/dr-s01-product-candle.png",
+      "picture_html": "<picture>\n  <source type=\"image/avif\" srcset=\"../final/dr-s01-product-candle-402.avif 402w\" sizes=\"(max-width: 600px) 90vw, 50vw\">\n  <source type=\"image/webp\" srcset=\"../final/dr-s01-product-candle-402.webp 402w\" sizes=\"(max-width: 600px) 90vw, 50vw\">\n  <img src=\"../final/dr-s01-product-candle-402.webp\" width=\"402\" height=\"411\" alt=\"\" decoding=\"async\" loading=\"lazy\">\n</picture>"
+    },
+    "dr-s01-product-headphones": {
+      "id": "dr-s01-product-headphones",
+      "source": "C:/Developer/Decks/deck-accessrank/assets/source/curados/dR-s01-product-headphones.png",
+      "source_size": [
+        645,
+        763
+      ],
+      "method": "keep-alpha",
+      "cutout": "cutouts/dr-s01-product-headphones.png",
+      "size": [
+        645,
+        763
+      ],
+      "pad": 32,
+      "bbox_in_source": [
+        32,
+        32,
+        613,
+        731
+      ],
+      "clipped": false,
+      "seconds": 0.09,
+      "qa": {
+        "status": "pass",
+        "hard": 0,
+        "soft_width": 3.26,
+        "halo": 0.042,
+        "dark": 0.014,
+        "specks": 0,
+        "islands": 0,
+        "pinholes": 0,
+        "notes": []
+      },
+      "shadow": "shadows/dr-s01-product-headphones.png",
+      "shadow_size": [
+        703,
+        841
+      ],
+      "shadow_offset": [
+        29,
+        0
+      ],
+      "contact_y": 730,
+      "shadow_params": {
+        "mode": "contact",
+        "opacity": 0.45,
+        "blur": 0.035,
+        "squash": 0.14,
+        "spread": 1,
+        "ao_opacity": 0.45,
+        "ao_blur": 0.012,
+        "ao_squash": 0.05,
+        "lift": 0,
+        "color": [
+          0,
+          0,
+          0
+        ],
+        "drop_dx": 0.02,
+        "drop_dy": 0.03,
+        "drop_blur": 0.02,
+        "drop_opacity": 0.3
+      },
+      "outputs": {
+        "avif": [
+          {
+            "w": 703,
+            "h": 841,
+            "file": "../final/dr-s01-product-headphones-703.avif",
+            "bytes": 20203
+          }
+        ],
+        "webp": [
+          {
+            "w": 703,
+            "h": 841,
+            "file": "../final/dr-s01-product-headphones-703.webp",
+            "bytes": 53714
+          }
+        ]
+      },
+      "srcset": {
+        "avif": "../final/dr-s01-product-headphones-703.avif 703w",
+        "webp": "../final/dr-s01-product-headphones-703.webp 703w"
+      },
+      "web_source": "shadows/dr-s01-product-headphones.png",
+      "picture_html": "<picture>\n  <source type=\"image/avif\" srcset=\"../final/dr-s01-product-headphones-703.avif 703w\" sizes=\"(max-width: 600px) 90vw, 50vw\">\n  <source type=\"image/webp\" srcset=\"../final/dr-s01-product-headphones-703.webp 703w\" sizes=\"(max-width: 600px) 90vw, 50vw\">\n  <img src=\"../final/dr-s01-product-headphones-703.webp\" width=\"703\" height=\"841\" alt=\"\" decoding=\"async\" loading=\"lazy\">\n</picture>"
+    },
+    "dr-s01-product-lamp": {
+      "id": "dr-s01-product-lamp",
+      "source": "C:/Developer/Decks/deck-accessrank/assets/source/curados/dR-s01-product-lamp.png",
+      "source_size": [
+        729,
+        702
+      ],
+      "method": "keep-alpha",
+      "cutout": "cutouts/dr-s01-product-lamp.png",
+      "size": [
+        729,
+        702
+      ],
+      "pad": 32,
+      "bbox_in_source": [
+        32,
+        32,
+        697,
+        670
+      ],
+      "clipped": false,
+      "seconds": 0.07,
+      "qa": {
+        "status": "pass",
+        "hard": 0.003,
+        "soft_width": 3.15,
+        "halo": 0.021,
+        "dark": 0.126,
+        "specks": 0,
+        "islands": 0,
+        "pinholes": 0,
+        "notes": []
+      },
+      "shadow": "shadows/dr-s01-product-lamp.png",
+      "shadow_size": [
+        805,
+        785
+      ],
+      "shadow_offset": [
+        37,
+        0
+      ],
+      "contact_y": 669,
+      "shadow_params": {
+        "mode": "contact",
+        "opacity": 0.45,
+        "blur": 0.035,
+        "squash": 0.14,
+        "spread": 1,
+        "ao_opacity": 0.45,
+        "ao_blur": 0.012,
+        "ao_squash": 0.05,
+        "lift": 0,
+        "color": [
+          0,
+          0,
+          0
+        ],
+        "drop_dx": 0.02,
+        "drop_dy": 0.03,
+        "drop_blur": 0.02,
+        "drop_opacity": 0.3
+      },
+      "outputs": {
+        "avif": [
+          {
+            "w": 800,
+            "h": 780,
+            "file": "../final/dr-s01-product-lamp-800.avif",
+            "bytes": 13773
+          },
+          {
+            "w": 805,
+            "h": 785,
+            "file": "../final/dr-s01-product-lamp-805.avif",
+            "bytes": 13483
+          }
+        ],
+        "webp": [
+          {
+            "w": 800,
+            "h": 780,
+            "file": "../final/dr-s01-product-lamp-800.webp",
+            "bytes": 42594
+          },
+          {
+            "w": 805,
+            "h": 785,
+            "file": "../final/dr-s01-product-lamp-805.webp",
+            "bytes": 37018
+          }
+        ]
+      },
+      "srcset": {
+        "avif": "../final/dr-s01-product-lamp-800.avif 800w, ../final/dr-s01-product-lamp-805.avif 805w",
+        "webp": "../final/dr-s01-product-lamp-800.webp 800w, ../final/dr-s01-product-lamp-805.webp 805w"
+      },
+      "web_source": "shadows/dr-s01-product-lamp.png",
+      "picture_html": "<picture>\n  <source type=\"image/avif\" srcset=\"../final/dr-s01-product-lamp-800.avif 800w, ../final/dr-s01-product-lamp-805.avif 805w\" sizes=\"(max-width: 600px) 90vw, 50vw\">\n  <source type=\"image/webp\" srcset=\"../final/dr-s01-product-lamp-800.webp 800w, ../final/dr-s01-product-lamp-805.webp 805w\" sizes=\"(max-width: 600px) 90vw, 50vw\">\n  <img src=\"../final/dr-s01-product-lamp-805.webp\" width=\"805\" height=\"785\" alt=\"\" decoding=\"async\" loading=\"lazy\">\n</picture>"
+    },
+    "dr-s01-product-skincare": {
+      "id": "dr-s01-product-skincare",
+      "source": "C:/Developer/Decks/deck-accessrank/assets/source/curados/dR-s01-product-skincare.png",
+      "source_size": [
+        293,
+        613
+      ],
+      "method": "keep-alpha",
+      "cutout": "cutouts/dr-s01-product-skincare.png",
+      "size": [
+        293,
+        613
+      ],
+      "pad": 32,
+      "bbox_in_source": [
+        32,
+        32,
+        261,
+        581
+      ],
+      "clipped": false,
+      "seconds": 0.03,
+      "qa": {
+        "status": "pass",
+        "hard": 0,
+        "soft_width": 2.79,
+        "halo": 0.022,
+        "dark": 0.013,
+        "specks": 0,
+        "islands": 0,
+        "pinholes": 0,
+        "notes": []
+      },
+      "shadow": "shadows/dr-s01-product-skincare.png",
+      "shadow_size": [
+        293,
+        643
+      ],
+      "shadow_offset": [
+        0,
+        0
+      ],
+      "contact_y": 580,
+      "shadow_params": {
+        "mode": "contact",
+        "opacity": 0.45,
+        "blur": 0.035,
+        "squash": 0.14,
+        "spread": 1,
+        "ao_opacity": 0.45,
+        "ao_blur": 0.012,
+        "ao_squash": 0.05,
+        "lift": 0,
+        "color": [
+          0,
+          0,
+          0
+        ],
+        "drop_dx": 0.02,
+        "drop_dy": 0.03,
+        "drop_blur": 0.02,
+        "drop_opacity": 0.3
+      },
+      "outputs": {
+        "avif": [
+          {
+            "w": 293,
+            "h": 643,
+            "file": "../final/dr-s01-product-skincare-293.avif",
+            "bytes": 7707
+          }
+        ],
+        "webp": [
+          {
+            "w": 293,
+            "h": 643,
+            "file": "../final/dr-s01-product-skincare-293.webp",
+            "bytes": 16498
+          }
+        ]
+      },
+      "srcset": {
+        "avif": "../final/dr-s01-product-skincare-293.avif 293w",
+        "webp": "../final/dr-s01-product-skincare-293.webp 293w"
+      },
+      "web_source": "shadows/dr-s01-product-skincare.png",
+      "picture_html": "<picture>\n  <source type=\"image/avif\" srcset=\"../final/dr-s01-product-skincare-293.avif 293w\" sizes=\"(max-width: 600px) 90vw, 50vw\">\n  <source type=\"image/webp\" srcset=\"../final/dr-s01-product-skincare-293.webp 293w\" sizes=\"(max-width: 600px) 90vw, 50vw\">\n  <img src=\"../final/dr-s01-product-skincare-293.webp\" width=\"293\" height=\"643\" alt=\"\" decoding=\"async\" loading=\"lazy\">\n</picture>"
+    },
+    "dr-s01-product-sneaker": {
+      "id": "dr-s01-product-sneaker",
+      "source": "C:/Developer/Decks/deck-accessrank/assets/source/curados/dR-s01-product-sneaker.png",
+      "source_size": [
+        718,
+        572
+      ],
+      "method": "keep-alpha",
+      "cutout": "cutouts/dr-s01-product-sneaker.png",
+      "size": [
+        718,
+        572
+      ],
+      "pad": 32,
+      "bbox_in_source": [
+        32,
+        32,
+        686,
+        540
+      ],
+      "clipped": false,
+      "seconds": 0.05,
+      "qa": {
+        "status": "pass",
+        "hard": 0,
+        "soft_width": 3.16,
+        "halo": 0.081,
+        "dark": 0.081,
+        "specks": 0,
+        "islands": 0,
+        "pinholes": 0,
+        "notes": []
+      },
+      "shadow": "shadows/dr-s01-product-sneaker.png",
+      "shadow_size": [
+        791,
+        645
+      ],
+      "shadow_offset": [
+        36,
+        0
+      ],
+      "contact_y": 539,
+      "shadow_params": {
+        "mode": "contact",
+        "opacity": 0.45,
+        "blur": 0.035,
+        "squash": 0.14,
+        "spread": 1,
+        "ao_opacity": 0.45,
+        "ao_blur": 0.012,
+        "ao_squash": 0.05,
+        "lift": 0,
+        "color": [
+          0,
+          0,
+          0
+        ],
+        "drop_dx": 0.02,
+        "drop_dy": 0.03,
+        "drop_blur": 0.02,
+        "drop_opacity": 0.3
+      },
+      "outputs": {
+        "avif": [
+          {
+            "w": 791,
+            "h": 645,
+            "file": "../final/dr-s01-product-sneaker-791.avif",
+            "bytes": 30360
+          }
+        ],
+        "webp": [
+          {
+            "w": 791,
+            "h": 645,
+            "file": "../final/dr-s01-product-sneaker-791.webp",
+            "bytes": 64818
+          }
+        ]
+      },
+      "srcset": {
+        "avif": "../final/dr-s01-product-sneaker-791.avif 791w",
+        "webp": "../final/dr-s01-product-sneaker-791.webp 791w"
+      },
+      "web_source": "shadows/dr-s01-product-sneaker.png",
+      "picture_html": "<picture>\n  <source type=\"image/avif\" srcset=\"../final/dr-s01-product-sneaker-791.avif 791w\" sizes=\"(max-width: 600px) 90vw, 50vw\">\n  <source type=\"image/webp\" srcset=\"../final/dr-s01-product-sneaker-791.webp 791w\" sizes=\"(max-width: 600px) 90vw, 50vw\">\n  <img src=\"../final/dr-s01-product-sneaker-791.webp\" width=\"791\" height=\"645\" alt=\"\" decoding=\"async\" loading=\"lazy\">\n</picture>"
+    },
+    "dr-s01-product-sweater": {
+      "id": "dr-s01-product-sweater",
+      "source": "C:/Developer/Decks/deck-accessrank/assets/source/curados/dR-s01-product-sweater.png",
+      "source_size": [
+        833,
+        474
+      ],
+      "method": "keep-alpha",
+      "cutout": "cutouts/dr-s01-product-sweater.png",
+      "size": [
+        833,
+        474
+      ],
+      "pad": 32,
+      "bbox_in_source": [
+        32,
+        32,
+        801,
+        442
+      ],
+      "clipped": false,
+      "seconds": 0.07,
+      "qa": {
+        "status": "pass",
+        "hard": 0,
+        "soft_width": 3.33,
+        "halo": 0.024,
+        "dark": 0.043,
+        "specks": 0,
+        "islands": 0,
+        "pinholes": 0,
+        "notes": []
+      },
+      "shadow": "shadows/dr-s01-product-sweater.png",
+      "shadow_size": [
+        930,
+        551
+      ],
+      "shadow_offset": [
+        48,
+        0
+      ],
+      "contact_y": 441,
+      "shadow_params": {
+        "mode": "contact",
+        "opacity": 0.45,
+        "blur": 0.035,
+        "squash": 0.14,
+        "spread": 1,
+        "ao_opacity": 0.45,
+        "ao_blur": 0.012,
+        "ao_squash": 0.05,
+        "lift": 0,
+        "color": [
+          0,
+          0,
+          0
+        ],
+        "drop_dx": 0.02,
+        "drop_dy": 0.03,
+        "drop_blur": 0.02,
+        "drop_opacity": 0.3
+      },
+      "outputs": {
+        "avif": [
+          {
+            "w": 800,
+            "h": 474,
+            "file": "../final/dr-s01-product-sweater-800.avif",
+            "bytes": 28311
+          },
+          {
+            "w": 930,
+            "h": 551,
+            "file": "../final/dr-s01-product-sweater-930.avif",
+            "bytes": 32821
+          }
+        ],
+        "webp": [
+          {
+            "w": 800,
+            "h": 474,
+            "file": "../final/dr-s01-product-sweater-800.webp",
+            "bytes": 64262
+          },
+          {
+            "w": 930,
+            "h": 551,
+            "file": "../final/dr-s01-product-sweater-930.webp",
+            "bytes": 71254
+          }
+        ]
+      },
+      "srcset": {
+        "avif": "../final/dr-s01-product-sweater-800.avif 800w, ../final/dr-s01-product-sweater-930.avif 930w",
+        "webp": "../final/dr-s01-product-sweater-800.webp 800w, ../final/dr-s01-product-sweater-930.webp 930w"
+      },
+      "web_source": "shadows/dr-s01-product-sweater.png",
+      "picture_html": "<picture>\n  <source type=\"image/avif\" srcset=\"../final/dr-s01-product-sweater-800.avif 800w, ../final/dr-s01-product-sweater-930.avif 930w\" sizes=\"(max-width: 600px) 90vw, 50vw\">\n  <source type=\"image/webp\" srcset=\"../final/dr-s01-product-sweater-800.webp 800w, ../final/dr-s01-product-sweater-930.webp 930w\" sizes=\"(max-width: 600px) 90vw, 50vw\">\n  <img src=\"../final/dr-s01-product-sweater-930.webp\" width=\"930\" height=\"551\" alt=\"\" decoding=\"async\" loading=\"lazy\">\n</picture>"
+    },
+    "dr-s01-product-wallet": {
+      "id": "dr-s01-product-wallet",
+      "source": "C:/Developer/Decks/deck-accessrank/assets/source/curados/dR-s01-product-wallet.png",
+      "source_size": [
+        388,
+        435
+      ],
+      "method": "keep-alpha",
+      "cutout": "cutouts/dr-s01-product-wallet.png",
+      "size": [
+        388,
+        435
+      ],
+      "pad": 32,
+      "bbox_in_source": [
+        32,
+        32,
+        356,
+        403
+      ],
+      "clipped": false,
+      "seconds": 0.01,
+      "qa": {
+        "status": "fail",
+        "hard": 0,
+        "soft_width": 2.9,
+        "halo": 0.245,
+        "dark": 0.03,
+        "specks": 0,
+        "islands": 0,
+        "pinholes": 0,
+        "notes": [
+          "halo fuerte -> cutout.py --erode 1 (defringe ya activo) o regenerar sobre fondo neutro"
+        ]
+      },
+      "shadow": "shadows/dr-s01-product-wallet.png",
+      "shadow_size": [
+        391,
+        463
+      ],
+      "shadow_offset": [
+        1,
+        0
+      ],
+      "contact_y": 402,
+      "shadow_params": {
+        "mode": "contact",
+        "opacity": 0.45,
+        "blur": 0.035,
+        "squash": 0.14,
+        "spread": 1,
+        "ao_opacity": 0.45,
+        "ao_blur": 0.012,
+        "ao_squash": 0.05,
+        "lift": 0,
+        "color": [
+          0,
+          0,
+          0
+        ],
+        "drop_dx": 0.02,
+        "drop_dy": 0.03,
+        "drop_blur": 0.02,
+        "drop_opacity": 0.3
+      },
+      "outputs": {
+        "avif": [
+          {
+            "w": 391,
+            "h": 463,
+            "file": "../final/dr-s01-product-wallet-391.avif",
+            "bytes": 13279
+          }
+        ],
+        "webp": [
+          {
+            "w": 391,
+            "h": 463,
+            "file": "../final/dr-s01-product-wallet-391.webp",
+            "bytes": 30442
+          }
+        ]
+      },
+      "srcset": {
+        "avif": "../final/dr-s01-product-wallet-391.avif 391w",
+        "webp": "../final/dr-s01-product-wallet-391.webp 391w"
+      },
+      "web_source": "shadows/dr-s01-product-wallet.png",
+      "picture_html": "<picture>\n  <source type=\"image/avif\" srcset=\"../final/dr-s01-product-wallet-391.avif 391w\" sizes=\"(max-width: 600px) 90vw, 50vw\">\n  <source type=\"image/webp\" srcset=\"../final/dr-s01-product-wallet-391.webp 391w\" sizes=\"(max-width: 600px) 90vw, 50vw\">\n  <img src=\"../final/dr-s01-product-wallet-391.webp\" width=\"391\" height=\"463\" alt=\"\" decoding=\"async\" loading=\"lazy\">\n</picture>"
+    },
+    "dr-s02-letter-envelope": {
+      "id": "dr-s02-letter-envelope",
+      "source": "C:/Developer/Decks/deck-accessrank/assets/source/curados/dR-s02-letter-envelope.png",
+      "source_size": [
+        1184,
+        482
+      ],
+      "method": "keep-alpha",
+      "cutout": "cutouts/dr-s02-letter-envelope.png",
+      "size": [
+        1184,
+        482
+      ],
+      "pad": 32,
+      "bbox_in_source": [
+        32,
+        32,
+        1152,
+        450
+      ],
+      "clipped": false,
+      "seconds": 0.1,
+      "qa": {
+        "status": "pass",
+        "hard": 0,
+        "soft_width": 3.18,
+        "halo": 0.007,
+        "dark": 0.034,
+        "specks": 0,
+        "islands": 0,
+        "pinholes": 0,
+        "notes": []
+      },
+      "shadow": "shadows/dr-s02-letter-envelope.png",
+      "shadow_size": [
+        1343,
+        591
+      ],
+      "shadow_offset": [
+        80,
+        0
+      ],
+      "contact_y": 445,
+      "shadow_params": {
+        "mode": "contact",
+        "opacity": 0.45,
+        "blur": 0.035,
+        "squash": 0.14,
+        "spread": 1,
+        "ao_opacity": 0.45,
+        "ao_blur": 0.012,
+        "ao_squash": 0.05,
+        "lift": 0,
+        "color": [
+          0,
+          0,
+          0
+        ],
+        "drop_dx": 0.02,
+        "drop_dy": 0.03,
+        "drop_blur": 0.02,
+        "drop_opacity": 0.3
+      },
+      "outputs": {
+        "avif": [
+          {
+            "w": 800,
+            "h": 352,
+            "file": "../final/dr-s02-letter-envelope-800.avif",
+            "bytes": 11266
+          },
+          {
+            "w": 1343,
+            "h": 591,
+            "file": "../final/dr-s02-letter-envelope-1343.avif",
+            "bytes": 22230
+          }
+        ],
+        "webp": [
+          {
+            "w": 800,
+            "h": 352,
+            "file": "../final/dr-s02-letter-envelope-800.webp",
+            "bytes": 24786
+          },
+          {
+            "w": 1343,
+            "h": 591,
+            "file": "../final/dr-s02-letter-envelope-1343.webp",
+            "bytes": 45690
+          }
+        ]
+      },
+      "srcset": {
+        "avif": "../final/dr-s02-letter-envelope-800.avif 800w, ../final/dr-s02-letter-envelope-1343.avif 1343w",
+        "webp": "../final/dr-s02-letter-envelope-800.webp 800w, ../final/dr-s02-letter-envelope-1343.webp 1343w"
+      },
+      "web_source": "shadows/dr-s02-letter-envelope.png",
+      "picture_html": "<picture>\n  <source type=\"image/avif\" srcset=\"../final/dr-s02-letter-envelope-800.avif 800w, ../final/dr-s02-letter-envelope-1343.avif 1343w\" sizes=\"(max-width: 600px) 90vw, 50vw\">\n  <source type=\"image/webp\" srcset=\"../final/dr-s02-letter-envelope-800.webp 800w, ../final/dr-s02-letter-envelope-1343.webp 1343w\" sizes=\"(max-width: 600px) 90vw, 50vw\">\n  <img src=\"../final/dr-s02-letter-envelope-1343.webp\" width=\"1343\" height=\"591\" alt=\"\" decoding=\"async\" loading=\"lazy\">\n</picture>"
+    },
+    "dr-s05-silhouette-client": {
+      "id": "dr-s05-silhouette-client",
+      "source": "C:/Developer/Decks/deck-accessrank/assets/source/curados/dR-s05-silhouette-client.png",
+      "source_size": [
+        417,
+        1147
+      ],
+      "method": "keep-alpha",
+      "cutout": "cutouts/dr-s05-silhouette-client.png",
+      "size": [
+        417,
+        1147
+      ],
+      "pad": 32,
+      "bbox_in_source": [
+        32,
+        32,
+        385,
+        1115
+      ],
+      "clipped": false,
+      "seconds": 0.08,
+      "qa": {
+        "status": "fail",
+        "hard": 0,
+        "soft_width": 3.53,
+        "halo": 0.384,
+        "dark": 0.018,
+        "specks": 0,
+        "islands": 0,
+        "pinholes": 0,
+        "notes": [
+          "halo fuerte -> cutout.py --erode 1 (defringe ya activo) o regenerar sobre fondo neutro",
+          "borde blando (mushy) -> sin --matting, o --post-process"
+        ]
+      },
+      "shadow": "shadows/dr-s05-silhouette-client.png",
+      "shadow_size": [
+        426,
+        1227
+      ],
+      "shadow_offset": [
+        4,
+        0
+      ],
+      "contact_y": 1114,
+      "shadow_params": {
+        "mode": "contact",
+        "opacity": 0.45,
+        "blur": 0.035,
+        "squash": 0.14,
+        "spread": 1,
+        "ao_opacity": 0.45,
+        "ao_blur": 0.012,
+        "ao_squash": 0.05,
+        "lift": 0,
+        "color": [
+          0,
+          0,
+          0
+        ],
+        "drop_dx": 0.02,
+        "drop_dy": 0.03,
+        "drop_blur": 0.02,
+        "drop_opacity": 0.3
+      },
+      "outputs": {
+        "avif": [
+          {
+            "w": 426,
+            "h": 1227,
+            "file": "../final/dr-s05-silhouette-client-426.avif",
+            "bytes": 19967
+          }
+        ],
+        "webp": [
+          {
+            "w": 426,
+            "h": 1227,
+            "file": "../final/dr-s05-silhouette-client-426.webp",
+            "bytes": 48102
+          }
+        ]
+      },
+      "srcset": {
+        "avif": "../final/dr-s05-silhouette-client-426.avif 426w",
+        "webp": "../final/dr-s05-silhouette-client-426.webp 426w"
+      },
+      "web_source": "shadows/dr-s05-silhouette-client.png",
+      "picture_html": "<picture>\n  <source type=\"image/avif\" srcset=\"../final/dr-s05-silhouette-client-426.avif 426w\" sizes=\"(max-width: 600px) 90vw, 50vw\">\n  <source type=\"image/webp\" srcset=\"../final/dr-s05-silhouette-client-426.webp 426w\" sizes=\"(max-width: 600px) 90vw, 50vw\">\n  <img src=\"../final/dr-s05-silhouette-client-426.webp\" width=\"426\" height=\"1227\" alt=\"\" decoding=\"async\" loading=\"lazy\">\n</picture>"
+    },
+    "dr-s05-silhouette-operator": {
+      "id": "dr-s05-silhouette-operator",
+      "source": "C:/Developer/Decks/deck-accessrank/assets/source/curados/dR-s05-silhouette-operator.png",
+      "source_size": [
+        778,
+        926
+      ],
+      "method": "keep-alpha",
+      "cutout": "cutouts/dr-s05-silhouette-operator.png",
+      "size": [
+        778,
+        926
+      ],
+      "pad": 32,
+      "bbox_in_source": [
+        32,
+        32,
+        746,
+        894
+      ],
+      "clipped": false,
+      "seconds": 0.11,
+      "qa": {
+        "status": "review",
+        "hard": 0,
+        "soft_width": 4.26,
+        "halo": 0.077,
+        "dark": 0.003,
+        "specks": 0,
+        "islands": 0,
+        "pinholes": 2,
+        "notes": [
+          "borde blando (mushy) -> sin --matting, o --post-process"
+        ]
+      },
+      "shadow": "shadows/dr-s05-silhouette-operator.png",
+      "shadow_size": [
+        862,
+        1029
+      ],
+      "shadow_offset": [
+        42,
+        0
+      ],
+      "contact_y": 893,
+      "shadow_params": {
+        "mode": "contact",
+        "opacity": 0.45,
+        "blur": 0.035,
+        "squash": 0.14,
+        "spread": 1,
+        "ao_opacity": 0.45,
+        "ao_blur": 0.012,
+        "ao_squash": 0.05,
+        "lift": 0,
+        "color": [
+          0,
+          0,
+          0
+        ],
+        "drop_dx": 0.02,
+        "drop_dy": 0.03,
+        "drop_blur": 0.02,
+        "drop_opacity": 0.3
+      },
+      "outputs": {
+        "avif": [
+          {
+            "w": 800,
+            "h": 955,
+            "file": "../final/dr-s05-silhouette-operator-800.avif",
+            "bytes": 22174
+          },
+          {
+            "w": 862,
+            "h": 1029,
+            "file": "../final/dr-s05-silhouette-operator-862.avif",
+            "bytes": 22573
+          }
+        ],
+        "webp": [
+          {
+            "w": 800,
+            "h": 955,
+            "file": "../final/dr-s05-silhouette-operator-800.webp",
+            "bytes": 72864
+          },
+          {
+            "w": 862,
+            "h": 1029,
+            "file": "../final/dr-s05-silhouette-operator-862.webp",
+            "bytes": 71204
+          }
+        ]
+      },
+      "srcset": {
+        "avif": "../final/dr-s05-silhouette-operator-800.avif 800w, ../final/dr-s05-silhouette-operator-862.avif 862w",
+        "webp": "../final/dr-s05-silhouette-operator-800.webp 800w, ../final/dr-s05-silhouette-operator-862.webp 862w"
+      },
+      "web_source": "shadows/dr-s05-silhouette-operator.png",
+      "picture_html": "<picture>\n  <source type=\"image/avif\" srcset=\"../final/dr-s05-silhouette-operator-800.avif 800w, ../final/dr-s05-silhouette-operator-862.avif 862w\" sizes=\"(max-width: 600px) 90vw, 50vw\">\n  <source type=\"image/webp\" srcset=\"../final/dr-s05-silhouette-operator-800.webp 800w, ../final/dr-s05-silhouette-operator-862.webp 862w\" sizes=\"(max-width: 600px) 90vw, 50vw\">\n  <img src=\"../final/dr-s05-silhouette-operator-862.webp\" width=\"862\" height=\"1029\" alt=\"\" decoding=\"async\" loading=\"lazy\">\n</picture>"
+    },
+    "dr-s05-silhouette-shopper": {
+      "id": "dr-s05-silhouette-shopper",
+      "source": "C:/Developer/Decks/deck-accessrank/assets/source/curados/dR-s05-silhouette-shopper.png",
+      "source_size": [
+        763,
+        895
+      ],
+      "method": "keep-alpha",
+      "cutout": "cutouts/dr-s05-silhouette-shopper.png",
+      "size": [
+        763,
+        895
+      ],
+      "pad": 32,
+      "bbox_in_source": [
+        32,
+        32,
+        731,
+        863
+      ],
+      "clipped": false,
+      "seconds": 0.11,
+      "qa": {
+        "status": "review",
+        "hard": 0,
+        "soft_width": 5.24,
+        "halo": 0.149,
+        "dark": 0.05,
+        "specks": 0,
+        "islands": 0,
+        "pinholes": 5,
+        "notes": [
+          "halo leve -> revisar a 200%; --erode 1 si molesta",
+          "borde blando (mushy) -> sin --matting, o --post-process",
+          "5 pinholes -> --post-process o retocar"
+        ]
+      },
+      "shadow": "shadows/dr-s05-silhouette-shopper.png",
+      "shadow_size": [
+        847,
+        995
+      ],
+      "shadow_offset": [
+        42,
+        0
+      ],
+      "contact_y": 862,
+      "shadow_params": {
+        "mode": "contact",
+        "opacity": 0.45,
+        "blur": 0.035,
+        "squash": 0.14,
+        "spread": 1,
+        "ao_opacity": 0.45,
+        "ao_blur": 0.012,
+        "ao_squash": 0.05,
+        "lift": 0,
+        "color": [
+          0,
+          0,
+          0
+        ],
+        "drop_dx": 0.02,
+        "drop_dy": 0.03,
+        "drop_blur": 0.02,
+        "drop_opacity": 0.3
+      },
+      "outputs": {
+        "avif": [
+          {
+            "w": 800,
+            "h": 940,
+            "file": "../final/dr-s05-silhouette-shopper-800.avif",
+            "bytes": 26716
+          },
+          {
+            "w": 847,
+            "h": 995,
+            "file": "../final/dr-s05-silhouette-shopper-847.avif",
+            "bytes": 27853
+          }
+        ],
+        "webp": [
+          {
+            "w": 800,
+            "h": 940,
+            "file": "../final/dr-s05-silhouette-shopper-800.webp",
+            "bytes": 78116
+          },
+          {
+            "w": 847,
+            "h": 995,
+            "file": "../final/dr-s05-silhouette-shopper-847.webp",
+            "bytes": 75206
+          }
+        ]
+      },
+      "srcset": {
+        "avif": "../final/dr-s05-silhouette-shopper-800.avif 800w, ../final/dr-s05-silhouette-shopper-847.avif 847w",
+        "webp": "../final/dr-s05-silhouette-shopper-800.webp 800w, ../final/dr-s05-silhouette-shopper-847.webp 847w"
+      },
+      "web_source": "shadows/dr-s05-silhouette-shopper.png",
+      "picture_html": "<picture>\n  <source type=\"image/avif\" srcset=\"../final/dr-s05-silhouette-shopper-800.avif 800w, ../final/dr-s05-silhouette-shopper-847.avif 847w\" sizes=\"(max-width: 600px) 90vw, 50vw\">\n  <source type=\"image/webp\" srcset=\"../final/dr-s05-silhouette-shopper-800.webp 800w, ../final/dr-s05-silhouette-shopper-847.webp 847w\" sizes=\"(max-width: 600px) 90vw, 50vw\">\n  <img src=\"../final/dr-s05-silhouette-shopper-847.webp\" width=\"847\" height=\"995\" alt=\"\" decoding=\"async\" loading=\"lazy\">\n</picture>"
+    },
+    "dr-s01-mockup-home": {
+      "id": "dr-s01-mockup-home",
+      "source": "C:/Developer/Decks/deck-accessrank/assets/source/curados-v2/dR-s01-mockup-home.png",
+      "source_size": [
+        2688,
+        1520
+      ],
+      "method": "keep-alpha",
+      "cutout": "cutouts/dr-s01-mockup-home.png",
+      "size": [
+        2752,
+        1584
+      ],
+      "pad": 32,
+      "bbox_in_source": [
+        0,
+        0,
+        2688,
+        1520
+      ],
+      "clipped": false,
+      "seconds": 0.73,
+      "qa": {
+        "status": "review",
+        "hard": 0,
+        "soft_width": 4.1,
+        "halo": 0.066,
+        "dark": 0.015,
+        "specks": 4,
+        "islands": 1,
+        "pinholes": 3,
+        "notes": [
+          "borde blando (mushy) -> sin --matting, o --post-process"
+        ]
+      },
+      "shadow": "shadows/dr-s01-mockup-home.png",
+      "shadow_size": [
+        2839,
+        1911
+      ],
+      "shadow_offset": [
+        12,
+        42
+      ],
+      "contact_y": 1573,
+      "shadow_params": {
+        "mode": "drop",
+        "opacity": 0.5,
+        "blur": 0.035,
+        "squash": 0.14,
+        "spread": 1,
+        "ao_opacity": 0.45,
+        "ao_blur": 0.012,
+        "ao_squash": 0.05,
+        "lift": 0,
+        "color": [
+          0,
+          0,
+          0
+        ],
+        "drop_dx": 0.02,
+        "drop_dy": 0.05,
+        "drop_blur": 0.03,
+        "drop_opacity": 0.3
+      },
+      "outputs": {
+        "avif": [
+          {
+            "w": 800,
+            "h": 538,
+            "file": "../final/dr-s01-mockup-home-800.avif",
+            "bytes": 47945
+          },
+          {
+            "w": 1600,
+            "h": 1077,
+            "file": "../final/dr-s01-mockup-home-1600.avif",
+            "bytes": 144167
+          },
+          {
+            "w": 2000,
+            "h": 1346,
+            "file": "../final/dr-s01-mockup-home-2000.avif",
+            "bytes": 198175
+          }
+        ],
+        "webp": [
+          {
+            "w": 800,
+            "h": 538,
+            "file": "../final/dr-s01-mockup-home-800.webp",
+            "bytes": 105292
+          },
+          {
+            "w": 1600,
+            "h": 1077,
+            "file": "../final/dr-s01-mockup-home-1600.webp",
+            "bytes": 307388
+          },
+          {
+            "w": 2000,
+            "h": 1346,
+            "file": "../final/dr-s01-mockup-home-2000.webp",
+            "bytes": 439774
+          }
+        ]
+      },
+      "srcset": {
+        "avif": "../final/dr-s01-mockup-home-800.avif 800w, ../final/dr-s01-mockup-home-1600.avif 1600w, ../final/dr-s01-mockup-home-2000.avif 2000w",
+        "webp": "../final/dr-s01-mockup-home-800.webp 800w, ../final/dr-s01-mockup-home-1600.webp 1600w, ../final/dr-s01-mockup-home-2000.webp 2000w"
+      },
+      "web_source": "shadows/dr-s01-mockup-home.png",
+      "picture_html": "<picture>\n  <source type=\"image/avif\" srcset=\"../final/dr-s01-mockup-home-800.avif 800w, ../final/dr-s01-mockup-home-1600.avif 1600w, ../final/dr-s01-mockup-home-2000.avif 2000w\" sizes=\"(max-width: 600px) 90vw, 50vw\">\n  <source type=\"image/webp\" srcset=\"../final/dr-s01-mockup-home-800.webp 800w, ../final/dr-s01-mockup-home-1600.webp 1600w, ../final/dr-s01-mockup-home-2000.webp 2000w\" sizes=\"(max-width: 600px) 90vw, 50vw\">\n  <img src=\"../final/dr-s01-mockup-home-2000.webp\" width=\"2000\" height=\"1346\" alt=\"\" decoding=\"async\" loading=\"lazy\">\n</picture>"
+    },
+    "dr-s01-mockup-single": {
+      "id": "dr-s01-mockup-single",
+      "source": "C:/Developer/Decks/deck-accessrank/assets/source/curados-v2/dR-s01-mockup-single.png",
+      "source_size": [
+        2688,
+        1520
+      ],
+      "method": "keep-alpha",
+      "cutout": "cutouts/dr-s01-mockup-single.png",
+      "size": [
+        2722,
+        1584
+      ],
+      "pad": 32,
+      "bbox_in_source": [
+        0,
+        0,
+        2658,
+        1520
+      ],
+      "clipped": true,
+      "seconds": 0.72,
+      "qa": {
+        "status": "fail",
+        "hard": 0.002,
+        "soft_width": 21.93,
+        "halo": 0.354,
+        "dark": 0.254,
+        "specks": 244,
+        "islands": 0,
+        "pinholes": 194,
+        "notes": [
+          "objeto cortado por el borde de la fuente -> regenerar con margen",
+          "halo fuerte -> cutout.py --erode 1 (defringe ya activo) o regenerar sobre fondo neutro",
+          "fringe oscuro -> probar --erode 1",
+          "borde blando (mushy) -> sin --matting, o --post-process",
+          "244 motas sueltas -> --post-process o limpiar",
+          "194 pinholes -> --post-process o retocar"
+        ]
+      },
+      "shadow": "shadows/dr-s01-mockup-single.png",
+      "shadow_size": [
+        2722,
+        1841
+      ],
+      "shadow_offset": [
+        0,
+        22
+      ],
+      "contact_y": 1574,
+      "shadow_params": {
+        "mode": "drop",
+        "opacity": 0.5,
+        "blur": 0.035,
+        "squash": 0.14,
+        "spread": 1,
+        "ao_opacity": 0.45,
+        "ao_blur": 0.012,
+        "ao_squash": 0.05,
+        "lift": 0,
+        "color": [
+          0,
+          0,
+          0
+        ],
+        "drop_dx": 0.02,
+        "drop_dy": 0.05,
+        "drop_blur": 0.03,
+        "drop_opacity": 0.3
+      },
+      "outputs": {
+        "avif": [
+          {
+            "w": 800,
+            "h": 541,
+            "file": "../final/dr-s01-mockup-single-800.avif",
+            "bytes": 45504
+          },
+          {
+            "w": 1600,
+            "h": 1082,
+            "file": "../final/dr-s01-mockup-single-1600.avif",
+            "bytes": 131034
+          },
+          {
+            "w": 2000,
+            "h": 1353,
+            "file": "../final/dr-s01-mockup-single-2000.avif",
+            "bytes": 179810
+          }
+        ],
+        "webp": [
+          {
+            "w": 800,
+            "h": 541,
+            "file": "../final/dr-s01-mockup-single-800.webp",
+            "bytes": 92212
+          },
+          {
+            "w": 1600,
+            "h": 1082,
+            "file": "../final/dr-s01-mockup-single-1600.webp",
+            "bytes": 270156
+          },
+          {
+            "w": 2000,
+            "h": 1353,
+            "file": "../final/dr-s01-mockup-single-2000.webp",
+            "bytes": 387224
+          }
+        ]
+      },
+      "srcset": {
+        "avif": "../final/dr-s01-mockup-single-800.avif 800w, ../final/dr-s01-mockup-single-1600.avif 1600w, ../final/dr-s01-mockup-single-2000.avif 2000w",
+        "webp": "../final/dr-s01-mockup-single-800.webp 800w, ../final/dr-s01-mockup-single-1600.webp 1600w, ../final/dr-s01-mockup-single-2000.webp 2000w"
+      },
+      "web_source": "shadows/dr-s01-mockup-single.png",
+      "picture_html": "<picture>\n  <source type=\"image/avif\" srcset=\"../final/dr-s01-mockup-single-800.avif 800w, ../final/dr-s01-mockup-single-1600.avif 1600w, ../final/dr-s01-mockup-single-2000.avif 2000w\" sizes=\"(max-width: 600px) 90vw, 50vw\">\n  <source type=\"image/webp\" srcset=\"../final/dr-s01-mockup-single-800.webp 800w, ../final/dr-s01-mockup-single-1600.webp 1600w, ../final/dr-s01-mockup-single-2000.webp 2000w\" sizes=\"(max-width: 600px) 90vw, 50vw\">\n  <img src=\"../final/dr-s01-mockup-single-2000.webp\" width=\"2000\" height=\"1353\" alt=\"\" decoding=\"async\" loading=\"lazy\">\n</picture>"
+    }
+  },
+  "model": "birefnet-general",
+  "updated": "2026-09-15T23:11:42.592Z"
+}

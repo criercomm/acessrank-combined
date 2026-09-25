@@ -1,0 +1,207 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><title>Accessrank — Presenter Guide</title>
+<style>
+  @page { size: A4; margin: 18mm 16mm; }
+  body { font: 11pt/1.5 Inter, "Segoe UI", system-ui, sans-serif; color: #14142A; max-width: 180mm; margin: 0 auto; }
+  h1 { font-size: 22pt; letter-spacing: -.02em; margin: 0 0 4pt; }
+  h1::before { content: ''; display: inline-block; width: 14pt; height: 14pt; border-radius: 3pt; background: #FFD23F; vertical-align: -2pt; margin-right: 8pt; }
+  h2 { font-size: 14pt; margin: 18pt 0 6pt; padding-top: 6pt; border-top: 1px solid #D4D0C5; page-break-after: avoid; }
+  p, li { orphans: 3; widows: 3; }
+  table { border-collapse: collapse; width: 100%; font-size: 9.5pt; margin: 8pt 0; page-break-inside: auto; }
+  th, td { border: 1px solid #D4D0C5; padding: 5pt 6pt; vertical-align: top; text-align: left; }
+  th { background: #F4F1EA; }
+  tr { page-break-inside: avoid; }
+  code { font-family: "JetBrains Mono", Consolas, monospace; font-size: 9pt; background: #F4F1EA; padding: 1pt 3pt; border-radius: 2pt; }
+  a { color: #1D4ED8; text-decoration: none; }
+  hr { border: 0; border-top: 1px solid #D4D0C5; margin: 14pt 0; }
+  strong { color: #0E0E10; }
+</style></head><body><h1>Accessrank — Presenter Guide</h1>
+<p>Version 3 · 2026-09-16 · For the presenter of the Accessrank investor deck.
+This is the only document you need in the room.</p>
+<p><strong>Links</strong></p>
+<ul>
+<li>Deck: <a href="https://www.accessrank.ai/deck/">https://www.accessrank.ai/deck/</a> — the whole site asks for a password first (Carlos has it). Enter it once per browser; it is remembered for 30 days.</li>
+<li>Backup copy (same deck): <a href="https://accessrank-rust.vercel.app/deck/">https://accessrank-rust.vercel.app/deck/</a></li>
+<li>Presenter view (your laptop only): add <code>?presenter=1</code> to the link.</li>
+<li>Three-minute version (if you are given five minutes): add <code>?short=1</code> to the link.</li>
+</ul>
+<hr>
+<h2>Before you walk in</h2>
+<ol>
+<li>Fill in the inputs the deck shows on purpose as placeholders. They live in one file, <code>src/copy.js</code>, and Carlos can change them in minutes: the traction tiles (<code>TBD</code>). The deck does not state the raise or the use of funds: those go in the separate spreadsheets. The contact page already carries the real emails and phones of the two co-founders (CEO and CTO); the team is deliberately not named on any scene.</li>
+<li>Open the link in Chrome on the laptop that drives the screen. Refresh once with Ctrl+Shift+R (Cmd+Shift+R on a Mac).</li>
+<li>The deck opens straight on scene 1. It has sound effects only (no music). They start with your first click; if the room has no speakers, click &quot;Sound on&quot; at the top right or press M to turn them off.</li>
+<li>Go full screen: F11 on Windows, Ctrl+Cmd+F on a Mac. Leave the mouse still; the cursor fades.</li>
+<li>Two screens? Open the plain link on the projector and the link with <code>?presenter=1</code> on your laptop. The presenter panel shows the current scene, the next one, your talking point and the clock. It never appears on the audience screen.</li>
+<li>Click through all eleven scenes once so every image is cached. Go back to scene 1 with the Home key.</li>
+</ol>
+<h2>Controls</h2>
+<table>
+<thead>
+<tr>
+<th>To</th>
+<th>Do</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Next</td>
+<td>Click anywhere · → or Space · swipe left on a phone</td>
+</tr>
+<tr>
+<td>Back</td>
+<td>← · Shift+click · swipe right</td>
+</tr>
+<tr>
+<td>Sound</td>
+<td>The &quot;Sound on / off&quot; label at the top right, or the M key</td>
+</tr>
+<tr>
+<td>Jump</td>
+<td>Home = scene 1 · End = contact (scene 11)</td>
+</tr>
+</tbody></table>
+<p>The counter at the top right always tells you where you are. Three scenes need more than one click before they move on; the table says how many.</p>
+<hr>
+<h2>Scene by scene</h2>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Scene</th>
+<th>On screen</th>
+<th>Clicks to leave</th>
+<th>Say</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>01</td>
+<td>Blind spot</td>
+<td>THE WEB&#39;S BIGGEST BLIND SPOT. A floating ecommerce home page with a scanner beam crossing it.</td>
+<td>1</td>
+<td>&quot;Ninety-five percent of websites fail accessibility standards. Most companies find out when a demand letter arrives. We find it, we fix it in the code, and the fix makes the pages faster and more visible.&quot;</td>
+</tr>
+<tr>
+<td>02</td>
+<td>The letter</td>
+<td>A real complaint rises into view. Four numbers clack in.</td>
+<td>1</td>
+<td>Let the page rise before you speak. &quot;This is a real one, filed in March. Five thousand of these last year. Seventy-nine percent against online stores. Forty-five percent hit companies that had already been sued once. Thirty thousand dollars each before anyone fixes anything.&quot;</td>
+</tr>
+<tr>
+<td>03</td>
+<td>Plug-ins</td>
+<td>&quot;Simply adding an accessibility plug-in isn&#39;t a fix.&quot; A wall of 400 widget badges assembles under it.</td>
+<td>2 (first click: 38.5 % of them turn red)</td>
+<td>&quot;This wall is every store that bought a plug-in. Click. The red ones were sued anyway. Thirty-eight percent of the companies sued already had one. The FTC fined the biggest vendor a million dollars. A widget is not a defense; it is a signal to the plaintiff&#39;s bar. We fix the source.&quot;</td>
+</tr>
+<tr>
+<td>04</td>
+<td>The fix</td>
+<td>A real storefront. Scan → findings → fix → validate.</td>
+<td>5 (four stages, then leave)</td>
+<td>Click 1, Scan: &quot;Forty-seven issues on six pages, score 41.&quot; Click 2, Findings: &quot;One of them, with its evidence: rule, criterion, selector, measured contrast.&quot; Click 3, Fix: &quot;The actual code change, on a draft theme, approved by a person.&quot; Click 4, Validate: &quot;Re-scan. Zero remaining. Score 96. Every step documented.&quot; Then hover Rollback: everything comes back. Frame it as our safety net, not a button the owner presses — &quot;if a change ever misbehaves, we revert it and a verification scan runs automatically.&quot; Say: &quot;Nothing here is a screenshot. It is the cycle the product runs.&quot;</td>
+</tr>
+<tr>
+<td>05</td>
+<td>Safe</td>
+<td>Five guardrails on a line; the explanation sits centred under the active one. Three people from behind.</td>
+<td>Up to 5 (one guardrail per click) or hover them</td>
+<td>&quot;The live store never goes down because we never touch the live theme. And every fix is measured and documented, which is what keeps the lawyers at bay.&quot;</td>
+</tr>
+<tr>
+<td>06</td>
+<td>Engine</td>
+<td>Why accessibility lifts visibility and revenue: four numbers (images without text, traffic growth, 27% abandonment, 70M+ adults with a disability), plus the four standards.</td>
+<td>1</td>
+<td>&quot;Screen readers, Google and AI shopping agents read the same structure. Fix it once for the blind and the page becomes more visible to search and to agents. Seventy-three percent of remediated sites grew organic traffic. And it is revenue: seventy million American adults live with a disability, and more than a quarter of disabled shoppers abandon a purchase every month because a store does not work for them.&quot;</td>
+</tr>
+<tr>
+<td>07</td>
+<td>Model</td>
+<td>Three plans and the lawsuit-response lane.</td>
+<td>1</td>
+<td>&quot;A one-time project to raise the score, then a monthly plan to hold it there. The lawsuit-response lane is the fastest path to a first check: brands served this week.&quot; Be transparent: &quot;Today the service is operated by our team. Self-serve billing is on the roadmap.&quot;</td>
+</tr>
+<tr>
+<td>08</td>
+<td>Market</td>
+<td>Top eight ADA lawsuits by state and by industry (2025 report). Two expansion rails.</td>
+<td>1</td>
+<td>&quot;Four states carry eighty-seven percent of the filings and two industries, food and fashion, carry sixty percent. That is where the first customers are. The rails below are where the same engine goes next.&quot;</td>
+</tr>
+<tr>
+<td>09</td>
+<td>Today</td>
+<td>Engineering numbers, traction, how it is built.</td>
+<td>1</td>
+<td>&quot;The full cycle works end to end today: scan, remediate on a draft, validate, report, rollback. It is an alpha in maturity and an operated service in delivery.&quot; If asked about the team, describe the operating model; no names on screen by design.</td>
+</tr>
+<tr>
+<td>10</td>
+<td>Libraries</td>
+<td>Teaser: Accessrank for Libraries. Three numbers, a catalog mock with three failures, platforms and annual plans.</td>
+<td>1</td>
+<td>&quot;The same engine has a second market with a legal deadline attached: public libraries. Title II now applies WCAG to their catalogs, with 2027 and 2028 deadlines. Ninety-six percent fail today. Annual plans priced for library budgets.&quot; A teaser: no dates or customers promised.</td>
+</tr>
+<tr>
+<td>11</td>
+<td>Contact</td>
+<td>Let&#39;s talk. Co-founder and CEO / CTO, emails, phones, accessrank.ai.</td>
+<td>Stay</td>
+<td>Close with the question on screen: &quot;Which of your portfolio brands should we scan first?&quot;</td>
+</tr>
+</tbody></table>
+<p>Scene 04 is the moment the room should lean forward. Do not narrate over the scan; let the beam finish, then speak.</p>
+<hr>
+<h2>Words</h2>
+<table>
+<thead>
+<tr>
+<th>Instead of</th>
+<th>Say</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>&quot;We use AI to fix accessibility.&quot;</td>
+<td>&quot;We fix the code and re-scan until zero remain. Deterministic first; AI only where a person reviews it.&quot;</td>
+</tr>
+<tr>
+<td>&quot;We guarantee you won&#39;t get sued.&quot;</td>
+<td>&quot;We give you fixed code and evidence a lawyer can read. Nobody honest guarantees the rest.&quot;</td>
+</tr>
+<tr>
+<td>&quot;It&#39;s like an overlay but better.&quot;</td>
+<td>&quot;It is the opposite of an overlay. Overlays hide the problem at runtime. We change the theme.&quot;</td>
+</tr>
+</tbody></table>
+<p>Never say: certified, compliant-guaranteed, SOC 2 / HIPAA / PCI as things we do today, Lighthouse, real-user data, self-serve SaaS.
+Use: fix, proof, evidence, draft theme, re-scan, zero remaining, rollback, operated service, general availability.</p>
+<hr>
+<h2>What is true, if anyone asks</h2>
+<ul>
+<li><strong>&quot;Where does the 95% come from?&quot;</strong> WebAIM Million 2026, its audit of the top one million home pages: 95.9% had detectable WCAG failures, up from 94.8% in 2025. The deck rounds down to 95%.</li>
+<li><strong>&quot;Where do 70 million and 27% come from?&quot;</strong> CDC, July 2024 release on 2022 survey data: more than 1 in 4 U.S. adults, over 70 million, reported a disability. The 27% is from a survey by Fable, an accessibility-testing company, of disabled online shoppers in its own community: 27% give up on a purchase at least once a month because of accessibility problems, 8% weekly. It is a panel survey, not a national sample; say so if pressed.</li>
+<li><strong>&quot;Is that letter real?&quot;</strong> Yes. It is the first page of a web-accessibility complaint filed in New York State court in March 2026 against an online food brand. Names, addresses, phone, email and the index number are blurred on purpose. The claims it makes are the ones on scene 4: unlabeled controls, cart updates not announced, keyboard traps, images without alt text.</li>
+<li><strong>&quot;Is this a widget?&quot;</strong> No. It modifies the real theme or code. A runtime overlay exists only as a last resort when there is no code access, and the catalog forbids using it to fake semantic fixes.</li>
+<li><strong>&quot;What if you break the store?&quot;</strong> We never write to the published theme. Draft theme, approval per change with the diff on screen, read-back verification of every file, validation with zero remaining, explicit publish, and if a change ever misbehaves we revert it ourselves with an automatic verification scan.</li>
+<li><strong>&quot;How much do you fix automatically?&quot;</strong> An engineering estimate, not a measured result: around half of WCAG 2.2 AA is detectable automatically and roughly a third is fixable with repository access. What needs people becomes a ticket with a checklist and evidence.</li>
+<li><strong>&quot;Is it SaaS?&quot;</strong> Today it is an operated service with a client portal for access and reports. Self-serve billing and an agency tier are on the roadmap.</li>
+<li><strong>&quot;Do you guarantee we won&#39;t be sued?&quot;</strong> No, and nobody honest does. You get fixed code, a verification report and a downloadable evidence pack for your lawyers.</li>
+<li><strong>&quot;What do you scan?&quot;</strong> WCAG 2.2 AA with 55 criteria live, ADA ecommerce lawsuit patterns, Core Web Vitals in the lab, technical SEO and AI-search readiness, OWASP Top 10 basics. 35 detectors in a real browser, 114 signal types, 35 remediators.</li>
+<li><strong>&quot;Which platforms?&quot;</strong> Shopify end to end (draft theme, publish, revert), WordPress, GitHub and Bitbucket pull requests, code ZIPs, Cloudflare for the overlay fallback. Nothing else should be claimed as an integration today.</li>
+<li><strong>&quot;How big is the product?&quot;</strong> About 99,000 lines of TypeScript in the API, 140 routes, 39 data models, roughly 1,200 automated tests.</li>
+<li><strong>&quot;Where do the market numbers come from?&quot;</strong> EcomBack&#39;s 2025 annual report: 3,948 website-accessibility suits in state and federal courts; New York, Florida, California and Illinois carry 87%; restaurants and food 35%, fashion and apparel 26%. UsableNet&#39;s 2025 year-end and 2026 midyear reports for the lawsuit counts on scene 2; AudioEye 2026 for the widget figure.</li>
+<li><strong>&quot;Is the store real?&quot;</strong> No. Northline Goods is a fictional store drawn in code so that the product&#39;s real cycle could be shown without naming a client. The failures it shows are the ones the product detects every day.</li>
+</ul>
+<hr>
+<h2>If something goes wrong</h2>
+<ul>
+<li><strong>The scan doesn&#39;t start.</strong> Click once more; the beam runs on the first click of scene 04.</li>
+<li><strong>No sound.</strong> Effects start with the first click. If the label at the top right says &quot;Sound off&quot;, click it or press M.</li>
+<li><strong>You lost your place.</strong> The counter at the top right. Home returns to scene 1, End goes to contact.</li>
+<li><strong>The page shows browser chrome.</strong> Press Escape, reload, go full screen.</li>
+<li><strong>A password page appears.</strong> That is the site&#39;s lock: enter the password Carlos gave you. The browser remembers it for 30 days; after ten wrong tries it asks you to wait 15 minutes. The backup link has no password.</li>
+<li><strong>The page will not load.</strong> Use the backup link; both hold the same deck.</li>
+<li><strong>You have five minutes, not ten.</strong> Use the link with <code>?short=1</code>: blind spot, the letter, the fix, the model, contact.</li>
+</ul>
+<p>Northline Goods, its products and the people shown are original creations for this presentation. The complaint shown is a public court filing with personal and contact details blurred.</p>
+</body></html>

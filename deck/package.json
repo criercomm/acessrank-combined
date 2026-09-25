@@ -1,0 +1,21 @@
+{
+  "name": "deck-accessrank",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "cutouts": "C:/Users/artur/AppData/Local/Programs/Python/Python312/python.exe C:/Users/artur/.claude/skills/cutout-factory/scripts/pipeline.py assets/source/curados --out assets/cutouts --widths 800,1600 --shadow-args \"--opacity 0.45\" --web-args \"--web-dir ../final --avif-q 58\""
+  },
+  "devDependencies": {
+    "marked": "^18.0.13",
+    "puppeteer-core": "^25.10.0",
+    "sharp": "^0.35.4",
+    "vite": "^8.2.2"
+  },
+  "dependencies": {
+    "gsap": "^3.15.0"
+  }
+}
