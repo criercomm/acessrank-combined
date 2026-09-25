@@ -68,7 +68,8 @@ const nav = Navbar({
   step: (d) => (d > 0 ? deckRef?.next() : deckRef?.prev()),
 })
 root.append(nav.el)
-root.append(SiteNav().el)
+const siteNav = SiteNav()
+root.append(siteNav.el)
 
 // Sound: effects only. No entry gate and no music bed (Carlos, 2026-09-18). Browsers only let audio start after a user gesture,
 // so the effects wake up on the first click, key or swipe; the Sound on/off label (or M) still mutes them in the room.
@@ -82,6 +83,12 @@ createDeck({
   onChange: (i) => { presenter?.update(i); nav.update(i) },
 }).then((deck) => {
   deckRef = deck
+  // Chapter dots move into the site nav bar itself, right after the logo,
+  // instead of their own row in the deck's chrome (see lib/deck.css .chapters
+  // and src/style.css's .ar-nav .chapters override for the layout side of this).
+  const chaptersEl = root.querySelector('.chapters')
+  const arNavRight = siteNav.el.querySelector('.ar-nav-right')
+  if (chaptersEl && arNavRight) siteNav.el.insertBefore(chaptersEl, arNavRight)
   const s = assets.stats()
   console.info(`[deck R] ${deck.total} scenes${short ? ' (short path)' : ''} · assets ${s.final} final / ${s.placeholder} placeholder`)
 })

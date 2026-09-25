@@ -49,7 +49,7 @@ a { color: inherit; }
 /* ---- chrome ---- */
 .chrome { position: absolute; inset: 0; pointer-events: none; z-index: 40; }
 .chrome > * { pointer-events: auto; }
-.chapters { position: absolute; left: var(--margin); top: 32px; height: 24px; display: flex; gap: 16px; align-items: center; }
+.chapters { position: absolute; left: var(--margin); bottom: 32px; height: 24px; display: flex; gap: 16px; align-items: center; }
 .chapter { display: flex; align-items: center; gap: 8px; height: 24px; color: var(--muted); font-size: 12px; line-height: 16px; letter-spacing: .08em; text-transform: uppercase; opacity: 0; }
 .chapter i { width: 8px; height: 8px; border-radius: 50%; background: currentColor; opacity: .45; transition: opacity var(--t-2) var(--out-expo), transform var(--t-2) var(--out-expo); }
 .chapter span { display: none; }

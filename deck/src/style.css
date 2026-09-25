@@ -595,7 +595,7 @@ a.contact-line:hover { color: var(--accent); }
 }
 .ar-nav {
   position: fixed; inset: 0 0 auto 0; z-index: 60;
-  display: flex; align-items: center; justify-content: space-between;
+  display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 24px;
   height: 64px; padding: 0 var(--margin);
   background: rgba(20, 20, 42, .82); backdrop-filter: blur(10px);
   border-bottom: 1px solid rgba(242, 240, 235, .12);
@@ -605,6 +605,11 @@ a.contact-line:hover { color: var(--accent); }
 .ar-nav-mark { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 6px; background: var(--ar-yellow); color: var(--ar-ink); }
 .ar-nav-word { font-family: var(--display); }
 .ar-nav-right { display: flex; align-items: center; gap: 20px; }
+/* The deck's chapter dots (lib/deck.css .chapters) are moved in here, right
+ * after the logo, by src/main.js once the deck is ready. .ar-nav is a 3-column
+ * grid (logo / dots / right links) so the middle column can center them in
+ * the gap between the logo and the leftmost nav link, at any nav width. */
+.ar-nav .chapters { position: static; height: auto; justify-self: center; }
 .ar-nav-link { color: var(--ar-soft); text-decoration: none; font-size: 12px; letter-spacing: .04em; text-transform: uppercase; }
 .ar-nav-link:hover { color: var(--fg); }
 .ar-nav-cta { background: var(--ar-yellow); color: var(--ar-ink); padding: 8px 14px; border-radius: 6px; font-weight: 700; }
@@ -615,14 +620,22 @@ a.contact-line:hover { color: var(--accent); }
   .ar-nav-word { display: none; }
 }
 
-/* Relocate the deck's own chapter dots + mute/counter/next chrome (lib/deck.css
- * .chapters / .topright, both `top: 32px`) down below the nav bar above —
- * left untouched in lib/ itself so the vendored copy stays diffable against
- * the shared library; this override wins on source order (loaded after). */
-.chapters, .topright { top: 88px; }
+/* Relocate the deck's mute/counter/next chrome (lib/deck.css .topright,
+ * `top: 32px`) down below the nav bar above — left untouched in lib/ itself
+ * so the vendored copy stays diffable against the shared library; this
+ * override wins on source order (loaded after). The chapter dots (.chapters)
+ * now live at the bottom of the slide instead (see lib/deck.css), so they
+ * don't need to clear the nav bar and are left out of this override. */
+.topright { top: 88px; }
 @media (max-width: 767px), (max-height: 620px), (max-aspect-ratio: 1/1) {
   .topright { top: 68px; }
 }
+
+/* Footer (lib/deck.css .footer: legal line + "click to continue" hint) is
+ * removed on every deck page — left untouched in lib/ itself so the vendored
+ * copy stays diffable against the shared library; this override wins on
+ * source order (loaded after). */
+.footer { display: none !important; }
 
 /* Slide content's own top padding must clear both the new nav bar and the
  * chrome now sitting below it (see .chapters/.topright above) — lib/tokens.css'
