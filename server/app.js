@@ -33,7 +33,10 @@ app.set('trust proxy', config.trustProxy);
 /* ------------------------------------------------------------- headers --- */
 
 const scriptSrc = ["'self'"];
-const frameSrc = ["'none'"];
+// The homepage embeds the investor deck same-origin (site.js openDeck, the
+// #deck-overlay-frame iframe) — frame-src must allow 'self' or that overlay
+// is silently dead in every environment that enforces this CSP.
+const frameSrc = ["'self'"];
 const connectSrc = ["'self'"];
 
 /**
@@ -60,7 +63,6 @@ try {
 // local smoke runs) logs a CSP violation on every page load.
 if (config.turnstile.enabled || builtWithTurnstile) {
   scriptSrc.push('https://challenges.cloudflare.com');
-  frameSrc.length = 0;
   frameSrc.push('https://challenges.cloudflare.com');
   connectSrc.push('https://challenges.cloudflare.com');
 }
@@ -97,6 +99,21 @@ app.use(helmet({
   hsts: config.isProd ? { maxAge: 31_536_000, includeSubDomains: true, preload: true } : false,
   referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
 }));
+
+// The homepage frames the investor deck same-origin (site.js openDeck, the
+// #deck-overlay-frame iframe). The site-wide frame-ancestors 'none' above is
+// the right default everywhere else, but it also stops /deck being framed by
+// its own parent page — so /deck alone gets 'self' instead of 'none'.
+app.use((req, res, next) => {
+  if (req.path === '/deck' || req.path.startsWith('/deck/')) {
+    const csp = res.getHeader('Content-Security-Policy');
+    if (typeof csp === 'string') {
+      res.setHeader('Content-Security-Policy', csp.replace(/frame-ancestors 'none'/, "frame-ancestors 'self'"));
+    }
+    res.removeHeader('X-Frame-Options');
+  }
+  next();
+});
 
 app.use((req, res, next) => {
   res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=(), interest-cohort=(), payment=()');
