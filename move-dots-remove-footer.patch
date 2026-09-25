@@ -1,0 +1,46 @@
+diff --git a/deck/lib/deck.css b/deck/lib/deck.css
+index c49b696..2f35b1d 100644
+--- a/deck/lib/deck.css
++++ b/deck/lib/deck.css
+@@ -49,7 +49,7 @@ a { color: inherit; }
+ /* ---- chrome ---- */
+ .chrome { position: absolute; inset: 0; pointer-events: none; z-index: 40; }
+ .chrome > * { pointer-events: auto; }
+-.chapters { position: absolute; left: var(--margin); top: 32px; height: 24px; display: flex; gap: 16px; align-items: center; }
++.chapters { position: absolute; left: var(--margin); bottom: 32px; height: 24px; display: flex; gap: 16px; align-items: center; }
+ .chapter { display: flex; align-items: center; gap: 8px; height: 24px; color: var(--muted); font-size: 12px; line-height: 16px; letter-spacing: .08em; text-transform: uppercase; opacity: 0; }
+ .chapter i { width: 8px; height: 8px; border-radius: 50%; background: currentColor; opacity: .45; transition: opacity var(--t-2) var(--out-expo), transform var(--t-2) var(--out-expo); }
+ .chapter span { display: none; }
+diff --git a/deck/src/style.css b/deck/src/style.css
+index 3a9a51b..5493c9e 100644
+--- a/deck/src/style.css
++++ b/deck/src/style.css
+@@ -615,15 +615,23 @@ a.contact-line:hover { color: var(--accent); }
+   .ar-nav-word { display: none; }
+ }
+ 
+-/* Relocate the deck's own chapter dots + mute/counter/next chrome (lib/deck.css
+- * .chapters / .topright, both `top: 32px`) down below the nav bar above —
+- * left untouched in lib/ itself so the vendored copy stays diffable against
+- * the shared library; this override wins on source order (loaded after). */
+-.chapters, .topright { top: 88px; }
++/* Relocate the deck's mute/counter/next chrome (lib/deck.css .topright,
++ * `top: 32px`) down below the nav bar above — left untouched in lib/ itself
++ * so the vendored copy stays diffable against the shared library; this
++ * override wins on source order (loaded after). The chapter dots (.chapters)
++ * now live at the bottom of the slide instead (see lib/deck.css), so they
++ * don't need to clear the nav bar and are left out of this override. */
++.topright { top: 88px; }
+ @media (max-width: 767px), (max-height: 620px), (max-aspect-ratio: 1/1) {
+   .topright { top: 68px; }
+ }
+ 
++/* Footer (lib/deck.css .footer: legal line + "click to continue" hint) is
++ * removed on every deck page — left untouched in lib/ itself so the vendored
++ * copy stays diffable against the shared library; this override wins on
++ * source order (loaded after). */
++.footer { display: none !important; }
++
+ /* Slide content's own top padding must clear both the new nav bar and the
+  * chrome now sitting below it (see .chapters/.topright above) — lib/tokens.css'
+  * defaults (88px desktop, 56px compact) only cleared the old, higher-up chrome. */
