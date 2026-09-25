@@ -1,0 +1,279 @@
+diff --git a/build.mjs b/build.mjs
+index dfe059a..c7ded38 100644
+--- a/build.mjs
++++ b/build.mjs
+@@ -188,6 +188,19 @@ function build() {
+   console.log(`  js   ${jsName} (${(jsSource.length / 1024).toFixed(1)} kB)`);
+   console.log(`  copy ${copied} static files`);
+ 
++  // The investor deck is the site root now (accessrank.ai/ opens on it; the
++  // marketing site moved to /home — see site.json). Its own build already
++  // landed at DIST/deck (copied above from src/assets/static/deck), and that
++  // HTML references its assets with absolute /deck/... paths — so copying it
++  // to the root works unmodified, since those files still live right there.
++  const deckIndex = path.join(DIST, 'deck', 'index.html');
++  if (fs.existsSync(deckIndex)) {
++    fs.copyFileSync(deckIndex, path.join(DIST, 'index.html'));
++    console.log('  root / now serves the deck (dist/deck/index.html)');
++  } else {
++    console.warn('  ! dist/deck/index.html not found — root "/" will not serve the deck');
++  }
++
+   // --- pages --------------------------------------------------------------
+   const shell = fs.readFileSync(path.join(SRC, 'partials', 'shell.html'), 'utf8');
+   const written = [];
+@@ -274,9 +287,18 @@ function build() {
+   </url>`)
+     .join('\n');
+ 
++  // The deck at "/" isn't a templated page (see the copy step above), so it
++  // gets its own hand-written sitemap entry as the actual homepage.
++  const rootUrl = `  <url>
++    <loc>${SITE_URL}/</loc>
++    <lastmod>${today}</lastmod>
++    <changefreq>weekly</changefreq>
++    <priority>1.0</priority>
++  </url>`;
++
+   fs.writeFileSync(
+     path.join(DIST, 'sitemap.xml'),
+-    `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls}\n</urlset>\n`,
++    `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${rootUrl}\n${urls}\n</urlset>\n`,
+   );
+ 
+   fs.writeFileSync(
+diff --git a/deck/src/main.js b/deck/src/main.js
+index b7e3ae3..e6c6287 100644
+--- a/deck/src/main.js
++++ b/deck/src/main.js
+@@ -68,7 +68,8 @@ const nav = Navbar({
+   step: (d) => (d > 0 ? deckRef?.next() : deckRef?.prev()),
+ })
+ root.append(nav.el)
+-root.append(SiteNav().el)
++const siteNav = SiteNav({ mainSiteHref: '/home' })
++root.append(siteNav.el)
+ 
+ // Sound: effects only. No entry gate and no music bed (Carlos, 2026-09-18). Browsers only let audio start after a user gesture,
+ // so the effects wake up on the first click, key or swipe; the Sound on/off label (or M) still mutes them in the room.
+@@ -82,6 +83,12 @@ createDeck({
+   onChange: (i) => { presenter?.update(i); nav.update(i) },
+ }).then((deck) => {
+   deckRef = deck
++  // Chapter dots move into the site nav bar itself, right after the logo,
++  // instead of their own row in the deck's chrome (see lib/deck.css .chapters
++  // and src/style.css's .ar-nav .chapters override for the layout side of this).
++  const chaptersEl = root.querySelector('.chapters')
++  const arNavRight = siteNav.el.querySelector('.ar-nav-right')
++  if (chaptersEl && arNavRight) siteNav.el.insertBefore(chaptersEl, arNavRight)
+   const s = assets.stats()
+   console.info(`[deck R] ${deck.total} scenes${short ? ' (short path)' : ''} · assets ${s.final} final / ${s.placeholder} placeholder`)
+ })
+diff --git a/src/data/site.json b/src/data/site.json
+index acad3dd..bc10702 100644
+--- a/src/data/site.json
++++ b/src/data/site.json
+@@ -9,10 +9,10 @@
+   "locale": "en",
+ 
+   "nav": [
+-    { "label": "How it works", "href": "/#product", "deck": true },
+-    { "label": "WCAG explained", "href": "/#wcag" },
+-    { "label": "Pricing", "href": "/#pricing" },
+-    { "label": "Free audit", "href": "/#audit", "cta": true }
++    { "label": "How it works", "href": "/home#product", "deck": true },
++    { "label": "WCAG explained", "href": "/home#wcag" },
++    { "label": "Pricing", "href": "/home#pricing" },
++    { "label": "Free audit", "href": "/home#audit", "cta": true }
+   ],
+ 
+   "footer": [
+@@ -28,7 +28,7 @@
+     {
+       "heading": "Learn",
+       "links": [
+-        { "label": "WCAG 2.2 explained", "href": "/#wcag" },
++        { "label": "WCAG 2.2 explained", "href": "/home#wcag" },
+         { "label": "ADA & EAA guide", "href": "/guide/ada-eaa" },
+         { "label": "Resources", "href": "/resources" }
+       ]
+@@ -47,7 +47,7 @@
+   "pages": [
+     {
+       "file": "index.html",
+-      "url": "/",
++      "url": "/home",
+       "layout": "home",
+       "title": "Accessrank — ADA accessibility score & SEO for DTC ecommerce",
+       "description": "A low accessibility score is a lawsuit waiting to happen. Accessrank raises your ADA/WCAG 2.2 AA score with real code fixes, and lifts your SEO at the same time.",
+diff --git a/src/pages/404.html b/src/pages/404.html
+index eac3ccf..973abc1 100644
+--- a/src/pages/404.html
++++ b/src/pages/404.html
+@@ -9,7 +9,7 @@
+     <p class="doc-lede">Here are a few places to go instead.</p>
+ 
+     <ul>
+-      <li><a href="/">Back to the homepage</a></li>
++      <li><a href="/home">Back to the homepage</a></li>
+       <li><a href="/#audit">Run a free accessibility check</a></li>
+       <li><a href="/resources">Browse our resources</a></li>
+       <li><a href="/contact-sales">Talk to sales</a></li>
+diff --git a/src/pages/about.html b/src/pages/about.html
+index 670c5d7..3f53a8c 100644
+--- a/src/pages/about.html
++++ b/src/pages/about.html
+@@ -1,6 +1,6 @@
+ <section class="doc-main">
+   <article class="doc">
+-    <a class="back-link" href="/">
++    <a class="back-link" href="/home">
+       <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true" focusable="false"><path d="M8.5 3 L4 7 L8.5 11" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+       Back to site
+     </a>
+diff --git a/src/pages/careers.html b/src/pages/careers.html
+index a379b5c..fe4440b 100644
+--- a/src/pages/careers.html
++++ b/src/pages/careers.html
+@@ -1,6 +1,6 @@
+ <section class="doc-main">
+   <article class="doc">
+-    <a class="back-link" href="/">
++    <a class="back-link" href="/home">
+       <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true" focusable="false"><path d="M8.5 3 L4 7 L8.5 11" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+       Back to site
+     </a>
+diff --git a/src/pages/citations.html b/src/pages/citations.html
+index 16e5045..306c6e0 100644
+--- a/src/pages/citations.html
++++ b/src/pages/citations.html
+@@ -1,6 +1,6 @@
+ <section class="doc-main">
+   <article class="doc">
+-    <a class="back-link" href="/">
++    <a class="back-link" href="/home">
+       <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true" focusable="false"><path d="M8.5 3 L4 7 L8.5 11" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+       Back to site
+     </a>
+diff --git a/src/pages/contact-sales.html b/src/pages/contact-sales.html
+index 0e6e08c..b90b087 100644
+--- a/src/pages/contact-sales.html
++++ b/src/pages/contact-sales.html
+@@ -1,7 +1,7 @@
+ <section class="auth-main">
+   <div class="auth-grid wide">
+     <div class="auth-copy">
+-      <a class="back-link" href="/">
++      <a class="back-link" href="/home">
+         <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true" focusable="false"><path d="M8.5 3 L4 7 L8.5 11" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+         Back to site
+       </a>
+diff --git a/src/pages/disclosure.html b/src/pages/disclosure.html
+index e61623c..5dd790f 100644
+--- a/src/pages/disclosure.html
++++ b/src/pages/disclosure.html
+@@ -1,6 +1,6 @@
+ <section class="doc-main">
+   <article class="doc">
+-    <a class="back-link" href="/">
++    <a class="back-link" href="/home">
+       <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true" focusable="false"><path d="M8.5 3 L4 7 L8.5 11" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+       Back to site
+     </a>
+diff --git a/src/pages/guide-ada-eaa.html b/src/pages/guide-ada-eaa.html
+index b0340ef..7b47c0a 100644
+--- a/src/pages/guide-ada-eaa.html
++++ b/src/pages/guide-ada-eaa.html
+@@ -1,6 +1,6 @@
+ <section class="doc-main">
+   <article class="doc">
+-    <a class="back-link" href="/">
++    <a class="back-link" href="/home">
+       <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true" focusable="false"><path d="M8.5 3 L4 7 L8.5 11" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+       Back to site
+     </a>
+diff --git a/src/pages/methodology.html b/src/pages/methodology.html
+index 33d5904..2134dec 100644
+--- a/src/pages/methodology.html
++++ b/src/pages/methodology.html
+@@ -1,6 +1,6 @@
+ <section class="doc-main">
+   <article class="doc">
+-    <a class="back-link" href="/">
++    <a class="back-link" href="/home">
+       <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true" focusable="false"><path d="M8.5 3 L4 7 L8.5 11" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+       Back to site
+     </a>
+diff --git a/src/pages/privacy.html b/src/pages/privacy.html
+index 534ca6a..1364b7d 100644
+--- a/src/pages/privacy.html
++++ b/src/pages/privacy.html
+@@ -1,6 +1,6 @@
+ <section class="doc-main">
+   <article class="doc">
+-    <a class="back-link" href="/">
++    <a class="back-link" href="/home">
+       <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true" focusable="false"><path d="M8.5 3 L4 7 L8.5 11" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+       Back to site
+     </a>
+diff --git a/src/pages/resources.html b/src/pages/resources.html
+index 9dbca91..4babb85 100644
+--- a/src/pages/resources.html
++++ b/src/pages/resources.html
+@@ -1,6 +1,6 @@
+ <section class="doc-main">
+   <article class="doc">
+-    <a class="back-link" href="/">
++    <a class="back-link" href="/home">
+       <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true" focusable="false"><path d="M8.5 3 L4 7 L8.5 11" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+       Back to site
+     </a>
+diff --git a/src/pages/signup.html b/src/pages/signup.html
+index d439d86..42bb27b 100644
+--- a/src/pages/signup.html
++++ b/src/pages/signup.html
+@@ -1,7 +1,7 @@
+ <section class="auth-main">
+   <div class="auth-grid">
+     <div class="auth-copy">
+-      <a class="back-link" href="/">
++      <a class="back-link" href="/home">
+         <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true" focusable="false"><path d="M8.5 3 L4 7 L8.5 11" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+         Back to site
+       </a>
+diff --git a/src/pages/terms.html b/src/pages/terms.html
+index d7b1a72..c3449a2 100644
+--- a/src/pages/terms.html
++++ b/src/pages/terms.html
+@@ -1,6 +1,6 @@
+ <section class="doc-main">
+   <article class="doc">
+-    <a class="back-link" href="/">
++    <a class="back-link" href="/home">
+       <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true" focusable="false"><path d="M8.5 3 L4 7 L8.5 11" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+       Back to site
+     </a>
+diff --git a/src/partials/footer.html b/src/partials/footer.html
+index 26d99b9..d302c4a 100644
+--- a/src/partials/footer.html
++++ b/src/partials/footer.html
+@@ -1,7 +1,7 @@
+   <footer class="site-footer">
+     <div class="footer-inner">
+       <div class="footer-brand">
+-        <a class="logo" href="/" aria-label="Accessrank home">
++        <a class="logo" href="/home" aria-label="Accessrank home">
+           <span class="logo-mark" aria-hidden="true">
+             <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" focusable="false">
+               <polyline points="4 12.5 9.5 18 20 6.5"></polyline>
+diff --git a/src/partials/nav.html b/src/partials/nav.html
+index e90e044..eb486ec 100644
+--- a/src/partials/nav.html
++++ b/src/partials/nav.html
+@@ -1,5 +1,5 @@
+   <nav class="site-nav" aria-label="Primary">
+-    <a class="logo" href="/" aria-label="Accessrank home">
++    <a class="logo" href="/home" aria-label="Accessrank home">
+       <span class="logo-mark" aria-hidden="true">
+         <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" focusable="false">
+           <polyline points="4 12.5 9.5 18 20 6.5"></polyline>
