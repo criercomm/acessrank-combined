@@ -87,6 +87,7 @@
 /* Explicit, tight margins: with no rule at all this <p> carried the browser's
  * default 1em top+bottom, which is most of the dead air the card had. */
 .audit-hint { margin: 0; color: rgba(14, 14, 16, 0.72); font-size: 14px; line-height: 1.55; }
+.audit-note { margin: 10px 0 0; color: rgba(14, 14, 16, 0.55); font-size: 12.5px; line-height: 1.5; }
 /* This is a real <h2> now, not the old decorative "LIVE AUDIT" label, so it is
  * styled as a card heading rather than a micro-caption. */
 .audit-title { font-size: 25px; line-height: 1.2; letter-spacing: -0.6px; color: var(--bg); font-weight: 800; text-align: left; margin: 0 0 10px; }

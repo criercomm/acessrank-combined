@@ -25,6 +25,10 @@
               <button class="scan-btn" id="audit-submit" type="submit">Check my store</button>
             </form>
 
+            <p class="audit-note" id="audit-note">
+              Enter your store address to see which success criteria you currently meet.
+            </p>
+
             {{#if turnstileSiteKey}}
             <!-- Required by /api/scan, and must stay inside #audit-card. See .audit-turnstile in home.css. -->
             <div class="cf-turnstile audit-turnstile" data-sitekey="{{ turnstileSiteKey }}" data-theme="dark"></div>
