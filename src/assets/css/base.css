@@ -73,8 +73,9 @@ body { position: relative; overflow-x: hidden; }
 @keyframes aDrift4 { 0%,100%{transform:translate(0,0) scale(1);} 33%{transform:translate(-28%,-44%) scale(1.16);} 66%{transform:translate(44%,24%) scale(0.88);} } /* unused as of migration */
 @media (prefers-reduced-motion: reduce) { .aurora span { animation: none !important; } }
 /* Mobile: the blurred blob field is the dominant paint cost on throttled CPUs.
-   Hold it static (no infinite animation), thin it to 4 blobs, and drop the blur radius. */
-@media (max-width: 1000px) {
+   Hold it static (no infinite animation), thin it to 4 blobs, and drop the blur radius.
+   767px matches the deck's own mobile breakpoint (deck/lib/tokens.css). */
+@media (max-width: 767px) {
   .aurora span { animation: none !important; will-change: auto; filter: blur(52px) saturate(1.1); } /* was: filter: blur(60px) saturate(1.1); in auth.css */
   .aurora .b5, .aurora .b6, .aurora .b7, .aurora .b8 { display: none; } /* index.html only — thins the 8-blob layout to 4 on mobile; no auth.css equivalent needed since auth.css only ever had 4 blobs */
 }

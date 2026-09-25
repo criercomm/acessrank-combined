@@ -23,10 +23,13 @@
  * avoid one page's rule silently overriding the other's.
  */
 
-/* ---- Shared container system ---- */
+/* ---- Shared container system ----
+   Margin values and breakpoint matched to the investor deck's own system
+   (deck/lib/tokens.css: --margin 64px, 24px at max-width:767px) so the edge
+   spacing doesn't visibly jump when the deck opens over the homepage. */
 .site, .page { --edge: max(64px, calc((100% - 1280px) / 2 + 64px)); }
-@media (max-width: 1000px) {
-  .site, .page { --edge: 40px; }
+@media (max-width: 767px) {
+  .site, .page { --edge: 24px; }
 }
 
 /* ---- Primary nav ----

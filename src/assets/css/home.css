@@ -376,9 +376,10 @@
 }
 
 /* ---- Responsive ----
-   --edge: 40px at max-width:1000px was identical in both sources and now
-   lives in layout.css. --edge at 720px/480px below is index.html-only. */
-@media (max-width: 1000px) {
+   767px matches the deck's own mobile breakpoint (deck/lib/tokens.css),
+   so the homepage and the investor-deck overlay switch to their mobile
+   layouts at the same viewport width. --edge itself lives in layout.css. */
+@media (max-width: 767px) {
   .wcag-grid { grid-template-columns: 1fr; gap: 32px; }
   .credit-grid { grid-template-columns: 1fr; gap: 28px; }
   .feature-grid { grid-template-columns: 1fr; }
@@ -386,7 +387,6 @@
   .risk-grid { grid-template-columns: repeat(3, 1fr); max-width: 760px; }
 }
 @media (max-width: 720px) {
-  .site { --edge: 24px; }
   .site-nav, .nav { flex-direction: column; align-items: flex-start; gap: 14px; } /* .topbar intentionally excluded here — auth.css had no matching mobile stack behavior; adding it would change secondary-page rendering */
   .nav-right { flex-wrap: wrap; gap: 12px 18px; }
   .risk-title { font-size: 30px; }
@@ -400,7 +400,6 @@
   .overlay-card { flex-direction: column; gap: 14px; }
 }
 @media (max-width: 480px) {
-  .site { --edge: 16px; }
   .risk-grid { grid-template-columns: 1fr; max-width: 340px; }
   .cta-row { flex-direction: column; align-items: stretch; width: 100%; }
   .cta-top { flex-direction: column; }
