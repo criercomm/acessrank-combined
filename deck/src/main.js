@@ -68,7 +68,7 @@ const nav = Navbar({
   step: (d) => (d > 0 ? deckRef?.next() : deckRef?.prev()),
 })
 root.append(nav.el)
-const siteNav = SiteNav()
+const siteNav = SiteNav({ mainSiteHref: '/home' })
 root.append(siteNav.el)
 
 // Sound: effects only. No entry gate and no music bed (Carlos, 2026-09-18). Browsers only let audio start after a user gesture,
