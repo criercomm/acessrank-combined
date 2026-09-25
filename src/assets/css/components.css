@@ -416,23 +416,13 @@ body.modal-open { overflow: hidden; }
 
 /* Investor-deck overlay: "How it works" in the primary nav opens the deck
  * (src/assets/static/deck, built from the accessrank-deck repo) full-screen
- * inside an iframe, on top of whatever page the person was already on. The
- * deck's own nav has a "Main website" link (target="_top") for getting back
- * without this close button, but the button covers dismissing it in place. */
+ * inside an iframe, on top of whatever page the person was already on. There
+ * is no in-overlay close button — the deck's own nav has a "Main website"
+ * link (target="_top") for getting back, and Escape also closes it (site.js). */
 .deck-overlay {
   position: fixed; inset: 0; z-index: 300;
   background: #14142A;
 }
 .deck-overlay[hidden] { display: none; }
 .deck-overlay-frame { width: 100%; height: 100%; border: 0; display: block; }
-/* Centered over the deck's own copied nav bar (logo far left, links/CTA
- * clustered far right — see accessrank-deck's site-nav.js) so the close
- * button lands in the one gap neither of those occupies, at any width. */
-.deck-overlay-close {
-  position: absolute; top: 12px; left: 50%; transform: translateX(-50%); z-index: 301;
-  width: 40px; height: 40px; border-radius: 8px;
-  background: rgba(20, 20, 42, 0.7); border: 1px solid var(--hairline); color: var(--text);
-  font-size: 24px; line-height: 1; cursor: pointer;
-}
-.deck-overlay-close:hover { background: rgba(20, 20, 42, 0.9); }
 body.deck-open { overflow: hidden; }
