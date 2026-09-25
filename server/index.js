@@ -20,10 +20,17 @@ const server = app.listen(config.port, () => {
   }
 });
 
-// Warm the store at boot so a bad DATABASE_URL fails now, not on a visitor's request.
+// Warm the store at boot so a bad DATABASE_URL surfaces immediately in the
+// logs. A failure here does NOT stop the process: most of the site (the
+// investor deck, the marketing pages, every static asset) needs no database
+// at all, and getStore() retries fresh on the next call — so once the
+// database recovers, lead capture recovers with it, with no restart needed.
+// This used to call process.exit(1) in production, which meant a single
+// database outage (e.g. a paused Supabase project) took the entire site
+// down in a crash-restart loop, deck and marketing pages included, instead
+// of just disabling the features that actually depend on the database.
 getStore().catch((err) => {
-  log.error('store unavailable at boot', { err: err.message });
-  if (config.isProd) process.exit(1);
+  log.error('store unavailable at boot — continuing without it; lead capture will retry on next request', { err: err.message });
 });
 
 let shuttingDown = false;
