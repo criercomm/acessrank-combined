@@ -168,11 +168,14 @@
  * "Check my store" got HTTP 400 and the message "Please complete the
  * verification check and try again". The free scan, which is the entire top of
  * the funnel, was dead on the live site. */
-/* 70px, not the widget's nominal 65: it renders at 69px here, and a reserve
- * even 4px short re-creates the layout shift the reserve exists to prevent —
- * the aurora blobs position off document height, so ANY late growth anywhere
- * moves them all and CLS scores the whole ripple. */
-.audit-turnstile { margin: 10px 0 2px; min-height: 70px; }
+/* data-appearance="interaction-only" (see audit-widget.html) means the normal
+ * visitor never gets a rendered checkbox, so the old 70px reserve (sized for
+ * that checkbox, to prevent the aurora blobs' CLS) would now just be a
+ * permanent empty box — the exact "overlay" this was asked to remove. Widget
+ * lives in a closed shadow root, so CSS cannot key off its rendered state; the
+ * rare visitor Cloudflare routes to an actual interactive challenge eats a
+ * small one-time layout shift instead of every visitor eating a dead box. */
+.audit-turnstile { margin: 4px 0; }
 .scan-btn { background: var(--brand); color: var(--brand-ink); padding: 11px 16px; border-radius: 8px; font-weight: 500; font-size: 13px; white-space: nowrap; }
 .scan-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 .scan-status { font-size: 11px; color: var(--text-faint); margin-bottom: 10px; min-height: 14px; display: flex; align-items: center; gap: 6px; } /* TODO(contrast): verify against WCAG 1.4.3 */
@@ -186,6 +189,19 @@
 .check-circle { width: 22px; height: 22px; border-radius: 50%; background: var(--brand); color: var(--brand-ink); display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
 .row-label { color: var(--text); flex: 1; }
 .row-meta { color: var(--brand); font-size: 12px; font-weight: 500; }
+
+/* Dismiss the results panel back to the pre-scan card. Sits in its own row
+ * above #audit-results rather than absolutely over the card, so it can never
+ * overlap .audit-top's title/form regardless of how long either wraps. */
+.audit-results-bar { display: flex; justify-content: flex-end; margin: 4px 0 -6px; }
+.audit-results-bar[hidden] { display: none; }
+.audit-results-close {
+  width: 32px; height: 32px; border-radius: 8px;
+  background: transparent; border: 0; color: rgba(14, 14, 16, 0.55);
+  font-size: 19px; line-height: 1; cursor: pointer; font-family: inherit;
+  display: inline-flex; align-items: center; justify-content: center;
+}
+.audit-results-close:hover, .audit-results-close:focus-visible { color: rgba(14, 14, 16, 0.9); background: rgba(14, 14, 16, 0.06); }
 
 /* === REPORT BUTTON =====================================================
    FIX(migration): the original rule read

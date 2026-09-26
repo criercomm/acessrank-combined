@@ -300,10 +300,13 @@
   var meta = document.getElementById('audit-meta');
   var empty = document.getElementById('audit-empty');
   var results = document.getElementById('audit-results');
+  var resultsBar = document.getElementById('audit-results-bar');
+  var resultsClose = document.getElementById('audit-results-close');
   var reportCta = document.getElementById('audit-report-cta');
   var errorBox = document.getElementById('audit-error');
 
   var state = { scanning: false, scanId: null, result: null };
+  var metaDefaultText = meta ? meta.textContent : '';
 
   /**
    * Reset ONE Turnstile widget, by its container.
@@ -345,7 +348,20 @@
   function clearResults() {
     if (results) results.innerHTML = '';
     if (reportCta) reportCta.hidden = true;
+    if (resultsBar) resultsBar.hidden = true;
     showError('');
+  }
+
+  /* Full dismiss: clears results AND returns the card to its pre-scan look,
+   * unlike clearResults() alone (also used mid-flow, e.g. right before a new
+   * scan starts, where the URL/meta text should NOT be reset). */
+  function closeResults() {
+    clearResults();
+    setStatus('', null);
+    state.scanId = null;
+    state.result = null;
+    if (meta) meta.textContent = metaDefaultText;
+    if (empty) empty.hidden = false;
   }
 
   var IMPACT_LABEL = {
@@ -453,6 +469,7 @@
     }
 
     if (reportCta) reportCta.hidden = false;
+    if (resultsBar) resultsBar.hidden = false;
 
     setStatus(
       'Scan complete — ' + a11y.violationsTotal +
@@ -530,6 +547,13 @@
         return;
       }
       runScan(url);
+    });
+  }
+
+  if (resultsClose) {
+    resultsClose.addEventListener('click', function () {
+      closeResults();
+      if (input) input.focus();
     });
   }
 
