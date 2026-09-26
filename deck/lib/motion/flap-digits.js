@@ -25,6 +25,7 @@ export function FlapDigits(root, { value = '', digits = 0, clack = true, dur = T
     root.append(cell)
   }
   root.setAttribute('aria-label', str)
+  root.setAttribute('role', 'text') // same reasoning as kinetic-type.js: aria-label needs a permitting role (axe: aria-prohibited-attr)
   const glyph = (c) => (c === ' ' ? ' ' : c)
   function setFaces(c, curCh, nextCh) {
     c.top.firstChild.textContent = glyph(nextCh)

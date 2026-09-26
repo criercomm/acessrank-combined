@@ -29,14 +29,15 @@ export default {
       return g
     })
     const hotspots = C.steps.map((s, i) => el('button', { class: 'hotspot', type: 'button', 'data-hotspot': '', 'data-id': s.id, text: s.label, onclick: (e) => { e.stopPropagation(); this.select(i, true) }, onpointerenter: () => this.select(i) }))
-    const rail = el('div', { class: 'hotspots s05-rail' }, ...hotspots)
-    const line1 = el('p', { class: 's05-line', 'aria-live': 'polite' })
-    const railwrap = el('div', { class: 's05-railwrap' }, rail, line1)
+    const lines = C.steps.map((s) => el('p', { class: 's05-line', text: s.line }))
+    const steps = hotspots.map((h, i) => el('div', { class: 's05-step' }, h, lines[i]))
+    const rail = el('div', { class: 'hotspots s05-rail' }, ...steps)
+    const railwrap = el('div', { class: 's05-railwrap' }, rail)
     const people = C.people.map((p) => el('figure', { class: 's05-person', 'data-id': p.id }, assets.img(`dR-s05-silhouette-${p.id}`, { w: 800, sizes: '12vw', alt: `${p.label}, seen from behind` }), el('figcaption', {}, el('b', { class: 'label', text: p.label }), el('span', { text: p.line }))))
     root.append(el('div', { class: 's05-copy' }, title.el), el('div', { class: 's05-flow' }, flow, railwrap), el('div', { class: 's05-people' }, ...people))
-    this.els = { title, flow, line, nodes, hotspots, rail, line1, people }
+    this.els = { title, flow, line, nodes, hotspots, rail, lines, people }
     this.C = C
-    gsap.set([...hotspots, line1, ...people], { opacity: 0 })
+    gsap.set([...hotspots, ...lines, ...people], { opacity: 0 })
     this.i = -1
     // pixel layout: viewBox = real width; each node centred over its hotspot
     this.layout = () => {
@@ -55,21 +56,16 @@ export default {
   },
   preload(ctx) { return ctx.assets.preload(PEOPLE.map((p) => `dR-s05-silhouette-${p}`), 800) },
   select(i, click = false) {
-    const { nodes, hotspots, line1 } = this.els
+    const { nodes, hotspots, lines } = this.els
     if (i === this.i) return
     this.i = i
     nodes.forEach((g, k) => g.classList.toggle('is-on', k === i))
     hotspots.forEach((h, k) => h.classList.toggle('is-active', k === i))
-    // centre the caption under the active button (desktop); the CSS ignores --cx on phones. Half its real width (not a
-    // hard-coded 280) keeps it inside the rail whatever width the CSS gives it.
-    const rr = this.els.rail.getBoundingClientRect(), hr = hotspots[i].getBoundingClientRect()
-    const half = Math.min((line1.offsetWidth || 560) / 2, rr.width / 2), cx = Math.max(half, Math.min(rr.width - half, hr.left - rr.left + hr.width / 2))
-    line1.style.setProperty('--cx', cx.toFixed(1) + 'px')
-    gsap.fromTo(line1, { opacity: 0, y: 6 }, { opacity: 1, y: 0, duration: sec(T[3]), ease: ease('out-expo'), onStart: () => { line1.textContent = this.C.steps[i].line } })
+    lines.forEach((l, k) => l.classList.toggle('is-active', k === i))
     if (click) this.ctxSound?.play('blip', { gain: .4 })
   },
   enter(ctx) {
-    const { title, line, nodes, hotspots, people } = this.els
+    const { title, line, nodes, hotspots, lines, people } = this.els
     this.ctxSound = ctx.sound
     this.tl?.kill(); this.i = -1; this._drawn = false
     hotspots.forEach((h) => h.classList.remove('is-active'))
@@ -83,8 +79,9 @@ export default {
     tl.add(() => { this._drawn = true }, .6)
     nodes.forEach((g, i) => tl.add(() => { g.classList.add('is-in'); ctx.sound.play('tick', { gain: .7, rate: 1 + i * .04 }) }, .7 + i * .16))
     tl.add(Stagger(hotspots, { dur: T[4], y: 8, delay: 60, from: 'start' }), 1.2)
+    tl.add(Stagger(lines, { dur: T[4], y: 8, delay: 60, from: 'start' }), 1.35)
     tl.add(Stagger(people, { dur: T[5], y: 24, scale: .96, delay: 120 }), 1.6)
-    tl.add(() => this.select(0), 2.2)
+    tl.add(() => this.select(0), 1.2)
     this.tl = tl
   },
   next() { if (this.i < this.els.hotspots.length - 1) { this.select(this.i + 1, true); return true } return false },

@@ -108,7 +108,7 @@ export const copy = {
       { id: 'approve', label: 'Approval per change', line: 'Every change is approved file by file. Who approved it, and why, is recorded.' },
       { id: 'verify', label: 'Write verified', line: 'After every write, the file is read back and compared with the approved version. If anything differs, nothing goes out.' },
       { id: 'zero', label: '0 remaining', line: 'A fix is accepted only when the re-scan of the same pages reports zero remaining issues.' },
-      { id: 'evidence', label: 'Evidence pack', line: 'Each finding comes with the rule, the WCAG criterion, the selector and the measurements. Before-and-after screenshots show what was fixed and why — remediation evidence that can help support a legal defense.' },
+      { id: 'evidence', label: 'Evidence pack', line: 'Each fix ships with the rule, the WCAG criterion and before-and-after screenshots — evidence that can support a legal defense.' },
     ],
     people: [
       { id: 'operator', label: 'Operator', line: 'runs the scan and writes the fix' },

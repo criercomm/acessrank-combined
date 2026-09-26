@@ -5,6 +5,7 @@ export function KineticType(el, { per = 'char', axis = 'wght', from = 300, to = 
   if (!el.dataset.ktText) el.dataset.ktText = el.textContent.replace(/\s+/g, ' ').trim()
   const text = el.dataset.ktText
   el.setAttribute('aria-label', text)
+  el.setAttribute('role', 'text') // aria-label on a bare span/h-tag needs a role that permits it (axe: aria-prohibited-attr); role="text" is the standard pattern for "read this split-into-spans element as one string"
   el.classList.add('kt')
   el.textContent = ''
   const units = []

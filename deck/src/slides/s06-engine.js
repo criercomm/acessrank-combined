@@ -15,7 +15,7 @@ export default {
     const title = heading(C.title, { tag: 'h2', cls: 'h-statement s06-title' })
     const lede = el('p', { class: 's06-lede', text: C.lede })
     const tiles = C.tiles.map((t) => tile(t, { sound, size: 'l' }))
-    const standards = C.standards.map((s, i) => el('div', { class: 's06-std', 'data-hotspot': '' }, el('b', { class: 'mono', text: String(i + 1).padStart(2, '0') }), el('span', { class: 's06-std-label', text: s.label }), el('span', { class: 's06-std-line', text: s.line })))
+    const standards = C.standards.map((s) => el('div', { class: 's06-std', 'data-hotspot': '' }, el('span', { class: 's06-std-label', text: s.label }), el('span', { class: 's06-std-line', text: s.line })))
     const platforms = el('div', { class: 's06-platforms' }, label('Runs on', 's06-plat-label'), ...C.platforms.map((p) => el('span', { class: 'chip label', text: p })))
     root.append(el('div', { class: 's06-copy' }, title.el, lede), el('div', { class: 's06-grid' }, ...tiles.map((t) => t.el)), el('div', { class: 's06-right' }, ...standards, platforms))
     this.els = { title, lede, tiles, standards, platforms }
