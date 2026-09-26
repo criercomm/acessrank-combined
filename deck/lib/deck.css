@@ -38,6 +38,8 @@ a { color: inherit; }
 .slide.is-active, .slide.is-leaving { display: block; }
 .slide.is-leaving { z-index: 1; pointer-events: none; }
 .slide.is-active { z-index: 2; }
+.slide:focus { outline: none; }
+.slide:focus-visible { outline: 2px solid var(--accent); outline-offset: -4px; }
 /* Red de seguridad contra "la escena se abre dos veces" (ver deck.js): mientras dura la transición de vuelta a una
    escena ya vista, su contenido se oculta para que enter() la anime desde cero, igual que la primera vez.
    [data-keep] exime a un hijo que ya existe desde build y no forma parte de la entrada (una escena con reset()

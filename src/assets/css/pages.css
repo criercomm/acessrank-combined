@@ -73,7 +73,7 @@ body { min-height: 100vh; overflow-x: hidden; }
 }
 .page .logo-mark svg { width: 17px; height: 17px; }
 
-.back-link { display: inline-flex; align-items: center; gap: 7px; font-size: 13px; font-weight: 500; color: var(--text-faint); transition: color .15s ease; margin-bottom: 18px; } /* TODO(contrast): verify against WCAG 1.4.3 */
+.back-link { display: inline-flex; align-items: center; gap: 7px; font-size: 13px; font-weight: 500; color: var(--text-faint); transition: color .15s ease; padding: 5px 0; min-height: 24px; margin-bottom: 13px; } /* TODO(contrast): verify against WCAG 1.4.3; margin-bottom reduced from 18px since padding now adds to the same gap */
 .back-link:hover { color: var(--text-soft); }
 
 /* ---- Form card ---- */

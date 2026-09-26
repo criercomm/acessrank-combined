@@ -466,6 +466,11 @@
   .cta-row { flex-direction: column; align-items: stretch; width: 100%; }
   .cta-top { flex-direction: column; }
   .cta-row button { width: 100%; }
+  /* Below this width the "Check my store" button was squeezing the URL
+   * input down to ~100px — too narrow to show its own placeholder, let
+   * alone what a visitor typed. Stack them instead. */
+  .url-form { flex-direction: column; }
+  .scan-btn { width: 100%; }
   .site .footer-cols { flex-wrap: wrap; gap: 22px 40px; } /* index.html-only override of the shared .footer-cols (layout.css); no auth.css equivalent at this breakpoint. Scoped with .site so it doesn't also apply to secondary pages now that home.css and pages.css are concatenated into one stylesheet by build.mjs */
   .price-toggle { width: 100%; }
 }

@@ -30,7 +30,7 @@ export async function createDeck({ root, slides, copy, assets, chapters, audio =
   root.classList.add('deck')
   if (chromeMode === 'minimal') root.classList.add('is-minimal')
   const stage = el('div', { class: 'stage' })
-  const sections = slides.map((s, i) => el('section', { class: 'slide', id: s.id || `s${i + 1}`, 'data-slide': i + 1, 'aria-hidden': 'true' }))
+  const sections = slides.map((s, i) => el('section', { class: 'slide', id: s.id || `s${i + 1}`, 'data-slide': i + 1, 'aria-hidden': 'true', 'aria-label': `${i + 1} / ${slides.length}: ${s.title || `Slide ${i + 1}`}` }))
   stage.append(...sections)
 
   // ---- chrome ----
@@ -90,10 +90,11 @@ export async function createDeck({ root, slides, copy, assets, chapters, audio =
       if (typeof slides[to].reset === 'function') { try { slides[to].reset(ctx) } catch (e) { console.error(`[deck] reset s${to + 1}`, e) } }
       else toEl.classList.add('is-replay')
     }
-    toEl.classList.add('is-active'); toEl.setAttribute('aria-hidden', 'false')
+    // Only the active slide is a tab stop: in compact mode it scrolls, and a scroll region has to be reachable by keyboard.
+    toEl.classList.add('is-active'); toEl.setAttribute('aria-hidden', 'false'); toEl.tabIndex = 0
     setChapter(to); setNotes(to); counterFlap.set(pad2(to + 1))
     if (fromEl) await Transition(slides[to].transition || 'fade', { dur: T[4], sound }).run(fromEl, toEl, dir)
-    if (fromEl) { fromEl.classList.remove('is-active', 'is-leaving'); fromEl.setAttribute('aria-hidden', 'true') }
+    if (fromEl) { fromEl.classList.remove('is-active', 'is-leaving'); fromEl.setAttribute('aria-hidden', 'true'); fromEl.removeAttribute('tabindex') }
     current = to
     try { onChange?.(to, { from, total, slide: slides[to], next: slides[to + 1] || null }) } catch (e) { console.warn('[deck] onChange', e) }
     const p = new URLSearchParams(location.search); p.set('slide', String(to + 1)); history.replaceState(null, '', `${location.pathname}?${p}`)
@@ -121,11 +122,24 @@ export async function createDeck({ root, slides, copy, assets, chapters, audio =
   }
 
   // ---- input ----
+  // Same rule as wheel and swipe below: while an overflowing scene still has room to scroll, the vertical keys scroll it;
+  // at the edge they change scene. Without this a keyboard user could never reach the bottom of a compact slide.
+  const scrollKey = (e, dir) => {
+    if (!scrolls()) return false
+    const s = sections[current]
+    const room = dir > 0 ? s.scrollHeight - s.clientHeight - s.scrollTop : s.scrollTop
+    if (room <= 2) return false
+    const step = e.key === 'PageDown' || e.key === 'PageUp' || e.key === ' ' ? s.clientHeight * 0.85 : 64
+    s.scrollBy({ top: dir * step, behavior: reduced ? 'auto' : 'smooth' })
+    return true
+  }
   addEventListener('keydown', (e) => {
     if (e.metaKey || e.ctrlKey || e.altKey) return
     switch (e.key) {
-      case 'ArrowRight': case 'ArrowDown': case ' ': case 'PageDown': case 'Enter': e.preventDefault(); next(); break
-      case 'ArrowLeft': case 'ArrowUp': case 'PageUp': case 'Backspace': e.preventDefault(); prev(); break
+      case 'ArrowDown': case ' ': case 'PageDown': e.preventDefault(); if (!scrollKey(e, 1)) next(); break
+      case 'ArrowUp': case 'PageUp': e.preventDefault(); if (!scrollKey(e, -1)) prev(); break
+      case 'ArrowRight': case 'Enter': e.preventDefault(); next(); break
+      case 'ArrowLeft': case 'Backspace': e.preventDefault(); prev(); break
       case 'Home': sound.start(); go(0); break
       case 'End': sound.start(); go(total - 1); break
       case 'm': case 'M': sound.start(); sound.mute(); break

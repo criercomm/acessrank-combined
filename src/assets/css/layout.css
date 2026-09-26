@@ -58,7 +58,7 @@
 .footer-brand { max-width: 360px; }
 .site .footer-brand .logo, .site-footer .footer-brand .logo { font-size: 22px; margin-bottom: 6px; } /* selectors kept exactly as each source wrote them (.site.../.site-footer...) — needs to stay 3 classes deep to keep outranking the base .site .logo / .page .logo rules (home.css/pages.css), which load later in the build */
 .footer-tagline { font-size: 13px; font-weight: 500; letter-spacing: 0.02em; line-height: 1.5; color: var(--text-faint); margin: 0 0 16px; text-wrap: balance; }
-.footer-contact a { color: var(--text-soft); font-size: 14px; }
+.footer-contact a { display: inline-block; color: var(--text-soft); font-size: 14px; padding: 5px 0; min-height: 24px; }
 .footer-cols { display: flex; gap: 56px; }
 .footer-heading { font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; text-align: left; color: var(--brand); margin: 0 0 16px; }
 .footer-col a { display: block; color: var(--text-soft); font-size: 14px; padding: 7px 0; min-height: 24px; transition: color 0.15s ease; }
