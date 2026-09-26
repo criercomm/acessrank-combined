@@ -28,10 +28,10 @@
  * These were <div> grids in the original. They are real <ul>/<ol> now so screen
  * readers announce "list, 4 items", but that brings the browser's default
  * bullets and 40px inline padding with it. */
-/* .stats-strip, not .stats-strip-inner: the markup's <ul> class is
- * .stats-strip, so the old name never matched and the strip rendered its
- * native list bullets — the stray dots beside "+23%", "2–4 wks" and "$30K+". */
-.risk-grid, .pour, .feature-grid, .stats-strip, .pricing-grid,
+/* .stats-strip is NOT in this list: its own rule (home.css) already drops the bullets and margin and sets padding
+ * 28px var(--edge). This file loads later, so padding-inline-start: 0 here wiped its left edge padding — the three
+ * stats sat 80px left of centre on a 1470px screen, flush left with 159px empty on the right. */
+.risk-grid, .pour, .feature-grid, .pricing-grid,
 .criteria-list, .lawsuit-steps, .price-features, .footer-list,
 .marquee-track, .nav-right ul, .job-list, .perks {
   list-style: none;

@@ -454,8 +454,9 @@
   .risk-grid { grid-template-columns: repeat(3, 1fr); max-width: 760px; }
 }
 @media (max-width: 720px) {
-  .site-nav, .nav { flex-direction: column; align-items: flex-start; gap: 14px; } /* .topbar intentionally excluded here — auth.css had no matching mobile stack behavior; adding it would change secondary-page rendering */
-  .nav-right { flex-wrap: wrap; gap: 12px 18px; }
+  /* The links live in the .nav-toggle dropdown below 860px (components.css), so the bar stays one row: logo left,
+   * hamburger right. It used to stack into a column from before the toggle existed, parking the hamburger under the logo. */
+  .site-nav, .nav { padding-top: 24px; }
   .risk-title { font-size: 30px; }
   :where(.site h2) { font-size: 26px; }
   .risk-title br { display: none; }

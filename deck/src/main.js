@@ -77,7 +77,7 @@ try { if (!localStorage.getItem('ar-sfx-only')) { SoundBus.mute(false); localSto
 createDeck({
   root, slides, copy, assets, chapters, params,
   audio: { bed: false, ...Object.fromEntries(Object.entries(manifest.audio?.sfx || {}).map(([k, v]) => [k, withBase(v)])) },
-  chrome: 'full', cursor: true, muted: false, grain: .05,
+  chrome: 'full', cursor: { lag: .4 }, muted: false, grain: .05,
   fonts: ['800 1em "Inter"', '500 1em "JetBrains Mono"'],
   onChange: (i) => { presenter?.update(i); nav.update(i) },
 }).then((deck) => {

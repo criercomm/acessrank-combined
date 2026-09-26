@@ -6,7 +6,7 @@ export const copy = {
   brand: 'Accessrank',
   spine: "The web's biggest blind spot. Accessrank finds it, fixes it, and proves it.",
   legal: '<b>Accessrank</b> · Investor presentation · Not legal advice · Statistics from cited third-party sources · Confidential',
-  chapters: ['The blind spot', 'The letter', 'Plug-ins', 'The fix', 'Safe', 'Engine', 'Model', 'Market', 'Libraries', 'Contact'],
+  chapters: ['The blind spot', 'The letter', 'Plug-ins', 'The fix', 'Process', 'Engine', 'Model', 'Market', 'Libraries', 'Contact'],
 
   s01: {
     title: ["THE WEB'S BIGGEST", 'BLIND SPOT.'],
@@ -109,11 +109,6 @@ export const copy = {
       { id: 'verify', label: 'Write verified', line: 'After every write, the file is read back and compared with the approved version. If anything differs, nothing goes out.' },
       { id: 'zero', label: '0 remaining', line: 'A fix is accepted only when the re-scan of the same pages reports zero remaining issues.' },
       { id: 'evidence', label: 'Evidence pack', line: 'Each fix ships with the rule, the WCAG criterion and before-and-after screenshots — evidence that can support a legal defense.' },
-    ],
-    people: [
-      { id: 'operator', label: 'Operator', line: 'runs the scan and writes the fix' },
-      { id: 'client', label: 'Client', line: 'grants access and approves from the portal' },
-      { id: 'shopper', label: 'Shopper', line: 'More than 1 in 4 U.S. adults (70M+) live with a disability' },
     ],
     notes: 'Click through the five guardrails; the explanation sits under the active one. The line for the room: "The live store never goes down because we never touch the live theme. And every fix is measured and documented, which is what keeps the lawyers at bay."',
   },

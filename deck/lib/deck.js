@@ -178,7 +178,7 @@ export async function createDeck({ root, slides, copy, assets, chapters, audio =
   ctx.deck = { go, next, prev, root, stage, sections, total, sound, get current() { return current } }
 
   // ---- efectos globales ----
-  if (cursor) Cursor()
+  if (cursor) Cursor(cursor === true ? {} : cursor) // cursor: {lag, hover} afina el anillo por deck
   Grain(document.body, { amount: grain })
 
   // ---- arranque: fuentes → chrome entra → primer slide ----
