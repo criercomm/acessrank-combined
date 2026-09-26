@@ -30,8 +30,12 @@
             </p>
 
             {{#if turnstileSiteKey}}
-            <!-- Required by /api/scan, and must stay inside #audit-card. See .audit-turnstile in home.css. -->
-            <div class="cf-turnstile audit-turnstile" data-sitekey="{{ turnstileSiteKey }}" data-theme="dark"></div>
+            <!-- Required by /api/scan, and must stay inside #audit-card. data-appearance="interaction-only"
+                 keeps the check running (verifyTurnstile() in server/lib/validate.js still gets a real
+                 token) but only shows the widget UI on the rare visitor who actually needs the interactive
+                 challenge — everyone else never sees a checkbox. See .audit-turnstile in home.css. -->
+            <div class="cf-turnstile audit-turnstile" data-sitekey="{{ turnstileSiteKey }}" data-theme="dark"
+                 data-appearance="interaction-only"></div>
             {{/if}}
           </div>
         </div>
@@ -40,6 +44,12 @@
 
         <p class="scan-status" id="audit-status" role="status" aria-live="polite"></p>
 
+        <div class="audit-results-bar" id="audit-results-bar" hidden>
+          <button class="audit-results-close" id="audit-results-close" type="button">
+            <span aria-hidden="true">&times;</span>
+            <span class="visually-hidden">Close results</span>
+          </button>
+        </div>
         <div class="audit-results" id="audit-results"></div>
 
         <button class="report-cta" id="audit-report-cta" type="button" hidden>
@@ -112,7 +122,8 @@
             </div>
 
             {{#if turnstileSiteKey}}
-            <div class="cf-turnstile" data-sitekey="{{ turnstileSiteKey }}" data-theme="dark"></div>
+            <div class="cf-turnstile" data-sitekey="{{ turnstileSiteKey }}" data-theme="dark"
+                 data-appearance="interaction-only"></div>
             {{/if}}
 
             <p class="form-status" id="report-status" role="alert" aria-live="assertive"></p>
