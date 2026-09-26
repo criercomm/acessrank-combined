@@ -145,7 +145,10 @@ html, body { font-family: var(--display); }
 .st-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; padding: 4px 0 10px; }
 .st-card { display: grid; row-gap: 4px; padding: 10px; border-radius: 10px; background: rgba(255, 255, 255, .04); border: 1px solid rgba(255, 255, 255, .06); }
 .st-media { position: relative; height: 72px; display: flex; align-items: center; justify-content: center; }
-.st-media img { max-height: 100%; width: auto; max-width: 60%; }
+/* Same trap as .s02-page: with the deck-wide picture { display: contents } iOS WebKit never resolves a % max-height on the
+   <img>, so it rendered at its intrinsic height and stretched over the whole store. The <picture> is the sized box. */
+.st-media picture { display: block; width: 60%; height: 100%; }
+.st-media img { display: block; width: 100%; height: 100%; object-fit: contain; }
 .st-name { font-size: 12px; font-weight: 600; }
 .st-row { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
 .st-price { font-size: 13px; display: flex; gap: 8px; align-items: baseline; }
@@ -426,7 +429,7 @@ a.contact-line:hover { color: var(--accent); }
 @media (max-width: 767px), (max-height: 620px), (max-aspect-ratio: 1/1) {
   :root { --margin: 24px; --pad-y: 48px; --gutter: 16px; --cols: 4; --bar: 104px; }
   /* padding-top clears the top chrome (16 + 24), padding-bottom clears the whole bottom bar */
-  .slide { overflow-y: auto; -webkit-overflow-scrolling: touch; padding: var(--pad-y) var(--margin) var(--bar); }
+  .slide { overflow-y: auto; -webkit-overflow-scrolling: touch; padding: var(--pad-y) var(--margin) calc(var(--bar) + env(safe-area-inset-bottom, 0px)); }
   .chapters { display: none; }
   .presenter { display: none; }
   .footer { display: none; }
@@ -447,20 +450,30 @@ a.contact-line:hover { color: var(--accent); }
   .s03-scrim { background: linear-gradient(to bottom, rgba(20, 20, 42, .94) 0%, rgba(20, 20, 42, .82) 46%, rgba(20, 20, 42, .55) 100%); }
   .s03-panel { position: relative; right: 0; bottom: 0; width: 100%; margin-top: 24px; }
   .s04-title { font-size: 22px; }
-  .s04-stage { position: relative; inset: auto; height: 62vh; margin-top: 16px; }
-  .st-page { padding: 0 14px 14px; }
+  /* the counter and the ring are the payoff of the scan, so store + panel share one screen (62vh pushed the panel under
+     the bottom bar on a 402 × 874 phone). The store takes its content height, never clipping a finding's anchor; the
+     compact store below fits a 402 × 874 screen, and shorter phones scroll the slide. */
+  .s04-stage { position: relative; inset: auto; height: auto; margin-top: 12px; }
+  .s04-storewrap, .store { position: relative; inset: auto; height: auto; }
+  .st-page { height: auto; padding: 0 14px 10px; }
+  .st-nav { height: 38px; }
   .st-links { display: none; }
-  .st-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
-  .st-media { height: 76px; }
+  .st-hero { padding: 8px 0; row-gap: 4px; }
+  .st-eyebrow { display: none; }
+  .st-grid { grid-template-columns: 1fr 1fr; gap: 8px; padding: 4px 0 6px; }
+  .st-card { padding: 8px; row-gap: 2px; }
+  .st-media { height: 56px; }
   .st-modal { display: none; }
   .st-form-title { display: none; }
   .s04-stage.is-split .store { transform: none; opacity: .25; }
   .card { width: 100%; top: 6%; max-height: 90%; }
-  .s04-panel { position: relative; inset: auto; width: 100%; margin-top: 16px; grid-template-columns: 1fr 1fr; align-items: start; }
-  .pills { grid-column: 1 / -1; }
-  .count-num { font-size: 48px; min-height: 48px; }
-  .score-ring { width: 120px; height: 120px; }
-  .ring-num { font-size: 32px; min-height: 32px; }
+  .s04-panel { position: relative; inset: auto; width: 100%; margin-top: 12px; grid-template-columns: 1fr auto; column-gap: 16px; row-gap: 10px; align-items: center; }
+  .pills { grid-column: 1 / -1; flex-wrap: nowrap; }
+  .count { grid-column: 1; row-gap: 2px; }
+  .count-num { font-size: 40px; min-height: 40px; }
+  .score-ring { grid-column: 2; grid-row: 2 / span 2; width: 96px; height: 96px; }
+  .ring-num { font-size: 26px; min-height: 26px; }
+  .rollback { grid-column: 1; height: 32px; }
   .s05-flow { position: relative; top: 0; left: auto; right: auto; width: 100%; margin-top: 24px; }
   .flow { display: none; }
   .s05-rail { gap: 16px; }

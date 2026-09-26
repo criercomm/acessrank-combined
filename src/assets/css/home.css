@@ -129,6 +129,11 @@
 @media (max-width: 900px) {
   .hero-split { flex-direction: column; align-items: stretch; gap: 32px; }
   .hero-title { font-size: 32px; }
+  /* The desktop nudges above push the copy 77px past the right edge and the
+   * card off-center; on iOS that overflow widens the page, so it zooms out
+   * and scrolls past the footer. Stacked, both sit on the section padding. */
+  .hero-copy, .hero-audit { transform: none; min-width: 0; flex: none; }
+  .hero-audit .audit-card { margin: 0; }
 }
 .pulse-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--brand); animation: p14 2s ease-in-out infinite; }
 @keyframes p14 { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
@@ -400,7 +405,7 @@
 .lawsuit-cta { display: inline-flex; align-items: center; gap: 8px; background: var(--danger); color: #FFFFFF; padding: 13px 24px; border-radius: 8px; font-weight: 600; font-size: 14px; transition: background 0.15s ease, transform 0.15s ease; }
 .lawsuit-cta:hover { background: #B91C1C; transform: translateY(-1px); }
 .lawsuit-disclaimer { font-size: 12.5px; color: var(--text-faint); line-height: 1.5; font-style: italic; white-space: nowrap; } /* TODO(contrast): verify against WCAG 1.4.3 */
-@media (max-width: 900px) { .lawsuit-top { grid-template-columns: 1fr; } .lawsuit-pricebox { justify-self: start; } .lawsuit-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 900px) { .lawsuit-top { grid-template-columns: 1fr; } .lawsuit-pricebox { justify-self: start; } .lawsuit-grid { grid-template-columns: repeat(2, 1fr); } .lawsuit-disclaimer { white-space: normal; } }
 @media (max-width: 480px) { .lawsuit-grid { grid-template-columns: 1fr; } .lawsuit-title { font-size: 25px; } }
 
 /* ---- Disabled Access Credit ---- */
