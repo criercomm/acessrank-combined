@@ -161,22 +161,10 @@
 .url-input { flex: 1; background: #F4F5F8; border: 1px solid rgba(14, 14, 16, 0.14); color: var(--bg); padding: 11px 14px; border-radius: 8px; font-size: 13px; font-family: inherit; outline: none; }
 .url-input::placeholder { color: rgba(14, 14, 16, 0.42); }
 .url-input:focus { border-color: var(--brand); }
-/* Turnstile widget for the scan form.
- *
- * It has to be a SECOND widget, inside #audit-card. The page already had one in
- * #report-modal, but that modal is a sibling of this card and starts `hidden`,
- * and Cloudflare never solves a widget that is not displayed. Meanwhile
- * /api/scan calls verifyTurnstile(), which throws `captcha_required` when the
- * token is missing, and audit.js looks the token up with
- * `#audit-card [name="cf-turnstile-response"]` — a subtree that contained no
- * widget at all. Net effect before this fix: every visitor who pressed
- * "Check my store" got HTTP 400 and the message "Please complete the
- * verification check and try again". The free scan, which is the entire top of
- * the funnel, was dead on the live site. */
-/* No space reserved: the widget renders with data-appearance="interaction-only", so it stays invisible (the Cloudflare
- * box looked out of place in the card) and only appears in the rare case Cloudflare needs a click. The old 70px reserve
- * would now be an empty gap. */
-.audit-turnstile { margin: 0; }
+/* The scan's Turnstile widget is not in this card any more: it lives in the scan dialog's progress view
+ * (.scan-turnstile, components.css; see the note in audit-widget.html). History worth keeping: /api/scan rejects a
+ * missing token with "Please complete the verification check", and a widget rendered while hidden never solves — so
+ * the widget must be visible when the token is needed, which is why audit.js refreshes it when the dialog opens. */
 .scan-btn { background: var(--brand); color: var(--brand-ink); padding: 11px 16px; border-radius: 8px; font-weight: 500; font-size: 13px; white-space: nowrap; }
 .scan-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 .scan-status { font-size: 11px; color: var(--text-faint); margin-bottom: 10px; min-height: 14px; display: flex; align-items: center; gap: 6px; } /* TODO(contrast): verify against WCAG 1.4.3 */

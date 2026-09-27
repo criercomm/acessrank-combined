@@ -150,6 +150,7 @@ body.modal-open { overflow: hidden; }
 .scan-step[data-step="now"] { color: var(--text); }
 .scan-step[data-step="now"]::before { border-color: var(--brand); border-top-color: transparent; animation: scanSpin 0.8s linear infinite; }
 @keyframes scanSpin { to { transform: rotate(360deg); } }
+.scan-turnstile:not(:empty) { margin-top: 22px; } /* only takes space if Cloudflare shows its box */
 .scan-progress-note { margin: 28px 0 0; font-size: 13px; line-height: 1.5; color: var(--text-muted); }
 
 .scan-failed-msg { max-width: 60ch; margin: 0 0 26px; font-size: 16px; line-height: 1.6; color: var(--text-soft); }

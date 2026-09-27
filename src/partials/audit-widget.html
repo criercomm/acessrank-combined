@@ -29,11 +29,6 @@
               See which success criteria you currently meet.
             </p>
 
-            {{#if turnstileSiteKey}}
-            <!-- Required by /api/scan, and must stay inside #audit-card. See .audit-turnstile in home.css. -->
-            <!-- interaction-only: invisible unless Cloudflare needs a click; audit.js waits for the token (waitForToken). -->
-            <div class="cf-turnstile audit-turnstile" data-sitekey="{{ turnstileSiteKey }}" data-theme="dark" data-appearance="interaction-only"></div>
-            {{/if}}
           </div>
         </div>
 
@@ -59,6 +54,13 @@
             <h2 class="scan-host" id="scan-progress-title" tabindex="-1">your store</h2>
             <div class="scan-bar" aria-hidden="true"><span class="scan-bar-fill" id="scan-bar-fill"></span></div>
             <ol class="scan-steps" id="scan-steps"></ol>
+            {{#if turnstileSiteKey}}
+            <!-- Required by /api/scan. Lives in the dialog, not the card: interaction-only keeps it invisible, but when
+                 Cloudflare does want a click it must appear where the visitor is looking — in the card it sat behind
+                 the dialog. audit.js refreshes it on open (a widget rendered while hidden never solves) and waits for
+                 its token (waitForToken). -->
+            <div class="cf-turnstile scan-turnstile" data-sitekey="{{ turnstileSiteKey }}" data-theme="dark" data-appearance="interaction-only"></div>
+            {{/if}}
             <p class="visually-hidden" id="scan-live" role="status" aria-live="polite"></p>
             <p class="scan-progress-note">Most stores take 15&ndash;30 seconds. You can close this; the result will wait for you.</p>
           </section>

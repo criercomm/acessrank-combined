@@ -584,7 +584,9 @@
 
     var payload = { url: url };
 
-    waitForToken(card, 10000).then(function (token) {
+    // 45s, not 10: on a slow connection Cloudflare's own check can take that long, and if it wants a
+    // click the box appears in this view and the visitor needs time to answer it.
+    waitForToken(views.scanning.node, 45000).then(function (token) {
       if (token) payload.turnstileToken = token;
       return window.Accessrank.post('/api/scan', payload);
     }).then(function (data) {
@@ -618,7 +620,7 @@
       // Success or failure, the server has now spent this token (or rejected
       // it). Without this, the SECOND scan re-sends the used token and dies
       // with "That verification check expired" every time.
-      resetTurnstileIn(card);
+      resetTurnstileIn(views.scanning.node);
     });
   }
 
@@ -728,11 +730,13 @@
     // widget never solves. Kick it now that it is visible: it solves invisibly
     // while the scan runs and the visitor reads, so the FIRST submit — the lead
     // capture — carries a token instead of failing with "complete the check".
+    // Same for the scan's widget in the progress view.
     if (window.turnstile) {
-      var widget = modal.querySelector('#report-form .cf-turnstile');
-      try {
-        if (widget && !window.turnstile.getResponse(widget)) window.turnstile.reset(widget);
-      } catch (e) { /* not rendered yet — implicit render will pick it up */ }
+      Array.prototype.forEach.call(modal.querySelectorAll('.cf-turnstile'), function (widget) {
+        try {
+          if (!window.turnstile.getResponse(widget)) window.turnstile.reset(widget);
+        } catch (e) { /* not rendered yet — implicit render will pick it up */ }
+      });
     }
 
     document.addEventListener('keydown', onModalKeydown);
