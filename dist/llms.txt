@@ -1,0 +1,33 @@
+# Accessrank
+
+> Accessrank fixes accessibility in the source code of DTC ecommerce stores — WCAG 2.2 Level AA remediation, documented and re-verified — and the same structural fixes improve SEO and AI/agent readiness. No overlay widgets.
+
+Accessrank scans a store in a real browser with axe-core, fixes the failures directly in the theme or codebase (Shopify fixes go to a draft theme and are approved change by change), re-scans until zero issues remain, and delivers an evidence pack: rule, WCAG criterion and before-and-after screenshots for every fix. A free automated check runs on the homepage.
+
+## Main pages
+
+- [Homepage and free accessibility check](https://accessrank.ai/home): what the service does, the WCAG 2.2 principles in plain English, pricing and FAQ; the free check scores a page against WCAG 2.2 AA and on-page SEO.
+- [Methodology](https://accessrank.ai/methodology): how the audit engine works and how the accessibility and SEO scores are calculated.
+- [ADA and EAA guide](https://accessrank.ai/guide/ada-eaa): the ADA, the European Accessibility Act and what they mean for online stores.
+- [Citations](https://accessrank.ai/citations): sources for every statistic on the site.
+- [Resources](https://accessrank.ai/resources): further reading.
+- [About](https://accessrank.ai/about): the company.
+
+## Pricing
+
+- Starter: $1,500 one-time onboarding, then $79/month — single-line stores with up to 10 SKUs.
+- Growth: $3,500 one-time onboarding, then $249/month — growing brands with 10–100 SKUs.
+- Enterprise: custom — Shopify Plus and multi-brand catalogs, 100+ SKUs.
+- Lawsuit response: from $5,900, delivered in about 7 days — for businesses already served a demand letter or lawsuit.
+
+## Contact
+
+- [Talk to sales](https://accessrank.ai/contact-sales)
+- [Sign up](https://accessrank.ai/signup)
+- Email: info@accessrank.ai
+
+## Legal
+
+- [Privacy policy](https://accessrank.ai/privacy)
+- [Terms](https://accessrank.ai/terms)
+- [Disclosure](https://accessrank.ai/disclosure): Accessrank is not a law firm and does not provide legal advice.

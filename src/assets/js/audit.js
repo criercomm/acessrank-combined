@@ -65,26 +65,8 @@
     if (widget) try { window.turnstile.reset(widget); } catch (e) { /* not rendered yet */ }
   }
 
-  /**
-   * Resolve with the Turnstile token in `container`, waiting for it if needed.
-   *
-   * The widgets are interaction-only (invisible), so nothing on screen tells the
-   * visitor the check is still running — a quick click on "Check my store" used
-   * to read an empty token and get "Please complete the verification check".
-   * Resolves at once when Turnstile is off (no data-turnstile-key); after `ms`
-   * it resolves with whatever is there and lets the server give its message.
-   */
-  function waitForToken(container, ms) {
-    return new Promise(function (resolve) {
-      var start = Date.now();
-      (function poll() {
-        var field = container && container.querySelector('[name="cf-turnstile-response"]');
-        var value = field ? field.value : '';
-        if (value || !document.body.getAttribute('data-turnstile-key') || Date.now() - start > ms) return resolve(value);
-        setTimeout(poll, 150);
-      })();
-    });
-  }
+  // Token wait + on-demand loading of Turnstile live in site.js (Accessrank.waitForToken / loadTurnstile).
+  function waitForToken(container, ms) { return window.Accessrank.waitForToken(container, ms); }
 
   /* ------------------------------------------------------------ util --- */
 

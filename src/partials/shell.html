@@ -41,7 +41,8 @@
 
   {{{ structuredData }}}
   {{#if plausibleDomain}}<script defer data-domain="{{ plausibleDomain }}" src="{{ plausibleSrc }}"></script>{{/if}}
-  {{#if turnstileSiteKey}}<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>{{/if}}
+  <!-- Cloudflare Turnstile is not loaded here: site.js loads it on demand (Accessrank.loadTurnstile) so visitors who never
+       touch a form get no third-party cookie (Lighthouse Best Practices). -->
   <script src="{{ jsHref }}" defer></script>
 </head>
 <body class="site" data-page="{{ page.url }}"{{#if turnstileSiteKey}} data-turnstile-key="{{ turnstileSiteKey }}"{{/if}}>

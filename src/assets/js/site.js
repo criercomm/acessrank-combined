@@ -182,10 +182,10 @@
       payload.marketingOptIn = form.querySelector('[name="marketingOptIn"]')
         ? form.querySelector('[name="marketingOptIn"]').checked : false;
 
-      var token = form.querySelector('[name="cf-turnstile-response"]');
-      if (token) payload.turnstileToken = token.value;
-
-      window.Accessrank.post('/api/lead', payload).then(function (data) {
+      window.Accessrank.waitForToken(form, 45000).then(function (token) {
+        if (token) payload.turnstileToken = token;
+        return window.Accessrank.post('/api/lead', payload);
+      }).then(function (data) {
         var success = form.parentElement.querySelector('[data-form-success]');
         if (success) {
           form.hidden = true;
@@ -244,6 +244,58 @@
   window.Accessrank.reducedMotion = function () {
     return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   };
+
+  /* ------------------------------------------------------ turnstile --- */
+  /* Cloudflare Turnstile loads on demand, not with the page: its script sets a
+   * third-party cookie (_cfuvid) and logs cookie issues, which cost Lighthouse
+   * Best Practices 23 points for visitors who never touch a form. It now loads
+   * the first time someone focuses or taps into a form that needs it (or when a
+   * scan starts), which leaves it seconds to solve invisibly before submit. */
+  var turnstileLoading = null;
+  window.Accessrank.loadTurnstile = function () {
+    if (!document.body.getAttribute('data-turnstile-key')) return Promise.resolve(false);
+    if (turnstileLoading) return turnstileLoading;
+    turnstileLoading = new Promise(function (resolve) {
+      var s = document.createElement('script');
+      s.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js';
+      s.async = true;
+      s.onload = function () { resolve(true); };
+      s.onerror = function () { resolve(false); };
+      document.head.appendChild(s);
+    });
+    return turnstileLoading;
+  };
+
+  /**
+   * Resolve with the Turnstile token inside `container`, waiting for it if needed.
+   * Every widget is interaction-only (invisible unless Cloudflare wants a click),
+   * so nothing tells the visitor the check is still running; submitting before
+   * the token exists used to fail with "Please complete the verification check".
+   * Resolves at once when Turnstile is off; after `ms` it resolves with whatever
+   * is there and lets the server give its message.
+   */
+  window.Accessrank.waitForToken = function (container, ms) {
+    window.Accessrank.loadTurnstile();
+    return new Promise(function (resolve) {
+      var start = Date.now();
+      (function poll() {
+        var field = container && container.querySelector('[name="cf-turnstile-response"]');
+        var value = field ? field.value : '';
+        if (value || !document.body.getAttribute('data-turnstile-key') || Date.now() - start > ms) return resolve(value);
+        setTimeout(poll, 150);
+      })();
+    });
+  };
+
+  function wantsTurnstile(target) {
+    var form = target && target.closest ? target.closest('form') : null;
+    return !!form && (form.id === 'audit-form' || !!form.querySelector('.cf-turnstile'));
+  }
+  ['focusin', 'pointerdown'].forEach(function (type) {
+    document.addEventListener(type, function (e) {
+      if (wantsTurnstile(e.target)) window.Accessrank.loadTurnstile();
+    }, { passive: true });
+  });
 
   /* -------------------------------------------------------- marquee --- */
   /* The scrolling platform-name strip runs continuously and auto-starts,

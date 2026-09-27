@@ -242,7 +242,7 @@
 .risk-num { font-size: 38px; font-weight: 800; letter-spacing: -1.5px; color: var(--text); line-height: 1; margin-bottom: 8px; }
 .risk-num .small { font-size: 24px; color: #FFFFFF; font-weight: 500; margin-left: 3px; }
 .risk-label { width: 100%; max-width: 210px; font-size: 15px; color: var(--text-soft); line-height: 1.4; margin: 0 auto 13px; }
-.risk-source { font-size: 10px; color: var(--brand); letter-spacing: 1px; text-transform: uppercase; }
+.risk-source { font-size: 10px; color: var(--brand); letter-spacing: 0.6px; text-transform: uppercase; } /* 1px made the Arial fallback 242px in a 239px card: it wrapped until Inter loaded, then snapped to one line and shifted the page 12px (CLS 0.10) */
 
 /* ---- WCAG explainer section ---- */
 .wcag-section { padding: 50px var(--edge) 64px; }
