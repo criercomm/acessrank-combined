@@ -103,6 +103,87 @@
 .modal-success .modal-sub { text-align: center; }
 body.modal-open { overflow: hidden; }
 
+/* ---------------------------------------------------------------------------
+ * Scan dialog (#scan-modal, audit.js). Opens on "Check my store" so the
+ * homepage never reflows under the visitor: progress, then results (left) with
+ * the report form (right), or the reason the scan could not run. Full-screen
+ * sheet on phones, results above the form.
+ * ------------------------------------------------------------------------- */
+.modal--scan .scan-panel {
+  max-width: 1100px; padding: 0; overflow: hidden;
+  display: flex; flex-direction: column;
+  max-height: calc(100dvh - 40px);
+}
+.scan-panel .modal-close { z-index: 2; }
+.scan-panel [tabindex="-1"]:focus { outline: none; }
+/* The views set display:flex/grid below, which would beat the UA's [hidden] rule. */
+.scan-panel [hidden] { display: none !important; }
+.scan-panel h2 { text-align: left; }
+
+.scan-progress, .scan-failed {
+  display: flex; flex-direction: column; justify-content: center;
+  min-height: 460px; padding: 56px 64px;
+}
+.scan-eyebrow {
+  margin: 0 0 10px; font-size: 12px; font-weight: 600; letter-spacing: 2px;
+  text-transform: uppercase; color: var(--brand);
+}
+.scan-eyebrow--warn { color: #FCA5A5; }
+.scan-host {
+  margin: 0 0 28px; font-size: 30px; font-weight: 800; letter-spacing: -1px; line-height: 1.15;
+  color: var(--text); overflow-wrap: anywhere;
+}
+.scan-bar { height: 6px; margin: 0 0 26px; border-radius: 3px; background: rgba(255, 255, 255, 0.1); overflow: hidden; }
+.scan-bar-fill {
+  display: block; height: 100%; width: var(--pct, 0%); border-radius: 3px; background: var(--brand);
+  transition: width 2.4s var(--ease-out);
+}
+.scan-steps { display: grid; row-gap: 14px; margin: 0; padding: 0; list-style: none; }
+.scan-step { display: flex; align-items: center; gap: 12px; font-size: 15px; line-height: 1.4; color: var(--text-faint); }
+.scan-step::before {
+  content: ''; flex: none; box-sizing: border-box; width: 18px; height: 18px; border-radius: 50%;
+  border: 1.5px solid currentColor; display: grid; place-items: center;
+  font-size: 11px; font-weight: 800; line-height: 1;
+}
+.scan-step[data-step="done"] { color: var(--text-soft); }
+.scan-step[data-step="done"]::before { content: '\2713'; background: var(--brand); border-color: var(--brand); color: var(--brand-ink); }
+.scan-step[data-step="now"] { color: var(--text); }
+.scan-step[data-step="now"]::before { border-color: var(--brand); border-top-color: transparent; animation: scanSpin 0.8s linear infinite; }
+@keyframes scanSpin { to { transform: rotate(360deg); } }
+.scan-progress-note { margin: 28px 0 0; font-size: 13px; line-height: 1.5; color: var(--text-muted); }
+
+.scan-failed-msg { max-width: 60ch; margin: 0 0 26px; font-size: 16px; line-height: 1.6; color: var(--text-soft); }
+.scan-retry { align-self: flex-start; width: auto; }
+
+.scan-result { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); flex: 1; min-height: 0; }
+.scan-left, .scan-right { min-height: 0; overflow-y: auto; }
+.scan-left { padding: 44px 44px 36px; }
+.scan-left:focus-visible { outline: 2px solid var(--brand); outline-offset: -4px; }
+.scan-right { padding: 44px 44px 32px; background: rgba(255, 255, 255, 0.035); border-left: 1px solid var(--hairline); }
+.scan-headline { margin: 0 0 22px; font-size: 28px; font-weight: 800; line-height: 1.2; letter-spacing: -0.8px; color: var(--text); overflow-wrap: anywhere; }
+.scan-headline-num { color: #FCA5A5; }
+.scan-left .audit-results { margin-top: 0; }
+.scan-right .modal-title { padding-right: 36px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .scan-bar-fill { transition: none; }
+  .scan-step[data-step="now"]::before { animation: none; border-top-color: var(--brand); }
+}
+
+@media (max-width: 760px) {
+  .modal.modal--scan { padding: 0; }
+  .modal--scan .scan-panel { max-width: none; height: 100dvh; max-height: 100dvh; border: 0; border-radius: 0; }
+  .scan-progress, .scan-failed { min-height: 0; flex: 1; justify-content: flex-start; padding: 72px 24px 32px; }
+  .scan-host { font-size: 24px; }
+  /* Plain stacked blocks in one scrolling sheet. As a one-column grid, the columns' min-height: 0 (needed for the
+   * desktop's independent scrolling) let WebKit squeeze each row below its content and the form drew over the findings. */
+  .scan-result { display: block; overflow-y: auto; }
+  .scan-left, .scan-right { min-height: auto; overflow: visible; }
+  .scan-left { padding: 64px 20px 28px; }
+  .scan-right { padding: 28px 20px 32px; border-left: 0; border-top: 1px solid var(--hairline); }
+  .scan-headline { font-size: 24px; }
+}
+
 /* Honeypot: removed from the accessibility tree and from view, but still a real
  * focusable-free field a naive bot will happily fill in. */
 .hp-field {

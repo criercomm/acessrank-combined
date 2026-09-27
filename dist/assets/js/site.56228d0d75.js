@@ -283,6 +283,12 @@
  * real /api/scan endpoint, renders real axe-core findings, and only runs when a
  * person asks it to.
  *
+ * The scan runs in a dialog (#scan-modal) so the homepage never reflows under
+ * the visitor: progress first, then the results on the left and the report form
+ * on the right, or the reason the scan could not run. The card itself only keeps
+ * the address field — plus a "View your results" button if the visitor closed
+ * the dialog before the scan finished.
+ *
  * The report flow is deliberately email-only: the PDF is never downloaded in the
  * browser, it is sent to the address the visitor gives. That is what makes the
  * one-report-per-email rule meaningful, and it is the point of the capture.
@@ -298,12 +304,27 @@
   var button = document.getElementById('audit-submit');
   var status = document.getElementById('audit-status');
   var meta = document.getElementById('audit-meta');
-  var empty = document.getElementById('audit-empty');
   var results = document.getElementById('audit-results');
   var reportCta = document.getElementById('audit-report-cta');
   var errorBox = document.getElementById('audit-error');
 
-  var state = { scanning: false, scanId: null, result: null };
+  var modal = document.getElementById('scan-modal');
+  // The partial sits inside .hero-audit, which has a transform — and a transformed
+  // ancestor turns position:fixed into "fixed to that box" and caps z-index at its
+  // stacking context, so the dialog neither covered the viewport nor sat above the
+  // page (the risk strip took its clicks). As a direct child of <body> it does both.
+  if (modal && modal.parentNode !== document.body) document.body.appendChild(modal);
+  var panel = modal ? modal.querySelector('.scan-panel') : null;
+  var views = {
+    scanning: { node: document.getElementById('scan-progress'), title: 'scan-progress-title' },
+    result: { node: document.getElementById('scan-result'), title: 'scan-result-title' },
+    failed: { node: document.getElementById('scan-failed'), title: 'scan-failed-title' }
+  };
+  var stepsList = document.getElementById('scan-steps');
+  var barFill = document.getElementById('scan-bar-fill');
+  var live = document.getElementById('scan-live');
+
+  var state = { scanning: false, scanId: null, result: null, host: '' };
 
   /**
    * Reset ONE Turnstile widget, by its container.
@@ -319,6 +340,27 @@
     if (!window.turnstile || !container) return;
     var widget = container.querySelector('.cf-turnstile');
     if (widget) try { window.turnstile.reset(widget); } catch (e) { /* not rendered yet */ }
+  }
+
+  /**
+   * Resolve with the Turnstile token in `container`, waiting for it if needed.
+   *
+   * The widgets are interaction-only (invisible), so nothing on screen tells the
+   * visitor the check is still running — a quick click on "Check my store" used
+   * to read an empty token and get "Please complete the verification check".
+   * Resolves at once when Turnstile is off (no data-turnstile-key); after `ms`
+   * it resolves with whatever is there and lets the server give its message.
+   */
+  function waitForToken(container, ms) {
+    return new Promise(function (resolve) {
+      var start = Date.now();
+      (function poll() {
+        var field = container && container.querySelector('[name="cf-turnstile-response"]');
+        var value = field ? field.value : '';
+        if (value || !document.body.getAttribute('data-turnstile-key') || Date.now() - start > ms) return resolve(value);
+        setTimeout(poll, 150);
+      })();
+    });
   }
 
   /* ------------------------------------------------------------ util --- */
@@ -342,24 +384,75 @@
     errorBox.hidden = !message;
   }
 
-  function clearResults() {
-    if (results) results.innerHTML = '';
-    if (reportCta) reportCta.hidden = true;
-    showError('');
+  function hostOf(url) {
+    return String(url || '').replace(/^https?:\/\//, '').replace(/\/$/, '');
   }
 
   var IMPACT_LABEL = {
     critical: 'Critical', serious: 'Serious', moderate: 'Moderate', minor: 'Minor'
   };
 
+  /* ---------------------------------------------------------- views --- */
+
+  /** Show one of the dialog's three views and label the dialog by its heading. */
+  function setView(name) {
+    if (!panel) return;
+    panel.setAttribute('data-state', name);
+    Object.keys(views).forEach(function (key) {
+      if (views[key].node) views[key].node.hidden = key !== name;
+    });
+    modal.setAttribute('aria-labelledby', views[name].title);
+  }
+
+  function focusViewTitle(name) {
+    var title = document.getElementById(views[name].title);
+    if (title && modal && !modal.hidden) title.focus();
+  }
+
+  /* Honest progress: these are the phases the server actually works through. */
+  var PHASES = [
+    'Loading the page in a real browser',
+    'Running axe-core against WCAG 2.2 AA',
+    'Checking colour contrast and focus order',
+    'Reading on-page SEO signals',
+    'Scoring'
+  ];
+
+  function renderSteps(current, done) {
+    if (!stepsList) return;
+    stepsList.innerHTML = '';
+    PHASES.forEach(function (label, i) {
+      var li = el('li', 'scan-step', label);
+      li.setAttribute('data-step', done || i < current ? 'done' : i === current ? 'now' : 'todo');
+      if (i === current && !done) li.setAttribute('aria-current', 'step');
+      stepsList.appendChild(li);
+    });
+    // Never reaches 100% until the server answers: the bar is a pace, not a promise.
+    if (barFill) barFill.style.setProperty('--pct', (done ? 100 : Math.min(90, 12 + current * 19)) + '%');
+    if (live && !done) live.textContent = PHASES[current] + '…';
+  }
+
   /* --------------------------------------------------------- render --- */
 
   function renderResult(data) {
-    clearResults();
-    if (empty) empty.hidden = true;
+    if (results) results.innerHTML = '';
 
     var scores = data.scores || {};
     var a11y = data.accessibility || {};
+    var host = hostOf(data.origin);
+
+    /* Headline — the sentence the visitor reads first */
+    var headline = document.getElementById('scan-result-title');
+    if (headline) {
+      headline.textContent = '';
+      var issues = a11y.totalIssues || 0;
+      if (issues) {
+        headline.appendChild(el('span', 'scan-headline-num', issues + (issues === 1 ? ' accessibility issue' : ' accessibility issues')));
+        headline.appendChild(document.createTextNode(' found on ' + host));
+      } else {
+        headline.appendChild(document.createTextNode('No automated WCAG failures found on ' + host));
+      }
+    }
 
     /* Headline score */
     var head = el('div', 'result-head');
@@ -371,12 +464,13 @@
 
     var headText = el('div', 'result-head-text');
     headText.appendChild(el('p', 'result-band', (scores.band && scores.band.label) || 'Scored'));
-    headText.appendChild(el('p', 'result-host', data.origin.replace(/^https?:\/\//, '')));
+    headText.appendChild(el('p', 'result-host', host));
     headText.appendChild(el(
       'p',
       'result-sub',
       data.pagesScanned + (data.pagesScanned === 1 ? ' page' : ' pages') +
-      ' checked against WCAG 2.2 AA with axe-core ' + (data.axeVersion || '')
+      ' checked against WCAG 2.2 AA with axe-core ' + (data.axeVersion || '') +
+      (a11y.violationsTotal ? ' · ' + a11y.violationsTotal + (a11y.violationsTotal === 1 ? ' element' : ' elements') + ' affected' : '')
     ));
     head.appendChild(headText);
     results.appendChild(head);
@@ -406,8 +500,7 @@
         a11y.criteriaFailed + ' of ' + a11y.criteriaEvaluated + ' checks not met'));
       var list = el('ul', 'criteria-chips');
       a11y.failedCriteria.slice(0, 10).forEach(function (id) {
-        var li = el('li', 'criteria-chip', 'WCAG ' + id);
-        list.appendChild(li);
+        list.appendChild(el('li', 'criteria-chip', 'WCAG ' + id));
       });
       crit.appendChild(list);
       results.appendChild(crit);
@@ -449,16 +542,11 @@
       }
     } else {
       results.appendChild(el('p', 'result-clean',
-        'No automated WCAG 2.2 AA failures found. The full report covers the SEO checks and what automated testing cannot see.'));
+        'Automated testing found nothing to fix. The full report covers the SEO checks and what automated testing cannot see.'));
     }
 
-    if (reportCta) reportCta.hidden = false;
-
-    setStatus(
-      'Scan complete — ' + a11y.violationsTotal +
-      (a11y.violationsTotal === 1 ? ' element needs attention' : ' elements need attention'),
-      'done'
-    );
+    var site = document.getElementById('report-site');
+    if (site) site.textContent = host;
   }
 
   /* ----------------------------------------------------------- scan --- */
@@ -468,45 +556,60 @@
     state.scanning = true;
     state.scanId = null;
     state.result = null;
+    state.host = hostOf(url);
 
     button.disabled = true;
     button.dataset.label = button.dataset.label || button.textContent;
     button.textContent = 'Scanning…';
-    if (empty) empty.hidden = true;
-    clearResults();
-    if (meta) meta.textContent = url.replace(/^https?:\/\//, '');
+    showError('');
+    if (reportCta) reportCta.hidden = true;
+    setStatus('', null);
+    if (meta) meta.textContent = state.host;
 
-    // Honest progress: these are the phases the server actually works through.
-    var phases = [
-      'Loading the page in a real browser…',
-      'Running axe-core against WCAG 2.2 AA…',
-      'Checking colour contrast and focus order…',
-      'Reading on-page SEO signals…',
-      'Scoring…'
-    ];
+    ['scan-progress-title', 'scan-failed-title'].forEach(function (id) {
+      var node = document.getElementById(id);
+      if (node) node.textContent = state.host;
+    });
+    resetReportForm();
+    setView('scanning');
     var phase = 0;
-    setStatus(phases[0], 'busy');
+    renderSteps(phase, false);
+    openModal();
+    focusViewTitle('scanning');
+
     var ticker = setInterval(function () {
-      phase = Math.min(phase + 1, phases.length - 1);
-      setStatus(phases[phase], 'busy');
+      phase = Math.min(phase + 1, PHASES.length - 1);
+      renderSteps(phase, false);
     }, 2600);
 
     var payload = { url: url };
-    var token = document.querySelector('#audit-card [name="cf-turnstile-response"]');
-    if (token) payload.turnstileToken = token.value;
 
-    window.Accessrank.post('/api/scan', payload).then(function (data) {
+    waitForToken(card, 10000).then(function (token) {
+      if (token) payload.turnstileToken = token;
+      return window.Accessrank.post('/api/scan', payload);
+    }).then(function (data) {
       state.scanId = data.scanId;
       state.result = data;
+      renderSteps(PHASES.length - 1, true);
       renderResult(data);
-    }).catch(function (err) {
-      setStatus('', null);
-      if (empty) empty.hidden = false;
-      showError(err.message);
-      if (input) {
-        input.setAttribute('aria-invalid', 'true');
-        input.focus();
+      setView('result');
+      if (modal && !modal.hidden) {
+        if (live) live.textContent = '';
+        focusViewTitle('result');
+      } else {
+        // The visitor closed the dialog mid-scan: never pop it back open on them.
+        setStatus('Your results for ' + state.host + ' are ready.', 'done');
+        if (reportCta) reportCta.hidden = false;
       }
+    }).catch(function (err) {
+      var msg = document.getElementById('scan-failed-msg');
+      if (msg) msg.textContent = err.message;
+      setView('failed');
+      setStatus('', null);
+      showError(err.message);
+      if (input) input.setAttribute('aria-invalid', 'true');
+      if (modal && !modal.hidden) focusViewTitle('failed');
+      else if (input) input.focus();
     }).finally(function () {
       clearInterval(ticker);
       state.scanning = false;
@@ -535,7 +638,6 @@
 
   /* -------------------------------------------------- report modal ----- */
 
-  var modal = document.getElementById('report-modal');
   var modalForm = document.getElementById('report-form');
   var modalStatus = document.getElementById('report-status');
   var modalSuccess = document.getElementById('report-success');
@@ -614,26 +716,20 @@
 
   function openModal() {
     if (!modal) return;
-    lastFocused = document.activeElement;
+    if (modal.hidden) lastFocused = document.activeElement;
     modal.hidden = false;
     ensureSentinels();
     document.body.classList.add('modal-open');
 
     var loadedAt = modalForm.querySelector('[name="formLoadedAt"]');
-    if (loadedAt) loadedAt.value = String(Date.now());
+    if (loadedAt && !loadedAt.value) loadedAt.value = String(Date.now());
 
-    var site = document.getElementById('report-site');
-    if (site && state.result) site.textContent = state.result.origin.replace(/^https?:\/\//, '');
-
-    var firstField = modal.querySelector('input:not([type="hidden"])');
-    if (firstField) firstField.focus();
-
-    // The modal's Turnstile rendered while the dialog was hidden, and a hidden
+    // The form's Turnstile rendered while the dialog was hidden, and a hidden
     // widget never solves. Kick it now that it is visible: it solves invisibly
-    // in the seconds the visitor spends typing, so the FIRST submit — the lead
+    // while the scan runs and the visitor reads, so the FIRST submit — the lead
     // capture — carries a token instead of failing with "complete the check".
     if (window.turnstile) {
-      var widget = modal.querySelector('.cf-turnstile');
+      var widget = modal.querySelector('#report-form .cf-turnstile');
       try {
         if (widget && !window.turnstile.getResponse(widget)) window.turnstile.reset(widget);
       } catch (e) { /* not rendered yet — implicit render will pick it up */ }
@@ -647,7 +743,25 @@
     modal.hidden = true;
     document.body.classList.remove('modal-open');
     document.removeEventListener('keydown', onModalKeydown);
-    if (lastFocused && lastFocused.focus) lastFocused.focus();
+    if (state.scanning) {
+      setStatus('Still checking ' + state.host + '… your results will be ready here.', 'busy');
+    } else if (state.scanId) {
+      setStatus('', null);
+      if (reportCta) reportCta.hidden = false;
+    }
+    var back = lastFocused && document.contains(lastFocused) && !lastFocused.disabled ? lastFocused : input;
+    if (back && back.focus) back.focus();
+  }
+
+  /** A new scan starts with a clean form (a sent report must not carry over). */
+  function resetReportForm() {
+    if (!modalForm) return;
+    modalForm.hidden = false;
+    if (modalSuccess) modalSuccess.hidden = true;
+    clearFieldErrors(modalForm);
+    if (modalStatus) { modalStatus.textContent = ''; modalStatus.className = 'form-status'; }
+    var loadedAt = modalForm.querySelector('[name="formLoadedAt"]');
+    if (loadedAt) loadedAt.value = String(Date.now());
   }
 
   function onModalKeydown(e) {
@@ -658,7 +772,18 @@
   if (reportCta) {
     reportCta.addEventListener('click', function () {
       if (!state.scanId) return;
+      setView('result');
       openModal();
+      focusViewTitle('result');
+    });
+  }
+
+  var retry = document.getElementById('scan-retry');
+  if (retry) {
+    retry.addEventListener('click', function () {
+      lastFocused = input;
+      closeModal();
+      if (input) input.select();
     });
   }
 
@@ -780,10 +905,10 @@
       payload.consent = modalForm.querySelector('[name="consent"]').checked;
       var optIn = modalForm.querySelector('[name="marketingOptIn"]');
       payload.marketingOptIn = optIn ? optIn.checked : false;
-      var token = modalForm.querySelector('[name="cf-turnstile-response"]');
-      if (token) payload.turnstileToken = token.value;
-
-      window.Accessrank.post('/api/report', payload).then(function (data) {
+      waitForToken(modalForm, 10000).then(function (token) {
+        if (token) payload.turnstileToken = token;
+        return window.Accessrank.post('/api/report', payload);
+      }).then(function (data) {
         modalForm.hidden = true;
         modalSuccess.hidden = false;
         var target = document.getElementById('report-success-email');

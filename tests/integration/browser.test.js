@@ -9,8 +9,8 @@ import { fileURLToPath } from 'node:url';
  * Drives the real UI in a real browser.
  *
  * The API tests prove the server behaves; this proves a visitor can actually
- * complete the funnel — that the widget calls the scanner, renders findings,
- * opens the lead modal, submits it, and that the modal is operable by keyboard.
+ * complete the funnel — that the widget opens the scan dialog, renders findings
+ * beside the report form, submits it, and that the dialog is operable by keyboard.
  * None of that is covered by testing the endpoints alone.
  */
 
@@ -98,7 +98,8 @@ async function homepage() {
   page.on('pageerror', (e) => { if (!isTurnstileNoise(String(e))) consoleErrors.push(String(e)); });
   // 'load', not 'networkidle': a rendered Turnstile widget keeps its challenge
   // connections open, so networkidle never arrives on a keyed build.
-  await page.goto(appBase, { waitUntil: 'load' });
+  // The marketing homepage (with the checker) lives at /home; / serves the investor deck.
+  await page.goto(appBase + '/home', { waitUntil: 'load' });
   return { page, consoleErrors };
 }
 
@@ -113,11 +114,10 @@ test('the homepage loads without console errors and does NOT auto-run a scan', {
     const urlValue = await page.inputValue('#audit-url');
     assert.equal(urlValue, '', 'the URL field must not be auto-filled');
 
+    assert.equal(await page.locator('#scan-modal').isHidden(), true, 'the scan dialog stays closed until asked');
     const resultsText = await page.textContent('#audit-results');
     assert.equal(resultsText.trim(), '', 'no results may appear before the visitor asks');
-
-    const ctaHidden = await page.locator('#audit-report-cta').isHidden();
-    assert.equal(ctaHidden, true, 'the report CTA stays hidden until there is a scan');
+    assert.equal(await page.locator('#audit-report-cta').isHidden(), true, 'no "view results" button without a scan');
 
     assert.deepEqual(consoleErrors, [], `console errors: ${consoleErrors.join(' | ')}`);
   } finally {
@@ -125,32 +125,37 @@ test('the homepage loads without console errors and does NOT auto-run a scan', {
   }
 });
 
-test('a visitor can scan a store and see real findings', {
+test('a scan opens the dialog at once and shows real findings beside the report form', {
   skip: distMissing && 'run `npm run build` first',
 }, async () => {
   const { page, consoleErrors } = await homepage();
   try {
+    const cardBefore = await page.locator('#audit-card').boundingBox();
     await page.fill('#audit-url', `${fixtureBase}/broken.html`);
     await page.click('#audit-submit');
 
-    await page.waitForSelector('.score-ring', { timeout: 90_000 });
+    // Progress shows in the dialog straight away; the homepage does not move.
+    await page.waitForSelector('#scan-modal:not([hidden]) .scan-panel[data-state="scanning"]', { timeout: 5_000 });
+    assert.ok((await page.locator('.scan-step').count()) >= 4, 'the scan phases are listed');
 
-    const score = Number(await page.textContent('.score-value'));
+    await page.waitForSelector('.scan-panel[data-state="result"]', { timeout: 90_000 });
+    const cardAfter = await page.locator('#audit-card').boundingBox();
+    assert.equal(Math.round(cardAfter.height), Math.round(cardBefore.height), 'the card must not grow with the results');
+
+    const score = Number(await page.textContent('#scan-modal .score-value'));
     assert.ok(Number.isFinite(score) && score >= 0 && score <= 100, `got score "${score}"`);
     assert.ok(score < 60, 'the broken fixture should score badly');
-
-    const band = await page.textContent('.result-band');
-    assert.ok(band.trim().length > 0);
+    assert.match(await page.textContent('#scan-result-title'), /accessibility issues? found on/i);
+    assert.ok((await page.textContent('.result-band')).trim().length > 0);
 
     // Real WCAG criteria, not decoration.
     const chips = await page.locator('.criteria-chip').allTextContents();
     assert.ok(chips.some((c) => c.includes('1.1.1')), `expected WCAG 1.1.1 chip, got ${chips.join(', ')}`);
+    assert.ok((await page.locator('.audit-row').count()) > 0, 'issues are listed');
 
-    const issues = await page.locator('.audit-row').count();
-    assert.ok(issues > 0, 'issues are listed');
-
-    const ctaVisible = await page.locator('#audit-report-cta').isVisible();
-    assert.equal(ctaVisible, true, 'the report CTA appears after a scan');
+    // Results and the form share the dialog.
+    assert.equal(await page.locator('#report-name').isVisible(), true, 'the report form is beside the results');
+    assert.equal(await page.evaluate(() => document.activeElement?.id), 'scan-result-title', 'focus lands on the result');
 
     assert.deepEqual(consoleErrors, [], `console errors: ${consoleErrors.join(' | ')}`);
   } finally {
@@ -158,7 +163,7 @@ test('a visitor can scan a store and see real findings', {
   }
 });
 
-test('the report modal captures the lead and confirms delivery', {
+test('the report form in the dialog captures the lead and confirms delivery', {
   skip: distMissing && 'run `npm run build` first',
 }, async () => {
   const before = sent.length;
@@ -166,14 +171,7 @@ test('the report modal captures the lead and confirms delivery', {
   try {
     await page.fill('#audit-url', `${fixtureBase}/clean.html`);
     await page.click('#audit-submit');
-    await page.waitForSelector('.score-ring', { timeout: 90_000 });
-
-    await page.click('#audit-report-cta');
-    await page.waitForSelector('#report-modal:not([hidden])');
-
-    // Focus moves into the dialog on open.
-    const focused = await page.evaluate(() => document.activeElement?.id);
-    assert.equal(focused, 'report-name', 'the first field receives focus');
+    await page.waitForSelector('.scan-panel[data-state="result"]', { timeout: 90_000 });
 
     await page.fill('#report-name', 'Dana Fields');
     await page.fill('#report-email', 'dana.browser@example.com');
@@ -202,17 +200,14 @@ test('the report modal captures the lead and confirms delivery', {
   }
 });
 
-test('the modal is operable and escapable by keyboard alone', {
+test('the dialog is operable and escapable by keyboard alone', {
   skip: distMissing && 'run `npm run build` first',
 }, async () => {
   const { page } = await homepage();
   try {
     await page.fill('#audit-url', `${fixtureBase}/clean.html`);
     await page.press('#audit-url', 'Enter');
-    await page.waitForSelector('.score-ring', { timeout: 90_000 });
-
-    await page.click('#audit-report-cta');
-    await page.waitForSelector('#report-modal:not([hidden])');
+    await page.waitForSelector('.scan-panel[data-state="result"]', { timeout: 90_000 });
 
     // Tab must never escape the dialog while it is open. "Never escapes" allows
     // one animation frame of grace: a broken Turnstile widget can swallow a Tab
@@ -223,7 +218,7 @@ test('the modal is operable and escapable by keyboard alone', {
     for (let i = 0; i < 25; i += 1) {
       await page.keyboard.press('Tab');
       await page.waitForFunction(
-        () => document.getElementById('report-modal').contains(document.activeElement),
+        () => document.getElementById('scan-modal').contains(document.activeElement),
         undefined,
         { timeout: 150 },
       ).catch(() => {
@@ -232,17 +227,45 @@ test('the modal is operable and escapable by keyboard alone', {
     }
 
     await page.keyboard.press('Escape');
-    assert.equal(await page.locator('#report-modal').isHidden(), true, 'Escape closes the dialog');
+    assert.equal(await page.locator('#scan-modal').isHidden(), true, 'Escape closes the dialog');
 
-    // Focus returns to the control that opened it.
-    const returned = await page.evaluate(() => document.activeElement?.id);
-    assert.equal(returned, 'audit-report-cta', 'focus returns to the trigger');
+    // Focus returns to the control that opened it (the field: the scan was started with Enter),
+    // and the results stay one click away.
+    assert.equal(await page.evaluate(() => document.activeElement?.id), 'audit-url', 'focus returns to the trigger');
+    assert.equal(await page.locator('#audit-report-cta').isVisible(), true, 'the results can be reopened');
   } finally {
     await page.close();
   }
 });
 
-test('a rejected address is reported inline without breaking the widget', {
+test('closing the dialog mid-scan never pops it back open; the results wait in the card', {
+  skip: distMissing && 'run `npm run build` first',
+}, async () => {
+  const { page } = await homepage();
+  try {
+    // The scan cache is keyed by origin and the other tests already scanned 127.0.0.1:
+    // a cached result would come back before the close click and this would not be
+    // mid-scan. localhost is the same fixture server under an origin nobody else uses.
+    await page.fill('#audit-url', `${fixtureBase.replace('127.0.0.1', 'localhost')}/broken.html`);
+    await page.click('#audit-submit');
+    await page.waitForSelector('#scan-modal:not([hidden]) .scan-panel[data-state="scanning"]');
+    await page.click('#scan-modal .modal-close');
+    assert.match(await page.textContent('#audit-status'), /still checking/i, 'the card says the scan is still running');
+    assert.equal(await page.locator('#scan-modal').isHidden(), true);
+
+    await page.waitForSelector('#audit-report-cta:not([hidden])', { timeout: 90_000 });
+    assert.equal(await page.locator('#scan-modal').isHidden(), true, 'the dialog must not reopen by itself');
+    assert.match(await page.textContent('#audit-status'), /ready/i);
+
+    await page.click('#audit-report-cta');
+    await page.waitForSelector('#scan-modal:not([hidden]) .scan-panel[data-state="result"]');
+    assert.ok((await page.locator('#scan-modal .audit-row').count()) > 0);
+  } finally {
+    await page.close();
+  }
+});
+
+test('a rejected address is explained in the dialog without breaking the widget', {
   skip: distMissing && 'run `npm run build` first',
 }, async () => {
   const { page } = await homepage();
@@ -250,12 +273,16 @@ test('a rejected address is reported inline without breaking the widget', {
     await page.fill('#audit-url', 'http://169.254.169.254/latest/meta-data/');
     await page.click('#audit-submit');
 
-    await page.waitForSelector('#audit-error:not([hidden])', { timeout: 30_000 });
-    const message = await page.textContent('#audit-error');
+    await page.waitForSelector('.scan-panel[data-state="failed"]', { timeout: 30_000 });
+    const message = await page.textContent('#scan-failed-msg');
     assert.ok(message.trim().length > 0);
     assert.doesNotMatch(message, /169\.254/, 'the error must not echo the blocked host back');
 
-    // The widget stays usable.
+    // "Try another address" returns the visitor to the field, and the widget stays usable.
+    await page.click('#scan-retry');
+    assert.equal(await page.locator('#scan-modal').isHidden(), true);
+    assert.equal(await page.evaluate(() => document.activeElement?.id), 'audit-url');
+    assert.equal(await page.locator('#audit-error').isVisible(), true, 'the reason stays beside the field');
     assert.equal(await page.locator('#audit-submit').isDisabled(), false);
   } finally {
     await page.close();
@@ -267,7 +294,7 @@ test('the mobile navigation opens, closes and traps nothing', {
 }, async () => {
   const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
   try {
-    await page.goto(appBase, { waitUntil: 'load' });
+    await page.goto(appBase + '/home', { waitUntil: 'load' });
 
     const toggle = page.locator('.nav-toggle');
     assert.equal(await toggle.isVisible(), true, 'the toggle shows at mobile width');
@@ -309,7 +336,7 @@ test('the skip link is the first tab stop and reveals itself', {
 test('no page scrolls horizontally at mobile width', {
   skip: distMissing && 'run `npm run build` first',
 }, async () => {
-  const routes = ['/', '/signup', '/contact-sales', '/careers', '/methodology', '/guide/ada-eaa', '/privacy'];
+  const routes = ['/home', '/signup', '/contact-sales', '/careers', '/methodology', '/guide/ada-eaa', '/privacy'];
   const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
   try {
     for (const route of routes) {

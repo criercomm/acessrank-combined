@@ -173,11 +173,10 @@
  * "Check my store" got HTTP 400 and the message "Please complete the
  * verification check and try again". The free scan, which is the entire top of
  * the funnel, was dead on the live site. */
-/* 70px, not the widget's nominal 65: it renders at 69px here, and a reserve
- * even 4px short re-creates the layout shift the reserve exists to prevent —
- * the aurora blobs position off document height, so ANY late growth anywhere
- * moves them all and CLS scores the whole ripple. */
-.audit-turnstile { margin: 10px 0 2px; min-height: 70px; }
+/* No space reserved: the widget renders with data-appearance="interaction-only", so it stays invisible (the Cloudflare
+ * box looked out of place in the card) and only appears in the rare case Cloudflare needs a click. The old 70px reserve
+ * would now be an empty gap. */
+.audit-turnstile { margin: 0; }
 .scan-btn { background: var(--brand); color: var(--brand-ink); padding: 11px 16px; border-radius: 8px; font-weight: 500; font-size: 13px; white-space: nowrap; }
 .scan-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 .scan-status { font-size: 11px; color: var(--text-faint); margin-bottom: 10px; min-height: 14px; display: flex; align-items: center; gap: 6px; } /* TODO(contrast): verify against WCAG 1.4.3 */

@@ -41,6 +41,52 @@ export class ScanError extends Error {
   }
 }
 
+/* ----------------------------------------------------------- bot walls --- */
+
+/**
+ * Pages that stand between a bot and the real site: Cloudflare's "Just a
+ * moment…" / "Performing security verification", DataDome, PerimeterX, Akamai.
+ * Scoring one of these reports the challenge page's markup as the store's
+ * accessibility — the mistake a competitor's scanner made on w3.org (Sept 2026).
+ * Some answer 403/503, others 200, so status alone is not enough.
+ */
+const BOT_WALL_TITLES = [
+  /^just a moment/i, /^attention required/i, /performing security verification/i,
+  /^access denied/i, /^pardon our interruption/i, /^verifying you are human/i, /^security check/i,
+  /^ddos-guard/i, /^one more step/i,
+];
+const BOT_WALL_SELECTOR = [
+  '#challenge-form', '#challenge-running', '#cf-challenge-running', '.cf-browser-verification',
+  '[id^="cf-chl"]', 'script[src*="/cdn-cgi/challenge-platform/"]',
+  '#px-captcha', 'iframe[src*="captcha-delivery.com"]', 'script[src*="captcha-delivery.com"]',
+].join(', ');
+
+/**
+ * @param {{ headers?: Record<string,string>, title?: string, marker?: boolean }} page
+ * @returns {string|null} which wall, or null for a real page
+ */
+export function botWallReason({ headers = {}, title = '', marker = false } = {}) {
+  if (String(headers['cf-mitigated'] || '').toLowerCase() === 'challenge') return 'cloudflare';
+  if (marker) return 'challenge_markup';
+  const t = String(title).trim();
+  if (t && BOT_WALL_TITLES.some((re) => re.test(t))) return 'challenge_title';
+  return null;
+}
+
+function botWallError(reason) {
+  return new ScanError(
+    'bot_wall',
+    "Your store is behind a bot check (such as Cloudflare), so our scanner saw the check, not your pages — "
+      + "and we won't score the wrong page. Contact us and we'll run the audit from an allowlisted scanner.",
+    { status: 422, cause: new Error(reason) },
+  );
+}
+
+async function readWall(page) {
+  return page.evaluate((sel) => ({ title: document.title || '', marker: !!document.querySelector(sel) }), BOT_WALL_SELECTOR)
+    .catch(() => ({ title: '', marker: false }));
+}
+
 /* ---------------------------------------------------------- semaphore --- */
 
 let active = 0;
@@ -255,7 +301,10 @@ async function auditPage(context, url, deadline) {
     }
 
     const status = response.status();
+    const headers = response.headers();
     if (status >= 400) {
+      const wall = botWallReason({ headers, ...(await readWall(page)) });
+      if (wall) throw botWallError(wall);
       throw new ScanError(
         'http_error',
         `That page returned HTTP ${status}. Check the address and try again.`,
@@ -267,6 +316,10 @@ async function auditPage(context, url, deadline) {
     // overall budget — many sites never reach networkidle because of trackers.
     await page.waitForLoadState('networkidle', { timeout: Math.min(6000, Math.max(500, deadline - Date.now())) })
       .catch(() => {});
+
+    // A 200 challenge page that did not clear itself while we waited.
+    const wall = botWallReason({ headers, ...(await readWall(page)) });
+    if (wall) throw botWallError(wall);
 
     const seoRaw = await page.evaluate(extractSeo);
 
