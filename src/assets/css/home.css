@@ -160,7 +160,10 @@
 .url-form { display: flex; gap: 8px; margin-bottom: 14px; }
 .url-input { flex: 1; background: #F4F5F8; border: 1px solid rgba(14, 14, 16, 0.14); color: var(--bg); padding: 11px 14px; border-radius: 8px; font-size: 13px; font-family: inherit; outline: none; }
 .url-input::placeholder { color: rgba(14, 14, 16, 0.42); }
-.url-input:focus { border-color: var(--brand); }
+/* Keep the light field when focused. The site-wide dark-form rule in pages.css (input:focus { background: rgba(255,255,255,.06) })
+ * loads later and outranks .url-input, so focusing turned this field dark while its text stayed dark ink — typed text all
+ * but vanished. */
+.url-input:focus { border-color: var(--brand); background: #FFFFFF; color: var(--bg); box-shadow: 0 0 0 3px rgba(var(--brand-rgb), 0.28); }
 /* The scan's Turnstile widget is not in this card any more: it lives in the scan dialog's progress view
  * (.scan-turnstile, components.css; see the note in audit-widget.html). History worth keeping: /api/scan rejects a
  * missing token with "Please complete the verification check", and a widget rendered while hidden never solves — so
