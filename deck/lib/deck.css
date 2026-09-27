@@ -117,6 +117,12 @@ a { color: inherit; }
 .flap .face { position: absolute; inset: 0; overflow: hidden; backface-visibility: hidden; -webkit-backface-visibility: hidden; background: var(--flap-bg, rgba(255, 255, 255, .035)); }
 .flap .face.front { border-radius: .08em .08em 0 0; }
 .flap .face.back { transform: rotateX(180deg); border-radius: 0 0 .08em .08em; background: var(--flap-bg-b, rgba(255, 255, 255, .06)); }
+/* reposo: una sola copia del dígito sobre la tarjeta (ver flap-digits.js); el tono de la mitad inferior va en sombra
+   interior, no en degradado, para que el fondo siga siendo medible */
+.flap .rest { display: none; }
+.flap.is-rest .half, .flap.is-rest .leaf { display: none; }
+.flap.is-rest .rest { display: block; top: 0; border-radius: .08em; background: var(--flap-bg, rgba(255, 255, 255, .035)); box-shadow: inset 0 -.5em 0 rgba(255, 255, 255, .025); }
+.counter .flap.is-rest .rest, .screen-ui .flap.is-rest .rest { background: none; box-shadow: none; }
 .flap::after { content: ""; position: absolute; left: 0; right: 0; top: 50%; height: 1px; margin-top: -.5px; background: var(--bg); opacity: .9; pointer-events: none; }
 /* a tamaños pequeños (contador, pantallas) la ranura se lee como tachado: fuera */
 .counter .flap::after, .screen-ui .flap::after { display: none; }

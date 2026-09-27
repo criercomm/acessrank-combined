@@ -426,6 +426,18 @@ a.contact-line:hover { color: var(--accent); }
 /* ---- reduced motion ---- */
 @media (prefers-reduced-motion: reduce) { .aurora { animation: none; } .mark.is-focus b { animation: none; } }
 
+/* Layers that let an automated contrast check (axe, and so our own free check on accessrank.ai) measure the text:
+ * - the deck's own box is transparent (body/html paint the same navy), and the aurora and grain sit at z-index -1 —
+ *   behind the page background as axe reads the stack, so a glow or a grain pixel is never "the background of the text";
+ * - .chrome was a transparent full-screen box ABOVE the slides, so axe saw every word as covered by another element;
+ *   display: contents drops the box and keeps its children exactly where they were (main.deck is the same size). */
+.deck { background: transparent; }
+.deck .aurora { z-index: -1; }
+.grain { z-index: -1; }
+.deck .chrome { display: contents; }
+.deck .chrome > * { z-index: 40; }
+.rk-num .flap.is-rest .rest { background: none; box-shadow: none; }
+
 /* ============ compact: blocks flow vertically inside a scrollable scene ============
    Three ways in, one layout: narrow (phone), short (landscape phone, low window) or taller than wide (tablet in
    portrait). The desktop scenes are composed as absolute blocks against a 16:9 stage — 812 × 310 of a phone held

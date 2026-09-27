@@ -48,36 +48,43 @@ body {
  * as the design intends. */
 body { position: relative; overflow-x: hidden; }
 .aurora { position: absolute; inset: 0; height: 100%; z-index: -1; overflow: hidden; pointer-events: none; }
-.aurora span { position: absolute; border-radius: 50%; filter: blur(80px) saturate(1.1); opacity: var(--aurora-opacity, 0.62); will-change: transform; } /* was: filter: blur(90px) saturate(1.1); opacity: 0.36; in auth.css */
-.aurora .b1 { width: 58%; padding-bottom: 58%; top: 8%; left: -10%; background: var(--blue-600); animation: auroraDrift1 30s ease-in-out infinite; }
-.aurora .b2 { width: 64%; padding-bottom: 64%; top: 32%; right: -16%; background: var(--blue-500); animation: auroraDrift2 37s ease-in-out infinite; }
-.aurora .b3 { width: 54%; padding-bottom: 54%; top: 52%; left: 26%; background: var(--blue-800); animation: auroraDrift3 34s ease-in-out infinite; }
-.aurora .b4 { width: 52%; padding-bottom: 52%; top: -12%; right: 4%; background: var(--blue-600); animation: auroraDrift4 40s ease-in-out infinite; }
-.aurora .b5 { width: 56%; padding-bottom: 56%; top: 70%; left: -12%; background: var(--blue-500); animation: auroraDrift5 31s ease-in-out infinite; }
-.aurora .b6 { width: 56%; padding-bottom: 56%; top: 80%; right: -14%; background: var(--blue-700); animation: auroraDrift6 38s ease-in-out infinite; }
-.aurora .b7 { width: 54%; padding-bottom: 54%; top: 88%; left: 24%; background: var(--blue-600); animation: auroraDrift7 35s ease-in-out infinite; }
-.aurora .b8 { width: 48%; padding-bottom: 48%; bottom: -8%; right: 18%; background: var(--blue-800); animation: auroraDrift8 27s ease-in-out infinite; }
-@keyframes auroraDrift1 { 0%,100% { transform: translate(0,0) scale(1); } 25% { transform: translate(38%,46%) scale(1.22); } 50% { transform: translate(-28%,64%) scale(0.88); } 75% { transform: translate(46%,-26%) scale(1.16); } }
-@keyframes auroraDrift2 { 0%,100% { transform: translate(0,0) scale(1); } 25% { transform: translate(-48%,34%) scale(1.12); } 50% { transform: translate(26%,-46%) scale(1.28); } 75% { transform: translate(-34%,-30%) scale(0.85); } }
-@keyframes auroraDrift3 { 0%,100% { transform: translate(0,0) scale(1); } 25% { transform: translate(54%,-34%) scale(0.9); } 50% { transform: translate(-50%,24%) scale(1.3); } 75% { transform: translate(28%,52%) scale(1.05); } }
-@keyframes auroraDrift4 { 0%,100% { transform: translate(0,0) scale(1); } 25% { transform: translate(-30%,-50%) scale(1.2); } 50% { transform: translate(50%,28%) scale(0.86); } 75% { transform: translate(-44%,40%) scale(1.2); } }
-@keyframes auroraDrift5 { 0%,100% { transform: translate(0,0) scale(1); } 25% { transform: translate(40%,-58%) scale(1.1); } 50% { transform: translate(-56%,-22%) scale(1.28); } 75% { transform: translate(22%,-48%) scale(0.92); } }
-@keyframes auroraDrift6 { 0%,100% { transform: translate(0,0) scale(1); } 25% { transform: translate(-50%,30%) scale(0.9); } 50% { transform: translate(34%,56%) scale(1.24); } 75% { transform: translate(56%,-32%) scale(1.1); } }
-@keyframes auroraDrift7 { 0%,100% { transform: translate(0,0) scale(1); } 25% { transform: translate(44%,-44%) scale(1.16); } 50% { transform: translate(-34%,50%) scale(0.85); } 75% { transform: translate(-50%,-28%) scale(1.26); } }
-@keyframes auroraDrift8 { 0%,100% { transform: translate(0,0) scale(1); } 25% { transform: translate(-38%,-34%) scale(1.12); } 50% { transform: translate(50%,-50%) scale(0.9); } 75% { transform: translate(34%,44%) scale(1.22); } }
+/* Two full-page layers, each painting all eight glows as radial gradients, cross-fading into each other — instead of
+ * eight blurred, drifting blob elements. The blobs were boxes that covered some lines of a paragraph and not others as
+ * they drifted, which is exactly what makes axe give up on a colour-contrast check ("partially overlaps other elements"):
+ * /home's own free check scored itself "needs review" on WCAG 1.4.3. Layers that always cover the whole page are the same
+ * behind every line. Opacity is the only thing animated, so it stays a cheap composited animation; no blur filter. */
+.aurora span { position: absolute; inset: 0; }
+.aurora-a { background: radial-gradient(circle calc(29vw + 80px) at 19% calc(8% + 29vw), rgba(37, 99, 235, .42) calc(29vw - 80px), rgba(37, 99, 235, 0) calc(29vw + 80px)),
+  radial-gradient(circle calc(32vw + 80px) at 84% calc(32% + 32vw), rgba(59, 130, 246, .42) calc(32vw - 80px), rgba(59, 130, 246, 0) calc(32vw + 80px)),
+  radial-gradient(circle calc(27vw + 80px) at 53% calc(52% + 27vw), rgba(30, 64, 175, .42) calc(27vw - 80px), rgba(30, 64, 175, 0) calc(27vw + 80px)),
+  radial-gradient(circle calc(26vw + 80px) at 70% calc(-12% + 26vw), rgba(37, 99, 235, .42) calc(26vw - 80px), rgba(37, 99, 235, 0) calc(26vw + 80px)),
+  radial-gradient(circle calc(28vw + 80px) at 16% calc(70% + 28vw), rgba(59, 130, 246, .42) calc(28vw - 80px), rgba(59, 130, 246, 0) calc(28vw + 80px)),
+  radial-gradient(circle calc(28vw + 80px) at 86% calc(80% + 28vw), rgba(29, 78, 216, .42) calc(28vw - 80px), rgba(29, 78, 216, 0) calc(28vw + 80px)),
+  radial-gradient(circle calc(27vw + 80px) at 51% calc(88% + 27vw), rgba(37, 99, 235, .42) calc(27vw - 80px), rgba(37, 99, 235, 0) calc(27vw + 80px)),
+  radial-gradient(circle calc(24vw + 80px) at 58% calc(108% - 24vw), rgba(30, 64, 175, .42) calc(24vw - 80px), rgba(30, 64, 175, 0) calc(24vw + 80px)); }
+.aurora-b { opacity: 0; background: radial-gradient(circle calc(35vw + 80px) at calc(19% + 22vw) calc(8% + 55.7vw), rgba(37, 99, 235, .42) calc(35vw - 80px), rgba(37, 99, 235, 0) calc(35vw + 80px)),
+  radial-gradient(circle calc(36vw + 80px) at calc(84% - 30.7vw) calc(32% + 53.8vw), rgba(59, 130, 246, .42) calc(36vw - 80px), rgba(59, 130, 246, 0) calc(36vw + 80px)),
+  radial-gradient(circle calc(24vw + 80px) at calc(53% + 29.2vw) calc(52% + 8.6vw), rgba(30, 64, 175, .42) calc(24vw - 80px), rgba(30, 64, 175, 0) calc(24vw + 80px)),
+  radial-gradient(circle calc(31vw + 80px) at calc(70% - 15.6vw) calc(-12% + 0vw), rgba(37, 99, 235, .42) calc(31vw - 80px), rgba(37, 99, 235, 0) calc(31vw + 80px)),
+  radial-gradient(circle calc(31vw + 80px) at calc(16% + 22.4vw) calc(70% - 4.5vw), rgba(59, 130, 246, .42) calc(31vw - 80px), rgba(59, 130, 246, 0) calc(31vw + 80px)),
+  radial-gradient(circle calc(25vw + 80px) at calc(86% - 28vw) calc(80% + 44.8vw), rgba(29, 78, 216, .42) calc(25vw - 80px), rgba(29, 78, 216, 0) calc(25vw + 80px)),
+  radial-gradient(circle calc(31vw + 80px) at calc(51% + 23.8vw) calc(88% + 3.2vw), rgba(37, 99, 235, .42) calc(31vw - 80px), rgba(37, 99, 235, 0) calc(31vw + 80px)),
+  radial-gradient(circle calc(27vw + 80px) at calc(58% - 18.2vw) calc(108% - 40.3vw), rgba(30, 64, 175, .42) calc(27vw - 80px), rgba(30, 64, 175, 0) calc(27vw + 80px));
+  animation: auroraFade 26s ease-in-out infinite alternate; }
+@keyframes auroraFade { from { opacity: 0; } to { opacity: 1; } }
+.aurora-a { animation: auroraFadeOut 26s ease-in-out infinite alternate; }
+@keyframes auroraFadeOut { from { opacity: 1; } to { opacity: .35; } }
 /* auth.css's 4-blob variant (aDrift1-4) is superseded by the 8-blob layout above per migration spec (base.css spec:
    "keep the 8-blob version but use position:fixed"). Keyframes preserved, unused, so nothing is silently dropped. */
 @keyframes aDrift1 { 0%,100%{transform:translate(0,0) scale(1);} 33%{transform:translate(34%,42%) scale(1.18);} 66%{transform:translate(-26%,26%) scale(0.9);} } /* unused as of migration */
 @keyframes aDrift2 { 0%,100%{transform:translate(0,0) scale(1);} 33%{transform:translate(-42%,30%) scale(1.1);} 66%{transform:translate(24%,-40%) scale(1.24);} } /* unused as of migration */
 @keyframes aDrift3 { 0%,100%{transform:translate(0,0) scale(1);} 33%{transform:translate(48%,-30%) scale(0.9);} 66%{transform:translate(-44%,22%) scale(1.26);} } /* unused as of migration */
 @keyframes aDrift4 { 0%,100%{transform:translate(0,0) scale(1);} 33%{transform:translate(-28%,-44%) scale(1.16);} 66%{transform:translate(44%,24%) scale(0.88);} } /* unused as of migration */
-@media (prefers-reduced-motion: reduce) { .aurora span { animation: none !important; } }
-/* Mobile: the blurred blob field is the dominant paint cost on throttled CPUs.
-   Hold it static (no infinite animation), thin it to 4 blobs, and drop the blur radius.
-   767px matches the deck's own mobile breakpoint (deck/lib/tokens.css). */
+@media (prefers-reduced-motion: reduce) { .aurora span { animation: none !important; } .aurora-b { opacity: 0; } }
+/* Mobile: hold the glows still (one layer, painted once). 767px matches the deck's own mobile breakpoint. */
 @media (max-width: 767px) {
-  .aurora span { animation: none !important; will-change: auto; filter: blur(52px) saturate(1.1); } /* was: filter: blur(60px) saturate(1.1); in auth.css */
-  .aurora .b5, .aurora .b6, .aurora .b7, .aurora .b8 { display: none; } /* index.html only — thins the 8-blob layout to 4 on mobile; no auth.css equivalent needed since auth.css only ever had 4 blobs */
+  .aurora span { animation: none !important; }
+  .aurora-b { display: none; }
 }
 
 /* ---- Accessibility ---- */

@@ -19,8 +19,12 @@ export function FlapDigits(root, { value = '', digits = 0, clack = true, dur = T
       const top = el('div', { class: 'half top' }, el('span', { text: ' ' }))
       const bottom = el('div', { class: 'half bottom' }, el('span', { text: ' ' }))
       const leaf = el('div', { class: 'leaf' }, el('div', { class: 'face front' }, el('span', { text: ' ' })), el('div', { class: 'face back' }, el('span', { text: ' ' })))
-      cell.append(top, bottom, leaf)
-      cells.push({ cell, top, bottom, leaf, cur: ' ', isDigit: true })
+      // En reposo se ve UNA copia del dígito (.rest) y se oculta la maquinaria del flip: las cuatro copias apiladas
+      // (mitades + caras de la hoja) se tapan entre sí y axe no puede medir su contraste ("needs review" en 1.4.3).
+      const rest = el('span', { class: 'rest' })
+      cell.classList.add('is-rest')
+      cell.append(top, bottom, leaf, rest)
+      cells.push({ cell, top, bottom, leaf, rest, cur: ' ', isDigit: true })
     } else { cell.textContent = ch; cell.style.opacity = '0'; cells.push({ cell, isDigit: false }) }
     root.append(cell)
   }
@@ -33,9 +37,14 @@ export function FlapDigits(root, { value = '', digits = 0, clack = true, dur = T
     c.leaf.children[0].firstChild.textContent = glyph(curCh)
     c.leaf.children[1].firstChild.textContent = glyph(nextCh)
   }
+  function atRest(c, on) {
+    c.rest.textContent = glyph(c.cur)
+    c.cell.classList.toggle('is-rest', on)
+  }
   function flipOnce(c, nextCh, final) {
     return new Promise((res) => {
       setFaces(c, c.cur, nextCh)
+      atRest(c, false)
       const a = c.leaf.animate([{ transform: 'rotateX(0deg)' }, { transform: 'rotateX(-180deg)' }], { duration: flip, easing: 'cubic-bezier(.45,0,.55,1)', fill: 'forwards' })
       if (clack && sound) sound.play(final ? 'clack' : 'clack-soft', { gain: final ? 1 : .35, rate: .94 + Math.random() * .12, throttle: 20 })
       a.onfinish = () => { c.cur = nextCh; setFaces(c, nextCh, nextCh); a.cancel(); res() }
@@ -48,13 +57,14 @@ export function FlapDigits(root, { value = '', digits = 0, clack = true, dur = T
       return
     }
     if (c.cur === target) return
-    if (reduced) { c.cur = target; setFaces(c, target, target); return }
+    if (reduced) { c.cur = target; setFaces(c, target, target); atRest(c, true); return }
     const steps = Math.max(3, Math.round(dur / flip))
     const t = target === ' ' ? 0 : DIGITS.indexOf(target)
     const seq = []
     for (let i = 0; i < steps; i++) seq.push(DIGITS[(((t - (steps - 1 - i)) % 10) + 10) % 10])
     seq[seq.length - 1] = target
     for (let i = 0; i < seq.length; i++) await flipOnce(c, seq[i], i === seq.length - 1)
+    atRest(c, true)
   }
   async function set(v) {
     const s = String(v).padStart(cells.length, ' ')

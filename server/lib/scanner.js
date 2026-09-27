@@ -402,6 +402,10 @@ export async function runScan(rawUrl, { maxPages = config.scanner.maxPages } = {
       bypassCSP: false,
       serviceWorkers: 'block',
       locale: 'en-US',
+      // Judge the page in its settled state. Entrance animations (letters fading in, counters flipping) are
+      // mid-flight when the audit runs and axe reports their half-faded glyphs as "needs review" on 1.4.3;
+      // sites that honour reduced motion render their final state at once.
+      reducedMotion: 'reduce',
     });
     context.setDefaultTimeout(config.scanner.navigationTimeoutMs);
 
