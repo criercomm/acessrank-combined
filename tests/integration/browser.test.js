@@ -153,6 +153,11 @@ test('a scan opens the dialog at once and shows real findings beside the report 
     assert.ok(chips.some((c) => c.includes('1.1.1')), `expected WCAG 1.1.1 chip, got ${chips.join(', ')}`);
     assert.ok((await page.locator('.audit-row').count()) > 0, 'issues are listed');
 
+    // AI agent readiness: a third sub-score and its plain-English checklist.
+    assert.equal(await page.locator('#scan-modal .score-split-item').count(), 3, 'accessibility, SEO and AI agent readiness');
+    assert.match(await page.textContent('#result-agent-title'), /AI agent readiness: \d+ of \d+ checks passed/);
+    assert.ok((await page.locator('.agent-check').count()) >= 4, 'the agent checks are listed');
+
     // Results and the form share the dialog.
     assert.equal(await page.locator('#report-name').isVisible(), true, 'the report form is beside the results');
     assert.equal(await page.evaluate(() => document.activeElement?.id), 'scan-result-title', 'focus lands on the result');

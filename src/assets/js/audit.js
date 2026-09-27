@@ -119,7 +119,7 @@
     'Loading the page in a real browser',
     'Running axe-core against WCAG 2.2 AA',
     'Checking colour contrast and focus order',
-    'Reading on-page SEO signals',
+    'Reading SEO and AI agent signals',
     'Scoring'
   ];
 
@@ -182,10 +182,14 @@
 
     /* Two sub-scores */
     var subs = el('div', 'score-split');
-    [
+    var subScores = [
       { label: 'Accessibility', value: scores.accessibility },
       { label: 'SEO', value: scores.seo }
-    ].forEach(function (item) {
+    ];
+    // Results cached before agent readiness existed carry no `agent`; they keep the two-score layout.
+    if (data.agent && data.agent.total) subScores.push({ label: 'AI agent readiness', value: data.agent.score });
+    if (subScores.length === 3) subs.classList.add('score-split--3');
+    subScores.forEach(function (item) {
       var box = el('div', 'score-split-item');
       box.appendChild(el('span', 'split-label', item.label));
       box.appendChild(el('span', 'split-value', item.value == null ? '—' : String(item.value)));
@@ -248,6 +252,33 @@
     } else {
       results.appendChild(el('p', 'result-clean',
         'Automated testing found nothing to fix. The full report covers the SEO checks and what automated testing cannot see.'));
+    }
+
+    /* AI agent readiness — can assistants and browsing agents read and operate the store? */
+    if (data.agent && data.agent.total) {
+      var agentWrap = el('section', 'result-agent');
+      agentWrap.setAttribute('aria-labelledby', 'result-agent-title');
+      var agentTitle = el('h3', 'result-agent-title',
+        'AI agent readiness: ' + data.agent.passed + ' of ' + data.agent.total + ' checks passed');
+      agentTitle.id = 'result-agent-title';
+      agentWrap.appendChild(agentTitle);
+      agentWrap.appendChild(el('p', 'result-agent-intro',
+        'Can AI assistants and browsing agents read your store and complete tasks like finding a product or checking out?'));
+      var agentList = el('ul', 'agent-checks');
+      data.agent.checks.forEach(function (check) {
+        var li = el('li', 'agent-check' + (check.pass ? ' is-pass' : ' is-fail'));
+        var icon = el('span', 'agent-check-icon', check.pass ? '✓' : '✕');
+        icon.setAttribute('aria-hidden', 'true');
+        li.appendChild(icon);
+        var text = el('span', 'agent-check-text');
+        text.appendChild(el('span', 'agent-check-label', check.label));
+        if (!check.pass && check.detail) text.appendChild(el('span', 'agent-check-detail', check.detail));
+        li.appendChild(text);
+        li.appendChild(el('span', 'agent-check-status', check.pass ? 'Pass' : 'Needs work'));
+        agentList.appendChild(li);
+      });
+      agentWrap.appendChild(agentList);
+      results.appendChild(agentWrap);
     }
 
     var site = document.getElementById('report-site');

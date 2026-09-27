@@ -173,6 +173,8 @@ function publicScan(result) {
       total: result.seo.total,
       checks: result.seo.checks,
     },
+    // Absent on results cached before agent readiness existed; the dialog hides the section then.
+    agent: result.agent ?? null,
     axeVersion: result.axeVersion,
   };
 }

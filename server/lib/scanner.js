@@ -7,6 +7,7 @@ import { getBrowser, closeBrowser } from './browser.js';
 import {
   mergeAxeResults, scoreAccessibility, scoreSeo, scoreOverall, rankIssues, band,
 } from './scoring.js';
+import { agentReadiness, robotsBlockedAgents } from './agent.js';
 
 const require = createRequire(import.meta.url);
 
@@ -146,6 +147,14 @@ function extractSeo() {
     return !label || vagueText.test(label);
   });
 
+  // Links a crawler or agent cannot follow: a javascript: or empty href, or a click handler with no href at all.
+  const uncrawlable = [...document.querySelectorAll('a')].filter((a) => {
+    const href = a.getAttribute('href');
+    if (href === null) return a.hasAttribute('onclick');
+    const v = href.trim();
+    return v === '' || /^javascript:/i.test(v);
+  }).length;
+
   const jsonLd = [...document.querySelectorAll('script[type="application/ld+json"]')];
   const jsonLdTypes = [];
   for (const node of jsonLd) {
@@ -180,7 +189,7 @@ function extractSeo() {
       decorative: decorative.length,
       missing: missingAlt.length,
     },
-    links: { total: links.length, vague: badLinks.length },
+    links: { total: links.length, vague: badLinks.length, uncrawlable },
     jsonLdTypes: [...new Set(jsonLdTypes)],
     ogTags,
     wordCount: (document.body ? (document.body.innerText || '') : '').split(/\s+/).filter(Boolean).length,
@@ -261,7 +270,7 @@ function buildSeoSignals(raw, url) {
 /**
  * Audit a single page. Assumes the URL has already passed validateScanTarget.
  */
-async function auditPage(context, url, deadline) {
+async function auditPage(context, url, deadline, { robots = false } = {}) {
   const page = await context.newPage();
   const consoleErrors = [];
   page.on('console', (msg) => {
@@ -322,6 +331,22 @@ async function auditPage(context, url, deadline) {
     if (wall) throw botWallError(wall);
 
     const seoRaw = await page.evaluate(extractSeo);
+
+    // robots.txt, fetched from inside the page so the request goes through the same SSRF route guard as
+    // everything else the page loads. Feeds the "Search and AI crawlers are allowed in" agent check.
+    if (robots) {
+      const res = await page.evaluate(async () => {
+        const ctl = new AbortController();
+        const timer = setTimeout(() => ctl.abort(), 4000);
+        try {
+          const r = await fetch('/robots.txt', { credentials: 'omit', signal: ctl.signal });
+          return { status: r.status, text: r.ok ? (await r.text()).slice(0, 100000) : '' };
+        } catch { return null; } finally { clearTimeout(timer); }
+      }).catch(() => null);
+      seoRaw.robotsTxt = res
+        ? { status: res.status, blocked: res.status === 200 ? robotsBlockedAgents(res.text) : [] }
+        : { status: 0, blocked: [] };
+    }
 
     const axe = await page.evaluate(async (tags) => {
       /* global axe */
@@ -409,7 +434,7 @@ export async function runScan(rawUrl, { maxPages = config.scanner.maxPages } = {
     });
     context.setDefaultTimeout(config.scanner.navigationTimeoutMs);
 
-    const first = await auditPage(context, url, deadline);
+    const first = await auditPage(context, url, deadline, { robots: true });
     const pages = [first];
 
     // Crawl a couple of additional internal pages so the report reflects the
@@ -435,6 +460,7 @@ export async function runScan(rawUrl, { maxPages = config.scanner.maxPages } = {
     const seoSignals = buildSeoSignals(first.seoRaw, new URL(first.url));
     const seo = scoreSeo(seoSignals);
     const overall = scoreOverall(a11y.score, seo.score);
+    const agent = agentReadiness(merged, first.seoRaw, seoSignals);
 
     return {
       ok: true,
@@ -446,13 +472,14 @@ export async function runScan(rawUrl, { maxPages = config.scanner.maxPages } = {
       durationMs: Date.now() - started,
       engineVersion: ENGINE_VERSION,
       axeVersion: AXE_VERSION,
-      scores: { overall, accessibility: a11y.score, seo: seo.score, band: band(overall) },
+      scores: { overall, accessibility: a11y.score, seo: seo.score, agent: agent.score, band: band(overall) },
       accessibility: {
         ...a11y,
         issues: rankIssues(merged.violations),
         needsReview: rankIssues(merged.incomplete, 10),
       },
       seo: { ...seo, signals: seoSignals },
+      agent,
       meta: {
         title: first.seoRaw.title,
         description: first.seoRaw.description,
