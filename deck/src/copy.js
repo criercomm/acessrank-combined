@@ -10,13 +10,13 @@ export const copy = {
 
   s01: {
     title: ["THE WEB'S BIGGEST", 'BLIND SPOT.'],
-    sub: "95% of websites fail accessibility standards — a blind spot most companies don't know they have until a demand letter arrives. Accessrank finds it, fixes it, and turns the fix into faster, more visible, more sellable pages.",
+    sub: "95% of websites fail accessibility standards, and most brands don't find out until a demand letter arrives. Accessrank opens your store to the 1 in 4 adult Americans with disabilities and optimizes speed, search rankings, and AI visibility.",
     stats: [
       { value: '95.9%', label: 'of the top 1M sites fail WCAG' },
       { value: '70M+', label: 'U.S. adults live with a disability' },
       { value: '5,114', label: 'ADA website lawsuits filed in 2025' },
     ],
-    notes: 'Open slow. "Ninety-five percent of websites fail accessibility standards. Most companies find out when a demand letter arrives. We find it, we fix it in the code, and the fix makes the pages faster and more visible." Then advance.',
+    notes: 'Open slow. "Ninety-five percent of websites fail accessibility standards. Most brands find out when a demand letter arrives. We open the store to the one in four American adults with a disability, and make it faster, better ranked and visible to AI." Then advance.',
   },
 
   s02: {
@@ -209,7 +209,7 @@ export const copy = {
       { name: '', role: 'Co-founder and CEO', email: 'jp@accessrank.ai', phone: '+1 310 408 1881' },
       { name: '', role: 'Co-founder and CTO', email: 'carlos@accessrank.ai', phone: '+51 958 967 616' },
     ],
-    site: 'accessrank.ai', siteHref: 'https://accessrank.ai/',
+    site: 'Main website', siteHref: 'https://accessrank.ai/home',
     notes: 'Close with the question on screen and stop. Two ways to reach us: the CEO in the US, the CTO in Peru; both numbers are in international format.',
   },
 }
