@@ -30,6 +30,19 @@ app.disable('x-powered-by');
  */
 app.set('trust proxy', config.trustProxy);
 
+/**
+ * www.accessrank.ai is served too, but its pages called the API from an origin
+ * the check below refuses — every free check started there failed with
+ * "Request blocked." Send www visitors to the canonical host instead, so there
+ * is one origin, one set of cookies and one canonical URL.
+ */
+const canonicalHost = new URL(config.siteUrl).host;
+app.use((req, res, next) => {
+  if (req.get('host') !== `www.${canonicalHost}`) return next();
+  const status = req.method === 'GET' || req.method === 'HEAD' ? 301 : 308;
+  return res.redirect(status, `${config.siteUrl}${req.originalUrl}`);
+});
+
 /* ------------------------------------------------------------- headers --- */
 
 const scriptSrc = ["'self'"];

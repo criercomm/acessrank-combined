@@ -408,6 +408,16 @@ test('a cross-origin API call is refused', async () => {
   assert.equal((await res.json()).code, 'bad_origin');
 });
 
+test('www visitors are sent to the canonical host, so the API sees an allowed origin', async () => {
+  const host = new URL(config.siteUrl).host;
+  const res = await new Promise((resolve, reject) => {
+    http.get(`${apiBase}/home?x=1`, { headers: { Host: `www.${host}` } }, resolve).on('error', reject);
+  });
+  res.resume();
+  assert.equal(res.statusCode, 301);
+  assert.equal(res.headers.location, `${config.siteUrl}/home?x=1`);
+});
+
 test('the scanner refuses internal addresses even though tests allow loopback', async () => {
   // SCAN_ALLOW_PRIVATE is on for the fixture server, so assert on the rules that
   // remain active regardless: scheme and shape.
