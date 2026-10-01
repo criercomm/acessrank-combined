@@ -38,6 +38,46 @@
     else if (mq.addListener) mq.addListener(onChange);
   }
 
+  /* ----------------------------------------------------- theme switch --- */
+  /* /theme.js has already applied a saved choice before first paint; this
+   * wires the button in the nav. Dark is the default, so "light" is the only
+   * value ever stored — choosing dark again clears it. */
+  var themeButtons = document.querySelectorAll('[data-theme-toggle]');
+
+  var currentTheme = function () {
+    return document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
+  };
+
+  var paintThemeButtons = function () {
+    var next = currentTheme() === 'light' ? 'dark' : 'light';
+    themeButtons.forEach(function (button) {
+      var label = button.querySelector('[data-theme-label]');
+      if (label) label.textContent = 'Switch to ' + next + ' mode';
+    });
+  };
+
+  var setTheme = function (theme) {
+    if (theme === 'light') document.documentElement.setAttribute('data-theme', 'light');
+    else document.documentElement.removeAttribute('data-theme');
+
+    var meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) meta.setAttribute('content', theme === 'light' ? '#FFFFFF' : '#14142A');
+
+    try {
+      if (theme === 'light') window.localStorage.setItem('ar-theme', 'light');
+      else window.localStorage.removeItem('ar-theme');
+    } catch (e) { /* storage blocked: the choice lasts for this page only */ }
+
+    paintThemeButtons();
+  };
+
+  themeButtons.forEach(function (button) {
+    button.addEventListener('click', function () {
+      setTheme(currentTheme() === 'light' ? 'dark' : 'light');
+    });
+  });
+  paintThemeButtons();
+
   /* ------------------------------------------------- pricing toggle ---- */
 
   var priceToggle = document.getElementById('price-toggle');
@@ -297,31 +337,6 @@
       if (wantsTurnstile(e.target)) window.Accessrank.loadTurnstile();
     }, { passive: true });
   });
-
-  /* -------------------------------------------------------- marquee --- */
-  /* The scrolling platform-name strip runs continuously and auto-starts,
-   * so WCAG 2.2.2 (Pause, Stop, Hide) calls for an on-screen way to stop
-   * it -- the OS-level prefers-reduced-motion switch (home.css) covers
-   * people who've set that, not everyone else who'd still like to pause it. */
-  var marqueeTrack = document.getElementById('marquee-track');
-  var marqueeToggle = document.getElementById('marquee-toggle');
-
-  if (marqueeTrack && marqueeToggle) {
-    var setMarqueePaused = function (paused) {
-      marqueeTrack.classList.toggle('is-paused', paused);
-      marqueeToggle.setAttribute('aria-pressed', paused ? 'true' : 'false');
-      marqueeToggle.querySelector('.marquee-icon-pause').hidden = paused;
-      marqueeToggle.querySelector('.marquee-icon-play').hidden = !paused;
-      marqueeToggle.querySelector('.visually-hidden').textContent =
-        paused ? 'Play scrolling platform list' : 'Pause scrolling platform list';
-    };
-
-    marqueeToggle.addEventListener('click', function () {
-      setMarqueePaused(!marqueeTrack.classList.contains('is-paused'));
-    });
-
-    if (window.Accessrank.reducedMotion()) setMarqueePaused(true);
-  }
 
 }());
 
