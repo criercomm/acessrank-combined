@@ -580,8 +580,12 @@ body.deck-open { overflow: hidden; }
    page that was a black slab, so here the band is just two hairlines on the
    white page, holding a grey tile; the red icon and the marker-yellow highlight
    carry the warning instead. */
+/* padding: the side padding is zeroed because the margin already insets the band
+   by --edge. Keeping both applied --edge twice per side, and since --edge grows
+   with the window (it is what centres the page past 1280px), the room left for
+   the card shrank as the window widened — to nothing at about 2300px. */
 [data-theme="light"] .overlay-warning {
-  background: transparent; margin: 0 var(--edge);
+  background: transparent; margin: 0 var(--edge); padding: 40px 0;
   border-top: 1px solid var(--hairline); border-bottom: 1px solid var(--hairline);
 }
 [data-theme="light"] .overlay-card { background: var(--surface); border: 1px solid var(--keyline); }
