@@ -1,0 +1,55 @@
+<section class="portal-main" data-portal-files>
+  <div class="portal-wrap">
+    <header class="portal-head">
+      <div class="portal-head-text">
+        <p class="portal-kicker">Client portal</p>
+        <h1 data-portal-client>Your files</h1>
+        <p class="portal-meta" data-portal-user></p>
+      </div>
+      <button class="btn-ghost" type="button" data-portal-logout>Sign out</button>
+    </header>
+
+    <p class="form-status portal-status" data-portal-status role="status" aria-live="polite"></p>
+
+    <p class="portal-notice" data-password-nudge hidden>
+      You&rsquo;re still using the password we sent you.
+      <a href="#change-password">Choose your own</a> when you have a minute.
+    </p>
+
+    <section class="portal-section" aria-labelledby="files-heading">
+      <div class="portal-section-head">
+        <h2 id="files-heading">Files</h2>
+        <p class="portal-count" data-file-count></p>
+      </div>
+
+      <div class="portal-card">
+        <p class="portal-empty" data-files-loading>Loading your files&hellip;</p>
+        <p class="portal-empty" data-files-empty hidden>
+          Nothing here yet. Your Accessrank team will add reports and documents as your project moves along.
+        </p>
+        <ul class="file-list" data-file-list hidden></ul>
+      </div>
+    </section>
+
+    <section class="portal-section" aria-labelledby="change-password">
+      <h2 id="change-password">Password</h2>
+      <div class="portal-card portal-card--form">
+        <form class="password-form" data-password-form novalidate>
+          <div class="field">
+            <label for="pw-current">Current password</label>
+            <input type="password" id="pw-current" name="current" autocomplete="current-password" required>
+          </div>
+          <div class="field">
+            <label for="pw-next">New password</label>
+            <input type="password" id="pw-next" name="next" autocomplete="new-password" minlength="10" aria-describedby="pw-hint" required>
+            <p class="field-hint" id="pw-hint">At least 10 characters. Changing it signs you out on your other devices.</p>
+          </div>
+          <p class="form-status" data-form-status role="alert" aria-live="assertive"></p>
+          <button class="btn-small btn-small--brand" type="submit">Change password</button>
+        </form>
+      </div>
+    </section>
+
+    <p class="portal-help">Missing a file, or need another login for a colleague? Email <a href="mailto:{{ site.email }}">{{ site.email }}</a>.</p>
+  </div>
+</section>

@@ -14,6 +14,7 @@ import rateLimit from 'express-rate-limit';
 import config, { readiness } from './lib/config.js';
 import { log, requestId } from './lib/logger.js';
 import api from './routes/api.js';
+import portal, { portalPageGate, loginPageGate } from './routes/portal.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const DIST = path.join(__dirname, '..', 'dist');
@@ -182,16 +183,45 @@ app.use('/api', (req, res, next) => {
  * holds an entire /64 — so a single visitor could rotate through addresses and
  * never hit the limit. The library's default buckets IPv6 by subnet.
  */
-const burst = (limit, code, error) => rateLimit({
+const burst = (limit, code, error, options = {}) => rateLimit({
   windowMs: 60_000,
   limit,
   standardHeaders: 'draft-7',
   legacyHeaders: false,
   message: { ok: false, code, error },
+  ...options,
 });
 
+/**
+ * The portal admin API gets its own, higher ceiling instead of the public one.
+ * Dropping a folder of reports onto a client area is one request per file, and
+ * at the public 60/minute an ordinary upload of a few dozen documents would
+ * start failing halfway through. It is still bounded, and every one of those
+ * requests is refused without a valid admin session.
+ */
+const isPortalAdmin = (req) => req.path === '/portal/admin' || req.path.startsWith('/portal/admin/');
+
 // Coarse ceiling so no single address can flood the API.
-app.use('/api', burst(config.limits.apiBurstPerMinute, 'too_many_requests', 'Too many requests. Please slow down.'));
+app.use('/api', burst(
+  config.limits.apiBurstPerMinute,
+  'too_many_requests',
+  'Too many requests. Please slow down.',
+  { skip: isPortalAdmin },
+));
+
+app.use('/api/portal/admin', burst(
+  config.portal.adminBurstPerMinute,
+  'too_many_requests',
+  'Too many requests. Wait a minute and try again.',
+));
+
+// Password guessing is bounded per email and per address in the database
+// (server/lib/portal.js); this only stops a single address hammering the hash.
+app.use('/api/portal/login', burst(
+  config.portal.loginBurstPerMinute,
+  'too_many_requests',
+  'Too many sign-in attempts. Wait a minute and try again.',
+));
 
 // Scans are the expensive path: a burst cap on top of the daily quota.
 app.use('/api/scan', burst(
@@ -208,7 +238,16 @@ app.use('/api/report', burst(
 
 /* ---------------------------------------------------------------- api --- */
 
+// Mounted ahead of the general router so /api/portal/* never falls through to it.
+app.use('/api/portal', portal);
 app.use('/api', api);
+
+/* -------------------------------------------------------- portal pages --- */
+
+// Before the static handlers, so a signed-out visitor is redirected to the
+// sign-in page rather than served the portal's empty shell.
+app.use('/portal', portalPageGate);
+app.use('/client-login', loginPageGate);
 
 /* ------------------------------------------------------------- static --- */
 

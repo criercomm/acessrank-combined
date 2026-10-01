@@ -1,0 +1,46 @@
+<section class="auth-main">
+  <div class="auth-grid">
+    <div class="auth-copy">
+      <a class="back-link" href="/home">
+        <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true" focusable="false"><path d="M8.5 3 L4 7 L8.5 11" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Back to site
+      </a>
+      <div class="intro">
+        <span class="eyebrow-pill">Client portal</span>
+        <h1>Sign in to your client portal.</h1>
+        <p>Your audit reports, remediation notes and conformance documents, kept in one private place for your team.</p>
+      </div>
+      <div class="trust-row">
+        <span class="item"><span class="tick"><svg viewBox="0 0 14 14" aria-hidden="true" focusable="false"><path d="M3 7 L6 10 L11 4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Every file your Accessrank team has shared</span>
+        <span class="item"><span class="tick"><svg viewBox="0 0 14 14" aria-hidden="true" focusable="false"><path d="M3 7 L6 10 L11 4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Visible only to your company&rsquo;s logins</span>
+        <span class="item"><span class="tick"><svg viewBox="0 0 14 14" aria-hidden="true" focusable="false"><path d="M3 7 L6 10 L11 4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Download anything, any time</span>
+      </div>
+    </div>
+
+    <div class="form-card">
+      <h2 class="form-title">Client sign in</h2>
+      <p class="form-sub">Use the email and password your Accessrank contact sent you.</p>
+
+      <form class="portal-login" data-portal-login novalidate>
+        <div class="field">
+          <label for="login-email">Email</label>
+          <input type="email" id="login-email" name="email" autocomplete="username" inputmode="email" autocapitalize="none" spellcheck="false" required>
+        </div>
+
+        <div class="field">
+          <label for="login-password">Password</label>
+          <div class="password-row">
+            <input type="password" id="login-password" name="password" autocomplete="current-password" required>
+            <button class="password-toggle" type="button" data-password-toggle aria-controls="login-password" aria-pressed="false">Show<span class="visually-hidden"> password</span></button>
+          </div>
+        </div>
+
+        <p class="form-status" data-form-status role="alert" aria-live="assertive"></p>
+
+        <button class="submit-btn" type="submit">Sign in</button>
+      </form>
+
+      <p class="form-alt">Can&rsquo;t sign in? Email <a href="mailto:{{ site.email }}">{{ site.email }}</a> and we&rsquo;ll send you a new password.</p>
+    </div>
+  </div>
+</section>

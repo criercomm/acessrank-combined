@@ -38,12 +38,17 @@
        render-blocking round trip, allowed by CSP via a sha256 hash the build
        writes to dist/csp.json and the server folds into style-src. -->
   <style>{{{ inlineCss }}}</style>
+  <!-- Client-portal pages only (site.json: page.portal). Kept out of the inlined
+       block above so the marketing pages do not carry styles they never use;
+       style-src 'self' already allows a same-origin stylesheet. -->
+  {{#if page.portal}}<link rel="stylesheet" href="{{ portalCssHref }}">{{/if}}
 
   {{{ structuredData }}}
   {{#if plausibleDomain}}<script defer data-domain="{{ plausibleDomain }}" src="{{ plausibleSrc }}"></script>{{/if}}
   <!-- Cloudflare Turnstile is not loaded here: site.js loads it on demand (Accessrank.loadTurnstile) so visitors who never
        touch a form get no third-party cookie (Lighthouse Best Practices). -->
   <script src="{{ jsHref }}" defer></script>
+  {{#if page.portal}}<script src="{{ portalJsHref }}" defer></script>{{/if}}
 </head>
 <body class="site" data-page="{{ page.url }}"{{#if turnstileSiteKey}} data-turnstile-key="{{ turnstileSiteKey }}"{{/if}}>
   <a class="skip-link" href="#main-content">Skip to main content</a>

@@ -125,6 +125,37 @@ WHERE created_at < now() - interval '180 days'
   AND id NOT IN (SELECT scan_id FROM reports);
 ```
 
+### Client portal
+
+Everything routine is done in `/portal/admin` (add a client, upload, create or
+reset a login). The cases that are not:
+
+**"A client says they cannot sign in."** Open the client in `/portal/admin` and
+press *Reset password* on their login, then send them the new one. If the
+message they see is "Too many sign-in attempts", the lockout clears by itself
+15 minutes after the last wrong attempt — a reset does not shorten it.
+
+**"I am locked out of the admin page."** The admin login is the two secrets, not
+a database row. Set them again and the app restarts with the new values:
+
+```bash
+fly secrets set PORTAL_ADMIN_EMAIL="you@accessrank.ai" PORTAL_ADMIN_PASSWORD="a new password"
+```
+
+**Sign everyone out** (suspected leak of a session, or of the database):
+
+```sql
+DELETE FROM portal_sessions;
+```
+
+**How much space are client files using?**
+
+```sql
+SELECT c.name, count(f.id) AS files, pg_size_pretty(coalesce(sum(f.size_bytes), 0)) AS size
+FROM portal_clients c LEFT JOIN portal_files f ON f.client_id = c.id
+GROUP BY c.id ORDER BY sum(f.size_bytes) DESC NULLS LAST;
+```
+
 ---
 
 ## Rotating secrets
@@ -133,6 +164,7 @@ WHERE created_at < now() - interval '180 days'
 |---|---|
 | `RESEND_API_KEY` | Yes, any time. |
 | `ADMIN_TOKEN` | Yes, any time. |
+| `PORTAL_ADMIN_PASSWORD` | Yes, any time. The current admin session keeps working until it expires (12h) or you run `DELETE FROM portal_sessions WHERE role = 'admin'`. |
 | `TURNSTILE_SECRET_KEY` | Yes — rotate the site key with it and rebuild. |
 | `DATABASE_URL` | Yes. |
 | **`IP_HASH_SALT`** | **Effectively no.** Rotating it re-keys every hash, which resets all per-IP quotas to zero. Only rotate if you believe the salt leaked, and expect a window of unlimited per-IP reports. The per-email rule still holds during that window. |
@@ -158,7 +190,7 @@ WHERE created_at < now() - interval '180 days'
    tags and the sitemap.
 3. `TURNSTILE_SITE_KEY` build arg set (public), `TURNSTILE_SECRET_KEY` as a secret.
 4. All production secrets set. The app refuses to boot without them.
-5. `node scripts/migrate.mjs` after first deploy and after any schema change.
+5. Migrations: `fly deploy` runs `node scripts/migrate.mjs` itself (`release_command`). On any other host, run it after first deploy and after any schema change.
 6. `GET /api/health` returns `leadFunnel: true`.
 7. Send yourself one real report end-to-end before announcing.
 

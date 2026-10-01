@@ -1,0 +1,124 @@
+<section class="portal-main" data-portal-admin>
+  <div class="portal-wrap portal-wrap--wide">
+    <header class="portal-head">
+      <div class="portal-head-text">
+        <p class="portal-kicker">Accessrank team</p>
+        <h1>Client portals</h1>
+        <p class="portal-meta">Create a client area, give people a login, and drop in their files.</p>
+      </div>
+      <button class="btn-ghost" type="button" data-portal-logout>Sign out</button>
+    </header>
+
+    <p class="form-status portal-status" data-portal-status role="status" aria-live="polite"></p>
+
+    <div class="admin-grid">
+      <section class="admin-rail" aria-labelledby="clients-heading">
+        <h2 id="clients-heading" tabindex="-1">Clients</h2>
+        <p class="portal-empty portal-empty--rail" data-clients-loading>Loading&hellip;</p>
+        <ul class="client-list" data-client-list></ul>
+
+        <form class="rail-form" data-add-client novalidate>
+          <label for="new-client-name">Add a client</label>
+          <input type="text" id="new-client-name" name="name" placeholder="Company name" autocomplete="off" maxlength="120" required>
+          <p class="form-status" data-form-status role="alert" aria-live="assertive"></p>
+          <button class="btn-small btn-small--brand" type="submit">Add client</button>
+        </form>
+      </section>
+
+      <div class="admin-detail">
+        <p class="portal-card portal-empty" data-detail-empty>
+          Add your first client on the left. You&rsquo;ll then be able to create their logins and upload their files here.
+        </p>
+
+        <div data-detail hidden>
+          <div class="detail-head">
+            <h2 data-detail-name tabindex="-1"></h2>
+            <div class="detail-actions">
+              <button class="btn-small" type="button" data-rename-open>Rename</button>
+              <button class="btn-small btn-small--danger" type="button" data-delete-client>Delete client</button>
+            </div>
+          </div>
+
+          <form class="rename-form" data-rename-form hidden novalidate>
+            <label for="rename-name">Client name</label>
+            <div class="inline-row">
+              <input type="text" id="rename-name" name="name" autocomplete="off" maxlength="120" required>
+              <button class="btn-small btn-small--brand" type="submit">Save name</button>
+              <button class="btn-small" type="button" data-rename-cancel>Cancel</button>
+            </div>
+            <p class="form-status" data-form-status role="alert" aria-live="assertive"></p>
+          </form>
+
+          <!-- ------------------------------------------------ files --- -->
+          <section class="portal-section" aria-labelledby="admin-files-heading">
+            <div class="portal-section-head">
+              <h3 id="admin-files-heading" tabindex="-1">Files</h3>
+              <p class="portal-count" data-file-count></p>
+            </div>
+
+            <div class="dropzone" data-dropzone>
+              <input class="visually-hidden" type="file" id="upload-input" multiple data-upload-input aria-describedby="upload-hint">
+              <svg class="dropzone-icon" width="28" height="28" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 16V5m0 0-4 4m4-4 4 4M5 15v3a1.5 1.5 0 0 0 1.5 1.5h11A1.5 1.5 0 0 0 19 18v-3" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <p class="dropzone-title">Drop files here to add them to <span data-dropzone-client>this client</span></p>
+              <p class="dropzone-hint" id="upload-hint">Or <label class="dropzone-choose" for="upload-input">choose files</label>. Up to <span data-max-file>{{ maxFileMb }} MB</span> each; they appear in the client&rsquo;s portal straight away.</p>
+            </div>
+
+            <ul class="upload-queue" data-upload-queue aria-label="Uploads in progress"></ul>
+
+            <div class="portal-card">
+              <p class="portal-empty" data-files-empty>No files yet.</p>
+              <ul class="file-list" data-file-list hidden></ul>
+            </div>
+          </section>
+
+          <!-- ----------------------------------------------- logins --- -->
+          <section class="portal-section" aria-labelledby="admin-logins-heading">
+            <div class="portal-section-head">
+              <h3 id="admin-logins-heading" tabindex="-1">Logins</h3>
+              <p class="portal-count" data-login-count></p>
+            </div>
+
+            <div class="credential" data-credential hidden tabindex="-1">
+              <p class="credential-title" data-credential-title></p>
+              <p class="credential-line">
+                <span class="credential-label">Email</span>
+                <code data-credential-email></code>
+              </p>
+              <p class="credential-line">
+                <span class="credential-label">Password</span>
+                <code data-credential-password></code>
+              </p>
+              <div class="credential-actions">
+                <button class="btn-small btn-small--brand" type="button" data-credential-copy>Copy sign-in details</button>
+                <button class="btn-small" type="button" data-credential-dismiss>Done</button>
+                <span class="credential-copied" data-credential-copied role="status" aria-live="polite"></span>
+              </div>
+              <p class="credential-note">This password is shown once and can&rsquo;t be looked up later. Send it to the client now; they can replace it with their own after signing in.</p>
+            </div>
+
+            <div class="portal-card">
+              <p class="portal-empty" data-logins-empty>No logins yet. Nobody at this client can sign in until you add one.</p>
+              <ul class="login-list" data-login-list hidden></ul>
+            </div>
+
+            <form class="login-form" data-add-login novalidate>
+              <h4>Add a login</h4>
+              <div class="login-form-row">
+                <div class="field">
+                  <label for="new-login-name">Name <span class="opt">(optional)</span></label>
+                  <input type="text" id="new-login-name" name="name" autocomplete="off" maxlength="120">
+                </div>
+                <div class="field">
+                  <label for="new-login-email">Email</label>
+                  <input type="email" id="new-login-email" name="email" autocomplete="off" autocapitalize="none" spellcheck="false" required>
+                </div>
+                <button class="btn-small btn-small--brand" type="submit">Create login</button>
+              </div>
+              <p class="form-status" data-form-status role="alert" aria-live="assertive"></p>
+            </form>
+          </section>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

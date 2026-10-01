@@ -119,6 +119,33 @@ const config = Object.freeze({
     allowPrivateTargets: !isProd && bool(env.SCAN_ALLOW_PRIVATE, false),
   },
 
+  /**
+   * Client portal (/client-login, /portal, /portal/admin).
+   *
+   * Client logins live in the database and are created from the admin page.
+   * The ADMIN sign-in is the one credential that cannot live there — something
+   * has to exist before the first client does — so it comes from two secrets.
+   * With either unset the admin page is simply unreachable; nothing else breaks.
+   */
+  portal: {
+    adminEmail: (env.PORTAL_ADMIN_EMAIL || '').trim().toLowerCase(),
+    adminPassword: env.PORTAL_ADMIN_PASSWORD || '',
+    get adminEnabled() {
+      return Boolean(this.adminEmail && this.adminPassword.length >= 12);
+    },
+    /** How long a client stays signed in on one device. */
+    clientSessionDays: int(env.PORTAL_SESSION_DAYS, 7),
+    /** Admin sessions are deliberately short: this login can see every client. */
+    adminSessionHours: int(env.PORTAL_ADMIN_SESSION_HOURS, 12),
+    /** Per-file upload ceiling. Files are held in Postgres, so keep this modest. */
+    maxFileMb: int(env.PORTAL_MAX_FILE_MB, 25),
+    /** Wrong-password attempts allowed per email / per IP in a rolling 15 minutes. */
+    loginAttemptsPerEmail: int(env.PORTAL_LOGIN_ATTEMPTS_PER_EMAIL, 8),
+    loginAttemptsPerIp: int(env.PORTAL_LOGIN_ATTEMPTS_PER_IP, 30),
+    loginBurstPerMinute: int(env.LIMIT_PORTAL_LOGIN_BURST_PER_MIN, 12),
+    adminBurstPerMinute: int(env.LIMIT_PORTAL_ADMIN_BURST_PER_MIN, 600),
+  },
+
   analytics: {
     /** Cookieless analytics only — a cookie banner would be required otherwise. */
     plausibleDomain: env.PLAUSIBLE_DOMAIN || '',
@@ -148,6 +175,8 @@ export function readiness() {
     captcha: config.turnstile.enabled,
     /** The lead funnel needs storage + delivery + a stable IP salt to be honest about limits. */
     leadFunnel: Boolean(config.db.url && config.email.resendApiKey && config.security.ipHashSalt),
+    /** Clients can sign in whenever there is a store; this reports whether an admin can. */
+    portalAdmin: config.portal.adminEnabled,
     missing,
   };
 }
@@ -167,6 +196,10 @@ export function assertProductionConfig() {
     fatal.push('ADMIN_TOKEN must be at least 24 characters.');
   }
   if (!/^https:\/\//.test(config.siteUrl)) fatal.push('SITE_URL must be an https:// origin in production.');
+  // Optional feature, but a half-set or weak admin login should never go live quietly.
+  if ((config.portal.adminEmail || config.portal.adminPassword) && !config.portal.adminEnabled) {
+    fatal.push('PORTAL_ADMIN_EMAIL and PORTAL_ADMIN_PASSWORD must both be set, and the password must be at least 12 characters.');
+  }
 
   /**
    * Turnstile is the only real bot defence. The honeypot is trivially skipped by

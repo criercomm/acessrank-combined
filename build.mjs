@@ -158,10 +158,21 @@ function build() {
   const jsSource = bundle(['site.js', 'audit.js'], jsDir);
   const jsName = `site.${hashOf(jsSource)}.js`;
 
+  // The client portal (/client-login, /portal, /portal/admin) ships its own
+  // stylesheet and script, linked only from pages marked `portal` in site.json.
+  // Bundling them into the files above would put admin-screen CSS inline in the
+  // <head> of every marketing page, and its JS in front of every visitor.
+  const portalCss = minifyCss(bundle(['portal.css'], cssDir));
+  const portalCssName = `portal.${hashOf(portalCss)}.css`;
+  const portalJs = bundle(['portal.js'], jsDir);
+  const portalJsName = `portal.${hashOf(portalJs)}.js`;
+
   fs.mkdirSync(path.join(DIST, 'assets', 'css'), { recursive: true });
   fs.mkdirSync(path.join(DIST, 'assets', 'js'), { recursive: true });
   fs.writeFileSync(path.join(DIST, 'assets', 'css', cssName), css);
   fs.writeFileSync(path.join(DIST, 'assets', 'js', jsName), jsSource);
+  fs.writeFileSync(path.join(DIST, 'assets', 'css', portalCssName), portalCss);
+  fs.writeFileSync(path.join(DIST, 'assets', 'js', portalJsName), portalJs);
 
   // The stylesheet is inlined into every page's <head> (see shell.html), which
   // removes the one render-blocking request from the critical path. CSP must
@@ -186,6 +197,7 @@ function build() {
 
   console.log(`  css  ${cssName} (${(css.length / 1024).toFixed(1)} kB, from ${(cssSource.length / 1024).toFixed(1)} kB)`);
   console.log(`  js   ${jsName} (${(jsSource.length / 1024).toFixed(1)} kB)`);
+  console.log(`  portal ${portalCssName} (${(portalCss.length / 1024).toFixed(1)} kB), ${portalJsName} (${(portalJs.length / 1024).toFixed(1)} kB)`);
   console.log(`  copy ${copied} static files`);
 
   // The investor deck is the site root now (accessrank.ai/ opens on it; the
@@ -220,6 +232,9 @@ function build() {
       jobs: site.jobs,
       inlineCss: css,
       jsHref: `/assets/js/${jsName}`,
+      portalCssHref: `/assets/css/${portalCssName}`,
+      portalJsHref: `/assets/js/${portalJsName}`,
+      maxFileMb: process.env.PORTAL_MAX_FILE_MB || '25',
       canonical: `${SITE_URL}${page.url === '/' ? '/' : page.url}`,
       siteUrl: SITE_URL,
       year: new Date().getFullYear(),
@@ -308,6 +323,9 @@ function build() {
       'Allow: /',
       // The audit endpoint is a POST API; keep crawlers out of it entirely.
       'Disallow: /api/',
+      // Signed-in client areas: nothing there for a crawler, and the pages
+      // redirect to the sign-in form without a session anyway.
+      'Disallow: /portal',
       '',
       `Sitemap: ${SITE_URL}/sitemap.xml`,
       '',

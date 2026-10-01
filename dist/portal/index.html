@@ -3,26 +3,26 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Start with Accessrank — get your remediation plan</title>
-  <meta name="description" content="Tell us about your store and we will come back with a fixed-scope remediation plan and timeline.">
-  <link rel="canonical" href="https://accessrank.ai/signup">
-  
+  <title>Your files — Accessrank client portal</title>
+  <meta name="description" content="Your private Accessrank client portal.">
+  <link rel="canonical" href="https://accessrank.ai/portal">
+  <meta name="robots" content="noindex, nofollow">
 
   <meta name="theme-color" content="#14142A">
   <meta name="color-scheme" content="dark">
 
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="Accessrank">
-  <meta property="og:title" content="Start with Accessrank — get your remediation plan">
-  <meta property="og:description" content="Tell us about your store and we will come back with a fixed-scope remediation plan and timeline.">
-  <meta property="og:url" content="https://accessrank.ai/signup">
+  <meta property="og:title" content="Your files — Accessrank client portal">
+  <meta property="og:description" content="Your private Accessrank client portal.">
+  <meta property="og:url" content="https://accessrank.ai/portal">
   <meta property="og:image" content="https://accessrank.ai/assets/img/og-image.png">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
   <meta property="og:image:alt" content="Accessrank — WCAG 2.2 AA remediation and SEO for DTC ecommerce">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Start with Accessrank — get your remediation plan">
-  <meta name="twitter:description" content="Tell us about your store and we will come back with a fixed-scope remediation plan and timeline.">
+  <meta name="twitter:title" content="Your files — Accessrank client portal">
+  <meta name="twitter:description" content="Your private Accessrank client portal.">
   <meta name="twitter:image" content="https://accessrank.ai/assets/img/og-image.png">
 
   <link rel="icon" href="/assets/img/favicon.svg" type="image/svg+xml">
@@ -41,16 +41,16 @@
   <!-- Client-portal pages only (site.json: page.portal). Kept out of the inlined
        block above so the marketing pages do not carry styles they never use;
        style-src 'self' already allows a same-origin stylesheet. -->
-  
+  <link rel="stylesheet" href="/assets/css/portal.fe34f39538.css">
 
-  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://accessrank.ai/"},{"@type":"ListItem","position":2,"name":"Start with Accessrank","item":"https://accessrank.ai/signup"}]}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://accessrank.ai/"},{"@type":"ListItem","position":2,"name":"Your files","item":"https://accessrank.ai/portal"}]}</script>
   
   <!-- Cloudflare Turnstile is not loaded here: site.js loads it on demand (Accessrank.loadTurnstile) so visitors who never
        touch a form get no third-party cookie (Lighthouse Best Practices). -->
   <script src="/assets/js/site.6b7289b8fd.js" defer></script>
-  
+  <script src="/assets/js/portal.52e1709425.js" defer></script>
 </head>
-<body class="site" data-page="/signup">
+<body class="site" data-page="/portal">
   <a class="skip-link" href="#main-content">Skip to main content</a>
 
   <div class="aurora" aria-hidden="true"><span class="aurora-a"></span><span class="aurora-b"></span></div>
@@ -97,89 +97,59 @@
   </div>
 
   <main id="main-content">
-<section class="auth-main">
-  <div class="auth-grid">
-    <div class="auth-copy">
-      <a class="back-link" href="/home">
-        <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true" focusable="false"><path d="M8.5 3 L4 7 L8.5 11" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        Back to site
-      </a>
-      <div class="intro">
-        <span class="eyebrow-pill" data-plan-pill>Growth plan</span>
-        <h1>Tell us about your store, <span class="accent">get a fixed-scope plan back.</span></h1>
-        <p>No account and no password to manage. Send us your store URL and we will scan it, then come back with a remediation plan, timeline and price.</p>
+<section class="portal-main" data-portal-files>
+  <div class="portal-wrap">
+    <header class="portal-head">
+      <div class="portal-head-text">
+        <p class="portal-kicker">Client portal</p>
+        <h1 data-portal-client>Your files</h1>
+        <p class="portal-meta" data-portal-user></p>
       </div>
-      <div class="trust-row">
-        <span class="item"><span class="tick"><svg viewBox="0 0 14 14" aria-hidden="true" focusable="false"><path d="M3 7 L6 10 L11 4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>WCAG 2.2 AA audit on first scan</span>
-        <span class="item"><span class="tick"><svg viewBox="0 0 14 14" aria-hidden="true" focusable="false"><path d="M3 7 L6 10 L11 4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Shopify, WordPress &amp; custom</span>
-        <span class="item"><span class="tick"><svg viewBox="0 0 14 14" aria-hidden="true" focusable="false"><path d="M3 7 L6 10 L11 4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Real fixes, not an overlay</span>
+      <button class="btn-ghost" type="button" data-portal-logout>Sign out</button>
+    </header>
+
+    <p class="form-status portal-status" data-portal-status role="status" aria-live="polite"></p>
+
+    <p class="portal-notice" data-password-nudge hidden>
+      You&rsquo;re still using the password we sent you.
+      <a href="#change-password">Choose your own</a> when you have a minute.
+    </p>
+
+    <section class="portal-section" aria-labelledby="files-heading">
+      <div class="portal-section-head">
+        <h2 id="files-heading">Files</h2>
+        <p class="portal-count" data-file-count></p>
       </div>
-    </div>
 
-    <div class="form-card">
-      <h2 class="form-title">Start your remediation plan</h2>
-      <p class="form-sub">Takes about a minute. A specialist follows up with scope and pricing.</p>
+      <div class="portal-card">
+        <p class="portal-empty" data-files-loading>Loading your files&hellip;</p>
+        <p class="portal-empty" data-files-empty hidden>
+          Nothing here yet. Your Accessrank team will add reports and documents as your project moves along.
+        </p>
+        <ul class="file-list" data-file-list hidden></ul>
+      </div>
+    </section>
 
-      <form id="signupForm" data-lead-form novalidate>
-        <input type="hidden" name="source" value="signup">
-
-        <div class="field-row">
+    <section class="portal-section" aria-labelledby="change-password">
+      <h2 id="change-password">Password</h2>
+      <div class="portal-card portal-card--form">
+        <form class="password-form" data-password-form novalidate>
           <div class="field">
-            <label for="signup-firstName">First name</label>
-            <input type="text" id="signup-firstName" name="firstName" autocomplete="given-name" placeholder="Jordan" required>
+            <label for="pw-current">Current password</label>
+            <input type="password" id="pw-current" name="current" autocomplete="current-password" required>
           </div>
           <div class="field">
-            <label for="signup-lastName">Last name</label>
-            <input type="text" id="signup-lastName" name="lastName" autocomplete="family-name" placeholder="Rivera" required>
+            <label for="pw-next">New password</label>
+            <input type="password" id="pw-next" name="next" autocomplete="new-password" minlength="10" aria-describedby="pw-hint" required>
+            <p class="field-hint" id="pw-hint">At least 10 characters. Changing it signs you out on your other devices.</p>
           </div>
-        </div>
-
-        <div class="field">
-          <label for="signup-email">Work email</label>
-          <input type="email" id="signup-email" name="email" autocomplete="email" placeholder="jordan@yourstore.com" required>
-        </div>
-
-        <div class="field">
-          <label for="signup-website">Store URL</label>
-          <input type="url" id="signup-website" name="website" autocomplete="url" placeholder="https://yourstore.com" required>
-        </div>
-
-        <div class="field">
-          <label for="signup-plan">Plan</label>
-          <select id="signup-plan" name="plan">
-            <option value="starter">Starter</option>
-            <option value="growth" selected>Growth (most popular)</option>
-            <option value="enterprise">Enterprise</option>
-          </select>
-        </div>
-
-        <div class="hp-field" aria-hidden="true">
-          <label for="signup-company-website">Company website</label>
-          <input id="signup-company-website" name="company_website" type="text" tabindex="-1" autocomplete="off">
-        </div>
-        <input type="hidden" name="formLoadedAt" value="">
-
-        <div class="field field-check">
-          <input id="signup-consent" name="consent" type="checkbox" required>
-          <label for="signup-consent">I agree to Accessrank contacting me and accept the <a href="/privacy">privacy policy</a>.</label>
-        </div>
-        <div class="field field-check">
-          <input id="signup-marketing" name="marketingOptIn" type="checkbox">
-          <label for="signup-marketing">Send me occasional accessibility and SEO guidance.</label>
-        </div>
-
-        
-
-        <p class="form-status" data-form-status role="alert" aria-live="assertive"></p>
-
-        <button class="submit-btn" type="submit">Start my remediation plan</button>
-      </form>
-
-      <div class="form-success" data-form-success hidden>
-        <h2>Thanks — we have got it.</h2>
-        <p>A specialist will look at your store and follow up by email with a fixed-scope remediation plan, timeline and price.</p>
+          <p class="form-status" data-form-status role="alert" aria-live="assertive"></p>
+          <button class="btn-small btn-small--brand" type="submit">Change password</button>
+        </form>
       </div>
-    </div>
+    </section>
+
+    <p class="portal-help">Missing a file, or need another login for a colleague? Email <a href="mailto:info@accessrank.ai">info@accessrank.ai</a>.</p>
   </div>
 </section>
 

@@ -12,6 +12,7 @@
     { "label": "How it works", "href": "/home#product", "deck": true },
     { "label": "WCAG explained", "href": "/home#wcag" },
     { "label": "Pricing", "href": "/home#pricing" },
+    { "label": "Client login", "href": "/client-login" },
     { "label": "Free audit", "href": "/home#audit", "cta": true }
   ],
 
@@ -22,7 +23,8 @@
         { "label": "About", "href": "/about" },
         { "label": "How we score", "href": "/methodology" },
         { "label": "Careers", "href": "/careers" },
-        { "label": "Talk to sales", "href": "/contact-sales" }
+        { "label": "Talk to sales", "href": "/contact-sales" },
+        { "label": "Client login", "href": "/client-login" }
       ]
     },
     {
@@ -180,6 +182,36 @@
       "description": "Sources for every statistic cited on the Accessrank website.",
       "priority": "0.3",
       "changefreq": "monthly"
+    },
+    {
+      "file": "client-login.html",
+      "url": "/client-login",
+      "layout": "page",
+      "title": "Client login — Accessrank",
+      "description": "Sign in to your Accessrank client portal to download your audit reports and conformance documents.",
+      "priority": "0.2",
+      "changefreq": "yearly",
+      "portal": true
+    },
+    {
+      "file": "portal.html",
+      "url": "/portal",
+      "layout": "page",
+      "title": "Your files — Accessrank client portal",
+      "description": "Your private Accessrank client portal.",
+      "portal": true,
+      "noindex": true,
+      "excludeFromSitemap": true
+    },
+    {
+      "file": "portal-admin.html",
+      "url": "/portal/admin",
+      "layout": "page",
+      "title": "Client portals — Accessrank admin",
+      "description": "Accessrank team access only.",
+      "portal": true,
+      "noindex": true,
+      "excludeFromSitemap": true
     },
     {
       "file": "404.html",

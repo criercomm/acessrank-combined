@@ -1,5 +1,6 @@
 User-agent: *
 Allow: /
 Disallow: /api/
+Disallow: /portal
 
 Sitemap: https://accessrank.ai/sitemap.xml

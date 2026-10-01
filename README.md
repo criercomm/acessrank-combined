@@ -186,15 +186,17 @@ src/
   partials/            shell, nav, footer, audit widget
   data/site.json       nav, footer, page manifest, job listings
   assets/css/          tokens -> base -> layout -> home/pages
-  assets/js/           site.js (shared), audit.js (funnel)
+  assets/js/           site.js (shared), audit.js (funnel), portal.js (portal pages only)
 server/
   index.js             express app: static + API + CSP
   routes/api.js        /api/scan, /api/report, /api/lead, /api/health, admin
+  routes/portal.js     /api/portal/* (client portal) and the /portal page guards
   lib/
     ssrf.js            URL validation (security boundary)
     identity.js        email/IP normalization for quotas
     quota.js           the abuse rules
     store.js           Postgres + in-memory adapters
+    portal.js          client portal: passwords, sessions, clients, logins, files
     scanner.js         Playwright + axe-core
     scoring.js         the scoring model
     pdf.js  email.js   report generation and delivery
@@ -239,8 +241,10 @@ fly secrets set \
   TURNSTILE_SECRET_KEY="0x..." \
   ADMIN_TOKEN="$(node -e "console.log(require('crypto').randomBytes(24).toString('base64url'))")"
 fly deploy
-fly ssh console -C "node scripts/migrate.mjs"
 ```
+
+`fly deploy` applies pending database migrations first (`release_command` in
+`fly.toml`). On any other host, run `node scripts/migrate.mjs` after deploying.
 
 Set `TURNSTILE_SITE_KEY` in `fly.toml` under `[build.args]` — it is public and
 must be present at build time to render into the forms.
@@ -254,6 +258,69 @@ That is deliberate — a deploy that silently drops leads or runs without bot
 defence is worse than one that fails loudly. Turnstile in particular produces no
 visible symptom when missing, so it is a boot failure rather than a warning;
 `ALLOW_NO_CAPTCHA=1` is the explicit opt-out.
+
+---
+
+## Client portal
+
+A private file area per client, behind a login.
+
+| URL | Who | What |
+|---|---|---|
+| `/client-login` | anyone | Sign-in form. Linked from the main nav and the footer. |
+| `/portal` | a signed-in client | Their company's files, newest first, plus "change password". |
+| `/portal/admin` | the Accessrank admin login | Create clients, create and reset logins, upload and delete files. |
+
+**Turning it on.** Set two secrets, then deploy. That login is the only one that
+can reach `/portal/admin`; sign in with it at `/client-login` like anyone else.
+
+```bash
+fly secrets set PORTAL_ADMIN_EMAIL="you@accessrank.ai" PORTAL_ADMIN_PASSWORD="at least 12 characters"
+```
+
+The tables come from `db/migrations/002_client_portal.sql`, applied by the
+`release_command` in `fly.toml` on every deploy (or by `npm run migrate`).
+
+**Day to day, in `/portal/admin`:**
+
+1. *Add a client* — the company name.
+2. *Drop files* onto the page (or "choose files"). They are in the client's portal immediately.
+3. *Create a login* — name and email. A password is generated and shown **once**;
+   "Copy sign-in details" puts the URL, email and password on the clipboard to
+   paste into an email. The client can replace it after signing in.
+4. *Reset password* issues a new one and signs that person out everywhere.
+   *Remove* / *Delete client* end access at once; deleting a client deletes its
+   logins and files with it.
+
+**How it is kept safe**
+
+- Passwords are stored only as scrypt hashes; nobody, including an admin, can read one back.
+- The session cookie is `HttpOnly`, `SameSite=Lax` and `Secure`; the database holds only a hash of it.
+- A client session can only ever reach its own client's rows. Asking for another
+  client's file answers exactly like asking for one that does not exist.
+- Sign-in gives one generic failure message and locks an email out for 15 minutes after 8 wrong attempts.
+- Every download is sent as an attachment with a type from our own list, so an
+  uploaded file is never rendered on the accessrank.ai origin.
+- `tests/integration/portal.test.js` holds each of those to account over real HTTP.
+
+**Where the files live.** In Postgres (`portal_files.data`), capped at
+`PORTAL_MAX_FILE_MB` (default 25) per file. That is the right size for reports,
+VPATs and screenshots and needs no extra infrastructure. It is the wrong place
+for screen-reader proof videos — move storage to an object store (Tigris on Fly,
+S3) before raising the cap much; only `insertFile` / `getFile` in
+`server/lib/portal.js` would change.
+
+| Variable | Default | |
+|---|---|---|
+| `PORTAL_ADMIN_EMAIL` / `PORTAL_ADMIN_PASSWORD` | unset | The admin login. Both or neither. |
+| `PORTAL_MAX_FILE_MB` | 25 | Per-file upload ceiling. |
+| `PORTAL_SESSION_DAYS` | 7 | How long a client stays signed in. |
+| `PORTAL_ADMIN_SESSION_HOURS` | 12 | How long the admin stays signed in. |
+| `PORTAL_LOGIN_ATTEMPTS_PER_EMAIL` | 8 | Wrong passwords per email per 15 minutes. |
+
+Not built yet: self-service "forgot password" (clients email us and we press
+*Reset password*), email notification when a file is added, and more than one
+admin login.
 
 ---
 

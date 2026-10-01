@@ -36,6 +36,16 @@ primary_region = "iad"
 # Secrets are NOT set here. Use:
 #   fly secrets set DATABASE_URL=... RESEND_API_KEY=... IP_HASH_SALT=... \
 #                   TURNSTILE_SECRET_KEY=... ADMIN_TOKEN=...
+#
+# Client portal admin sign-in (optional; without both, /portal/admin is unreachable):
+#   fly secrets set PORTAL_ADMIN_EMAIL=you@accessrank.ai PORTAL_ADMIN_PASSWORD='at least 12 characters'
+
+[deploy]
+  # Apply any pending SQL in db/migrations/ before a new release takes traffic.
+  # The script is idempotent, and a failed migration aborts the deploy with the
+  # old release still serving — so a schema change can no longer be forgotten
+  # after shipping the code that needs it.
+  release_command = "node scripts/migrate.mjs"
 
 [http_service]
   internal_port = 3000
