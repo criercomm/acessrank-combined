@@ -33,17 +33,18 @@
   </div>
 </section>
 
-<div class="marquee">
-  <div class="marquee-track" id="marquee-track" aria-hidden="true">
-  <span class="item">SHOPIFY <span class="sep">/</span> WORDPRESS <span class="sep">/</span> WOOCOMMERCE <span class="sep">/</span> BIGCOMMERCE <span class="sep">/</span> CUSTOM <span class="sep">/</span></span>
-  <span class="item">SHOPIFY <span class="sep">/</span> WORDPRESS <span class="sep">/</span> WOOCOMMERCE <span class="sep">/</span> BIGCOMMERCE <span class="sep">/</span> CUSTOM <span class="sep">/</span></span>
-  <span class="item">SHOPIFY <span class="sep">/</span> WORDPRESS <span class="sep">/</span> WOOCOMMERCE <span class="sep">/</span> BIGCOMMERCE <span class="sep">/</span> CUSTOM <span class="sep">/</span></span>
-</div>
-  <button class="marquee-toggle" id="marquee-toggle" type="button" aria-pressed="false">
-    <svg class="marquee-icon-pause" width="12" height="12" viewBox="0 0 12 12" aria-hidden="true" focusable="false"><rect x="2" y="1.5" width="2.6" height="9" fill="currentColor"/><rect x="7.4" y="1.5" width="2.6" height="9" fill="currentColor"/></svg>
-    <svg class="marquee-icon-play" width="12" height="12" viewBox="0 0 12 12" aria-hidden="true" focusable="false" hidden><path d="M2.5 1.5 L10 6 L2.5 10.5 Z" fill="currentColor"/></svg>
-    <span class="visually-hidden">Pause scrolling platform list</span>
-  </button>
+<!-- Platforms strip. Static on purpose: it replaced a scrolling marquee, which
+     needed a pause control (WCAG 2.2.2) and was hidden from screen readers.
+     This is a plain labelled list that everyone can read. -->
+<div class="platforms">
+  <p class="platforms-label" id="platforms-label">Works with</p>
+  <ul class="platforms-list" aria-labelledby="platforms-label">
+    <li>Shopify</li>
+    <li>WordPress</li>
+    <li>WooCommerce</li>
+    <li>BigCommerce</li>
+    <li>Custom builds</li>
+  </ul>
 </div>
 
 <section class="wcag-section" id="wcag">

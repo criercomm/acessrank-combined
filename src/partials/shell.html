@@ -9,7 +9,10 @@
   {{#if page.noindex}}<meta name="robots" content="noindex, nofollow">{{/if}}
 
   <meta name="theme-color" content="#14142A">
-  <meta name="color-scheme" content="dark">
+  <meta name="color-scheme" content="dark light">
+  <!-- Applies a saved light-theme choice before first paint (see the file). Must
+       come after the theme-color tag it updates, and must not be deferred. -->
+  <script src="/theme.js"></script>
 
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="{{ site.name }}">

@@ -39,7 +39,7 @@
  * Every interactive element must show a focus indicator that is visible against
  * the dark background. Declared here so no component can remove it. */
 :is(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
-  outline: 3px solid var(--brand);
+  outline: 3px solid var(--focus);
   outline-offset: 3px;
   border-radius: 4px;
 }

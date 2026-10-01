@@ -261,6 +261,31 @@ visible symptom when missing, so it is a boot failure rather than a warning;
 
 ---
 
+## Light and dark themes
+
+Dark is the default. A visitor switches with the sun/moon button at the end of
+the nav; the choice is saved in `localStorage` (`ar-theme`) and applies to every
+page, including the client portal. The investor deck and the scan results dialog
+are dark in both.
+
+| Where | What |
+|---|---|
+| `src/assets/css/tokens.css` | The light colours, in the `[data-theme="light"]` block: page `--bg` `#FFFFFF`, tiles `--surface` `#F7F7F7`, accent `--brand-text` `#5064B4` (with `--accent-rgb`, `--brand-hover`, `--brand-soft`, `--brand-border` derived from it). Change the theme's colours here. |
+| `src/assets/css/components.css` (end) | The switch itself, and the few light-only adjustments a token cannot express (overlay warning, claim panel, footer, rollover shadows, portal). |
+| `src/assets/static/theme.js` | Served as `/theme.js` and loaded from `<head>` without `defer`: it applies a saved light choice before first paint, so pages never flash dark. It is a file, not inline, because the CSP allows no inline script. |
+| `src/assets/js/site.js` | The button's click handler. |
+
+One rule keeps both themes accessible: **`--brand` (yellow) is a fill, never
+text.** Brand-coloured text reads `--brand-text`, which is the same yellow in
+the dark theme and the accent in the light one — yellow on white is about 1.4:1.
+The focus ring reads `--focus` for the same reason.
+
+The accent `#5064B4` is 5.5:1 on the white page and 5.1:1 on a tile. That passes
+4.5:1 without much to spare, so do not lighten it. `npm run test:a11y` audits
+every page in both themes and fails if either has a contrast problem.
+
+---
+
 ## Client portal
 
 A private file area per client, behind a login.

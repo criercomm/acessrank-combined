@@ -60,9 +60,9 @@
 .footer-tagline { font-size: 13px; font-weight: 500; letter-spacing: 0.02em; line-height: 1.5; color: var(--text-faint); margin: 0 0 16px; text-wrap: balance; }
 .footer-contact a { display: inline-block; color: var(--text-soft); font-size: 14px; padding: 5px 0; min-height: 24px; }
 .footer-cols { display: flex; gap: 56px; }
-.footer-heading { font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; text-align: left; color: var(--brand); margin: 0 0 16px; }
+.footer-heading { font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; text-align: left; color: var(--brand-text); margin: 0 0 16px; }
 .footer-col a { display: block; color: var(--text-soft); font-size: 14px; padding: 7px 0; min-height: 24px; transition: color 0.15s ease; }
-.footer-col a:hover { color: var(--brand); }
+.footer-col a:hover { color: var(--brand-text); }
 .footer-link { text-decoration: none; }
 .footer-link:hover, .footer-link:focus-visible { text-decoration: underline; }
 .footer-disclaimer { font-size: 11.5px; line-height: 1.65; color: #8A8E9A; margin: 0; padding: 0; max-width: 960px; text-wrap: balance; } /* TODO(contrast): verify against WCAG 1.4.3 */
@@ -86,8 +86,8 @@
 /* ---- Shared buttons ---- */
 .btn-primary { background: var(--brand); color: var(--brand-ink); padding: 13px 22px; border-radius: 8px; font-weight: 500; font-size: 13px; transition: opacity 0.15s ease; }
 .btn-primary:hover { opacity: 0.85; }
-.btn-secondary { background: transparent; color: var(--text); padding: 13px 22px; border-radius: 8px; font-weight: 500; font-size: 13px; border: 1px solid #FFFFFF; transition: background 0.15s ease, border-color 0.15s ease; }
-.btn-secondary:hover { background: var(--hairline); border-color: #FFFFFF; }
+.btn-secondary { background: transparent; color: var(--text); padding: 13px 22px; border-radius: 8px; font-weight: 500; font-size: 13px; border: 1px solid var(--text); transition: background 0.15s ease, border-color 0.15s ease; }
+.btn-secondary:hover { background: var(--hairline); border-color: var(--text); }
 .cta-nav { background: var(--brand); color: var(--brand-ink); padding: 8px 14px; border-radius: 6px; font-weight: 500; font-size: 12px; }
 
 .submit-btn {

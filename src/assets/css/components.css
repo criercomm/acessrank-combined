@@ -33,7 +33,7 @@
  * stats sat 80px left of centre on a 1470px screen, flush left with 159px empty on the right. */
 .risk-grid, .pour, .feature-grid, .pricing-grid,
 .criteria-list, .lawsuit-steps, .price-features, .footer-list,
-.marquee-track, .nav-right ul, .job-list, .perks {
+.nav-right ul, .job-list, .perks {
   list-style: none;
   margin: 0;
   padding-inline-start: 0;
@@ -97,7 +97,7 @@
 .success-mark {
   display: inline-grid; place-items: center;
   width: 52px; height: 52px; margin: 0 auto 16px;
-  border-radius: 50%; background: var(--brand-soft); color: var(--brand);
+  border-radius: 50%; background: var(--brand-soft); color: var(--brand-text);
 }
 .modal-success .modal-title { text-align: center; }
 .modal-success .modal-sub { text-align: center; }
@@ -127,7 +127,7 @@ body.modal-open { overflow: hidden; }
 }
 .scan-eyebrow {
   margin: 0 0 10px; font-size: 12px; font-weight: 600; letter-spacing: 2px;
-  text-transform: uppercase; color: var(--brand);
+  text-transform: uppercase; color: var(--brand-text);
 }
 .scan-eyebrow--warn { color: #FCA5A5; }
 .scan-host {
@@ -160,7 +160,7 @@ body.modal-open { overflow: hidden; }
 .scan-result { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); flex: 1; min-height: 0; }
 .scan-left, .scan-right { min-height: 0; overflow-y: auto; }
 .scan-left { padding: 44px 44px 36px; }
-.scan-left:focus-visible { outline: 2px solid var(--brand); outline-offset: -4px; }
+.scan-left:focus-visible { outline: 2px solid var(--focus); outline-offset: -4px; }
 .scan-right { padding: 44px 44px 32px; background: rgba(255, 255, 255, 0.035); border-left: 1px solid var(--hairline); }
 .scan-headline { margin: 0 0 22px; font-size: 28px; font-weight: 800; line-height: 1.2; letter-spacing: -0.8px; color: var(--text); overflow-wrap: anywhere; }
 .scan-headline-num { color: #FCA5A5; }
@@ -226,7 +226,7 @@ body.modal-open { overflow: hidden; }
   text-align: left;
   cursor: pointer;
 }
-.field-check a { color: var(--brand); }
+.field-check a { color: var(--brand-text); }
 
 .field-hint {
   margin: 6px 0 0;
@@ -239,8 +239,8 @@ body.modal-open { overflow: hidden; }
  * until it has something to announce. */
 .form-status { margin: 12px 0 0; font-size: 13px; line-height: 1.5; }
 .form-status:empty { margin: 0; }
-.form-status.is-error { color: #FCA5A5; }
-.form-status.is-success { color: #86EFAC; }
+.form-status.is-error { color: var(--error); }
+.form-status.is-success { color: var(--success); }
 
 /* Invalid fields are marked with a border AND the message above — never colour
  * alone (WCAG 1.4.1). */
@@ -312,7 +312,7 @@ body.modal-open { overflow: hidden; }
   margin: 0 0 4px;
   font-family: 'JetBrains Mono', ui-monospace, monospace;
   font-size: 12px;
-  color: var(--brand);
+  color: var(--brand-text);
   overflow-wrap: anywhere;
 }
 .result-sub { margin: 0; font-size: 12px; line-height: 1.45; color: var(--text-muted); }
@@ -388,7 +388,7 @@ body.modal-open { overflow: hidden; }
   font-size: 11px;
   padding: 4px 9px;
   border-radius: 100px;
-  color: var(--brand);
+  color: var(--brand-text);
   background: var(--brand-soft);
   border: 1px solid var(--brand-border);
 }
@@ -497,7 +497,7 @@ body.modal-open { overflow: hidden; }
   margin: 6px 0 0;
   font-size: 12.5px;
   line-height: 1.45;
-  color: #FCA5A5;
+  color: var(--error);
 }
 .field-check .field-error { grid-column: 1 / -1; }
 
@@ -533,3 +533,121 @@ body.modal-open { overflow: hidden; }
 .deck-overlay[hidden] { display: none; }
 .deck-overlay-frame { width: 100%; height: 100%; border: 0; display: block; }
 body.deck-open { overflow: hidden; }
+
+/* ---------------------------------------------------------------------------
+ * Theme switch (nav) and light-theme adjustments.
+ *
+ * Almost all of the light theme is the token set in tokens.css. What is here
+ * is only what a token cannot express: the switch itself, and the handful of
+ * effects that were tuned for a dark page (glows, washes, the page background).
+ * ------------------------------------------------------------------------- */
+/* Sized from the "Free audit" button beside it rather than with a number of its
+   own: it stretches to the nav row's height, which that button sets, so if the
+   button's padding changes this follows. The side padding makes it square at the
+   current height (16px icon + 2 x 6.5px + 2px border = 31px). */
+.theme-toggle {
+  display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+  align-self: stretch; min-height: 24px; padding: 0 6.5px; border-radius: 6px;
+  border: 1px solid var(--hairline); color: var(--text-soft); background: transparent;
+  font-size: 13px; transition: color .15s ease, border-color .15s ease, background .15s ease;
+}
+.theme-toggle:hover { color: var(--text); border-color: var(--hairline-strong); background: var(--hairline); }
+.theme-icon { flex: 0 0 auto; display: block; width: 16px; height: 16px; }
+/* The icon shows where the button takes you: sun while dark, moon while light. */
+.theme-icon-moon { display: none; }
+[data-theme="light"] .theme-icon-sun { display: none; }
+[data-theme="light"] .theme-icon-moon { display: block; }
+/* Icon-only on desktop; the label is still there for screen readers. */
+.theme-toggle-label { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+@media (max-width: 860px) {
+  /* In the mobile menu it is a full row like the links around it, label showing. */
+  .nav-right .theme-toggle { justify-content: flex-start; min-height: 44px; padding: 10px 4px; border: 0; border-radius: 6px; }
+  .nav-right .theme-toggle:hover { background: transparent; }
+  .nav-right .theme-toggle-label { position: static; width: auto; height: auto; margin: 0; overflow: visible; clip: auto; }
+}
+
+/* The blue glows are the dark theme's atmosphere. On paper they read as grey
+   smudges behind the text, so the light page is flat. */
+[data-theme="light"] .aurora { display: none; }
+
+[data-theme="light"] .hero-audit .audit-card { box-shadow: 0 28px 60px -34px rgba(29, 78, 216, 0.45), 0 0 0 1px rgba(59, 130, 246, 0.22); }
+[data-theme="light"] .hero-audit .audit-note { color: var(--text-muted); }
+[data-theme="light"] :is(input, select, textarea):focus { background: #FFFFFF; }
+/* The audit field was a pale grey on a dark card; on a grey tile it has to be white to read as a field. */
+[data-theme="light"] .url-input { background: #FFFFFF; }
+[data-theme="light"] [aria-invalid="true"] { border-color: var(--error) !important; box-shadow: 0 0 0 1px var(--error); }
+/* Overlay warning. Dark theme: navy stripes between two yellow rules. On a light
+   page that was a black slab, so here the band is just two hairlines on the
+   white page, holding a grey tile; the red icon and the marker-yellow highlight
+   carry the warning instead. */
+[data-theme="light"] .overlay-warning {
+  background: transparent; margin: 0 var(--edge);
+  border-top: 1px solid var(--hairline); border-bottom: 1px solid var(--hairline);
+}
+[data-theme="light"] .overlay-card { background: var(--surface); border: 1px solid var(--keyline); }
+[data-theme="light"] .overlay-content p strong { background: rgba(var(--brand-rgb), 0.55); }
+
+/* Footer. Dark theme: a deeper navy than the page. Here: the tile grey, with a
+   hairline where it meets the white page. The disclaimer's fixed grey was chosen
+   for navy and is about 3:1 on this background, so it takes the faint text colour. */
+[data-theme="light"] :is(.site-footer, .footer) { background: var(--surface); border-top: 1px solid var(--hairline); }
+[data-theme="light"] .footer-disclaimer { color: var(--text-faint); }
+
+/* "Already facing a claim?" panel. Dark theme: a near-black slab with a yellow
+   rim. Here it is reversed — a white panel with navy text, light-grey tiles and
+   accent-coloured numbers. The pill and the button, red in the dark theme, are
+   filled with the accent here. White on #5064B4 is 5.5:1; because they read the
+   accent token, any accent that passes as text on the white page (the same pair
+   of colours, the other way round) also passes here. */
+[data-theme="light"] .lawsuit-band { background: var(--bg); border: 1px solid var(--hairline-strong); box-shadow: var(--shadow-card); }
+[data-theme="light"] .lawsuit-eyebrow { background: var(--brand-text); border-color: var(--brand-text); box-shadow: 0 6px 16px -8px rgba(var(--accent-rgb), 0.7); }
+[data-theme="light"] .lawsuit-cta { background: var(--brand-text); }
+[data-theme="light"] .lawsuit-cta:hover { background: var(--brand-hover); }
+[data-theme="light"] .lawsuit-pricebox { background: var(--surface); border-color: var(--keyline); }
+[data-theme="light"] .lawsuit-tile { background: var(--surface); border-color: var(--hairline); box-shadow: none; }
+[data-theme="light"] .lawsuit-tile:hover {
+  background: var(--surface); border-color: var(--brand-text);
+  box-shadow: 0 18px 34px -18px rgba(var(--accent-rgb), 0.45);
+}
+
+/* Rollover lift. The dark theme glows blue or yellow; here every hover shadow
+   and hover border is the accent colour. */
+[data-theme="light"] .risk-card:hover {
+  border-color: var(--brand-text);
+  box-shadow: 0 18px 40px -16px rgba(var(--accent-rgb), 0.45), 0 0 0 1px rgba(var(--accent-rgb), 0.35);
+}
+[data-theme="light"] :is(.price-card:hover, .price-card.selected, .price-card.featured:hover) {
+  border-color: var(--brand-text);
+  box-shadow: 0 18px 40px -16px rgba(var(--accent-rgb), 0.42), 0 0 0 1px rgba(var(--accent-rgb), 0.32);
+}
+/* The featured plan keeps its warm inset tint; its drop shadow takes the accent, at rest and on hover. */
+[data-theme="light"] :is(.price-card.featured, .price-card[data-featured]) {
+  box-shadow: inset 0 150px 120px -100px rgba(var(--brand-rgb), 0.22), 0 18px 44px -24px rgba(var(--accent-rgb), 0.38);
+}
+[data-theme="light"] :is(.price-card.featured, .price-card[data-featured]):hover {
+  box-shadow: inset 0 150px 120px -100px rgba(var(--brand-rgb), 0.22), 0 18px 40px -16px rgba(var(--accent-rgb), 0.45), 0 0 0 1px rgba(var(--accent-rgb), 0.32);
+}
+[data-theme="light"] .submit-btn:hover { box-shadow: 0 14px 30px -14px rgba(var(--accent-rgb), 0.55); }
+[data-theme="light"] .job:hover { box-shadow: 0 14px 30px -18px rgba(var(--accent-rgb), 0.45); }
+
+/* #3B82F6 is 3.7:1 on a white card; the darker blue is 6.7:1. */
+[data-theme="light"] #audit-meta { color: var(--blue-700); }
+/* With no glow behind them the cards need no see-through fill, and a solid one
+   lets a contrast checker measure the text on it instead of giving up. */
+[data-theme="light"] :is(.form-card, .portal-card) { background: var(--surface); backdrop-filter: none; -webkit-backdrop-filter: none; }
+
+/* Client portal, light theme. portal.css is deliberately left as shipped, so the
+   few dark-page literals in it are answered here rather than edited there. */
+[data-theme="light"] :is(.portal-kicker, .dropzone-icon, .dropzone-choose) { color: var(--brand-text); }
+[data-theme="light"] .dropzone { background: var(--surface); }
+[data-theme="light"] .dropzone:has(input:focus-visible) .dropzone-choose { outline-color: var(--focus); }
+[data-theme="light"] :is(.btn-small:hover, a.btn-small:hover, .password-toggle:hover, .client-button:hover) { background: var(--hairline); }
+[data-theme="light"] :is(.btn-small:hover, a.btn-small:hover) { border-color: var(--text); }
+[data-theme="light"] :is(.btn-small--brand, .btn-small--brand:hover) { background: var(--brand); border-color: var(--brand-border); }
+[data-theme="light"] .btn-small--danger { color: var(--error); border-color: var(--error); }
+[data-theme="light"] .btn-small--danger:hover { color: #FFFFFF; background: var(--error); border-color: var(--error); }
+[data-theme="light"] :is(.btn-small--confirm, .btn-small--confirm:hover) { color: #FFFFFF; background: #B91C1C; border-color: #B91C1C; }
+[data-theme="light"] :is(.credential-copied, .upload-queue .is-done .upload-state) { color: var(--success); }
+[data-theme="light"] .upload-queue .is-error { border-color: var(--error); }
+[data-theme="light"] .upload-queue .is-error .upload-state { color: var(--error); }
+[data-theme="light"] .credential { border-color: var(--brand-border); }

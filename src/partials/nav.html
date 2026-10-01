@@ -23,5 +23,12 @@
       {{#each nav}}
       <a class="nav-link{{#if this.cta}} cta-nav{{/if}}" href="{{ this.href }}"{{#if this.deck}} data-open-deck{{/if}}>{{ this.label }}</a>
       {{/each}}
+      <!-- Theme switch. The label names what pressing it will do, and site.js
+           keeps it in step with the current theme. -->
+      <button class="theme-toggle" type="button" data-theme-toggle>
+        <svg class="theme-icon theme-icon-sun" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="4.2" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M12 2.5v2.6M12 18.9v2.6M2.5 12h2.6M18.9 12h2.6M5.3 5.3l1.8 1.8M16.9 16.9l1.8 1.8M5.3 18.7l1.8-1.8M16.9 7.1l1.8-1.8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+        <svg class="theme-icon theme-icon-moon" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M20 14.2A8.2 8.2 0 0 1 9.8 4 8.2 8.2 0 1 0 20 14.2Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
+        <span class="theme-toggle-label" data-theme-label>Switch to light mode</span>
+      </button>
     </div>
   </nav>

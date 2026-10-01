@@ -77,11 +77,30 @@ const VIEWPORTS = [
   { name: 'mobile', width: 390, height: 844 },
 ];
 
+// The site has a light theme as well as the default dark one, and a contrast
+// failure in either is a failure. The light theme is chosen the way a visitor
+// chooses it: the saved value /theme.js reads before first paint. The deck
+// (/ and /deck) is a separate, dark-only app with no theme switch, so it is
+// audited once.
+const THEMES = ['dark', 'light'];
+const hasThemes = (route) => route !== '/' && !route.startsWith('/deck');
+
+const runs = [];
+for (const route of pages) {
+  for (const theme of THEMES) {
+    if (theme === 'light' && !hasThemes(route)) continue;
+    for (const viewport of VIEWPORTS) runs.push({ route, theme, viewport });
+  }
+}
+
 try {
-  for (const route of pages) {
-    for (const viewport of VIEWPORTS) {
+  for (const { route, theme, viewport } of runs) {
+    {
       const page = await browser.newPage({ viewport: { width: viewport.width, height: viewport.height } });
       try {
+        if (theme === 'light') {
+          await page.addInitScript({ content: "try { localStorage.setItem('ar-theme', 'light'); } catch (e) {}" });
+        }
         await page.addInitScript({ content: AXE });
         // 'load', not 'networkidle': a build with the Turnstile key ships a
         // widget that keeps its challenge connections open, so networkidle
@@ -91,6 +110,16 @@ try {
         await page.waitForTimeout(700);
         if (!response || response.status() >= 400) {
           failures.push({ route, viewport: viewport.name, id: 'http', help: `HTTP ${response?.status()}`, nodes: 0 });
+          continue;
+        }
+
+        // Guard against auditing the wrong thing: if the light theme did not
+        // actually apply, a "pass" here would only be the dark theme passing twice.
+        const applied = await page.evaluate(() => document.documentElement.getAttribute('data-theme') ?? 'dark');
+        if (hasThemes(route) && applied !== theme) {
+          totalViolations += 1;
+          console.log(`  FAIL  ${route} [${viewport.name}, ${theme}]  theme did not apply (page is ${applied})`);
+          failures.push({ route, viewport: viewport.name, id: 'theme', help: `expected the ${theme} theme`, nodes: 1 });
           continue;
         }
 
@@ -104,7 +133,7 @@ try {
           }));
         }, TAGS);
 
-        const label = `${route} [${viewport.name}]`;
+        const label = hasThemes(route) ? `${route} [${viewport.name}, ${theme}]` : `${route} [${viewport.name}]`;
         if (results.length === 0) {
           console.log(`  PASS  ${label}`);
         } else {
@@ -129,7 +158,7 @@ try {
 
 console.log('');
 if (totalViolations === 0) {
-  console.log(`All ${pages.length} pages pass WCAG 2.2 AA automated checks at both viewports.\n`);
+  console.log(`All ${pages.length} pages pass WCAG 2.2 AA automated checks at both viewports, in both themes.\n`);
   process.exit(0);
 }
 

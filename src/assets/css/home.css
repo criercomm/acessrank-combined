@@ -1,5 +1,5 @@
 /*
- * home.css — homepage-only rules: risk-strip, hero, audit-card, marquee,
+ * home.css — homepage-only rules: risk-strip, hero, audit-card, platforms strip,
  * wcag-section, overlay-warning, features, stats-strip, credit, pricing,
  * lawsuit, testimonial, plus the homepage's logo/nav-right/.site wrapper.
  * Generated from legacy/index.html's <style> block. Loaded after tokens,
@@ -123,11 +123,11 @@
 .hero-audit .audit-hint { color: var(--text-soft); }
 .hero-audit .audit-note { color: rgba(212, 208, 197, 0.65); }
 .hero-audit .audit-meta { color: var(--blue-500); }
-.hero-eyebrow { display: inline-flex; align-items: center; gap: 8px; font-size: 11px; letter-spacing: 3px; color: var(--brand); font-weight: 600; margin-bottom: 16px; }
-.hero-title { font-size: 40px; line-height: 1.08; letter-spacing: -1.4px; font-weight: 800; color: #FFFFFF; margin: 0 0 16px; text-align: left; }
-.hero-title .accent { color: var(--brand); }
+.hero-eyebrow { display: inline-flex; align-items: center; gap: 8px; font-size: 11px; letter-spacing: 3px; color: var(--brand-text); font-weight: 600; margin-bottom: 16px; }
+.hero-title { font-size: 40px; line-height: 1.08; letter-spacing: -1.4px; font-weight: 800; color: var(--text); margin: 0 0 16px; text-align: left; }
+.hero-title .accent { color: var(--brand-text); }
 .hero-sub { font-size: 15px; line-height: 1.6; color: var(--text-soft); margin: 0; max-width: 37ch; }
-.hero-sub strong { color: #FFFFFF; font-weight: 600; }
+.hero-sub strong { color: var(--text); font-weight: 600; }
 @media (max-width: 900px) {
   .hero-split { flex-direction: column; align-items: stretch; gap: 32px; }
   .hero-title { font-size: 32px; }
@@ -154,18 +154,18 @@
 .audit-note { margin: 6px 0 0; color: rgba(14, 14, 16, 0.55); font-size: 12.5px; line-height: 1.5; }
 /* This is a real <h2> now, not the old decorative "LIVE AUDIT" label, so it is
  * styled as a card heading rather than a micro-caption. */
-.audit-title { font-size: 25px; line-height: 1.2; letter-spacing: -0.6px; color: var(--bg); font-weight: 800; text-align: left; margin: 0 0 10px; }
+.audit-title { font-size: 25px; line-height: 1.2; letter-spacing: -0.6px; color: var(--ink); font-weight: 800; text-align: left; margin: 0 0 10px; }
 /* Doubles as the scan target once a check starts (site.js swaps this text
  * for the URL being scanned), so it keeps the same slot rather than the
  * fixed-width, no-wrap treatment that fit only the short label. */
 .audit-meta { display: block; font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--blue-600); font-weight: 600; margin-bottom: 10px; overflow-wrap: anywhere; }
 .url-form { display: flex; gap: 8px; margin-bottom: 14px; }
-.url-input { flex: 1; background: #F4F5F8; border: 1px solid rgba(14, 14, 16, 0.14); color: var(--bg); padding: 11px 14px; border-radius: 8px; font-size: 13px; font-family: inherit; outline: none; }
+.url-input { flex: 1; background: #F4F5F8; border: 1px solid rgba(14, 14, 16, 0.14); color: var(--ink); padding: 11px 14px; border-radius: 8px; font-size: 13px; font-family: inherit; outline: none; }
 .url-input::placeholder { color: rgba(14, 14, 16, 0.42); }
 /* Keep the light field when focused. The site-wide dark-form rule in pages.css (input:focus { background: rgba(255,255,255,.06) })
  * loads later and outranks .url-input, so focusing turned this field dark while its text stayed dark ink — typed text all
  * but vanished. */
-.url-input:focus { border-color: var(--brand); background: #FFFFFF; color: var(--bg); box-shadow: 0 0 0 3px rgba(var(--brand-rgb), 0.28); }
+.url-input:focus { border-color: var(--brand); background: #FFFFFF; color: var(--ink); box-shadow: 0 0 0 3px rgba(var(--brand-rgb), 0.28); }
 /* The scan's Turnstile widget is not in this card any more: it lives in the scan dialog's progress view
  * (.scan-turnstile, components.css; see the note in audit-widget.html). History worth keeping: /api/scan rejects a
  * missing token with "Please complete the verification check", and a widget rendered while hidden never solves — so
@@ -173,7 +173,7 @@
 .scan-btn { background: var(--brand); color: var(--brand-ink); padding: 11px 16px; border-radius: 8px; font-weight: 500; font-size: 13px; white-space: nowrap; }
 .scan-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 .scan-status { font-size: 11px; color: var(--text-faint); margin-bottom: 10px; min-height: 14px; display: flex; align-items: center; gap: 6px; } /* TODO(contrast): verify against WCAG 1.4.3 */
-.scan-status.active { color: var(--brand); }
+.scan-status.active { color: var(--brand-text); }
 .scan-spinner { width: 10px; height: 10px; border: 1.5px solid rgba(var(--brand-rgb), 0.3); border-top-color: var(--brand); border-radius: 50%; animation: sp14 0.7s linear infinite; }
 @keyframes sp14 { to { transform: rotate(360deg); } }
 .audit-rows { display: flex; flex-direction: column; }
@@ -182,7 +182,7 @@
 .audit-row:last-child { border-bottom: none; }
 .check-circle { width: 22px; height: 22px; border-radius: 50%; background: var(--brand); color: var(--brand-ink); display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
 .row-label { color: var(--text); flex: 1; }
-.row-meta { color: var(--brand); font-size: 12px; font-weight: 500; }
+.row-meta { color: var(--brand-text); font-size: 12px; font-weight: 500; }
 
 /* === REPORT BUTTON =====================================================
    FIX(migration): the original rule read
@@ -212,19 +212,37 @@
 .check-anim { stroke-dasharray: 16; stroke-dashoffset: 16; animation: dr14 0.6s var(--ease-out) forwards; }
 @keyframes dr14 { 0% { stroke-dashoffset: 16; } 60%, 100% { stroke-dashoffset: 0; } }
 
-/* ---- Marquee ---- */
-/* Brand yellow with near-black text (~13:1, comfortably past AA). Replaced
- * the animated blue gradient + radial haze — a flat brand band needs neither. */
-.marquee { margin-top: 0; background: var(--brand); color: var(--brand-ink); padding: 10px 0; overflow: hidden; position: relative; }
-.marquee-track { position: relative; }
-.marquee-track { display: flex; gap: 56px; animation: mq14 28s linear infinite; white-space: nowrap; width: max-content; }
-.marquee-track.is-paused { animation-play-state: paused; }
-.marquee-track .item { font-size: 12px; font-weight: 700; letter-spacing: 4px; display: inline-flex; align-items: center; gap: 56px; }
-.marquee-track .sep { color: var(--brand-ink); opacity: 0.45; font-size: 10px; }
-.marquee-toggle { position: absolute; top: 50%; right: var(--edge); transform: translateY(-50%); z-index: 2; width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; background: var(--brand-ink); color: var(--brand); border-radius: 50%; border: none; cursor: pointer; opacity: 0.7; transition: opacity .2s ease; }
-.marquee-toggle:hover, .marquee-toggle:focus-visible { opacity: 1; }
-.marquee-toggle:focus-visible { outline: 2px solid var(--brand-ink); outline-offset: 2px; }
-@keyframes mq14 { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+/* ---- Platforms strip ----
+ * A static "Works with" row between two hairlines, inset to the page edge like
+ * the nav. Replaced the scrolling yellow marquee: nothing moves, so there is no
+ * animation to pause and nothing to hide from assistive technology.
+ * The label is written in sentence case and upper-cased here, so a screen
+ * reader says "Works with" rather than spelling out capitals. */
+.platforms {
+  display: flex; align-items: center; gap: 14px 48px;
+  margin: 0 var(--edge); padding: 22px 28px;
+  border-top: 1px solid var(--hairline); border-bottom: 1px solid var(--hairline);
+}
+.platforms-label {
+  flex: 0 0 auto; margin: 0; white-space: nowrap;
+  font-size: 11px; font-weight: 600; letter-spacing: 3px; text-transform: uppercase; color: var(--brand-text);
+}
+.platforms-list {
+  flex: 1 1 auto; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 32px;
+  list-style: none; margin: 0; padding: 0;
+}
+.platforms-list li { font-size: 15px; font-weight: 600; letter-spacing: -0.1px; color: var(--text); white-space: nowrap; }
+/* Five names stay on one line down to the width where the nav collapses (860px);
+   below that the label sits above them and they wrap from the left. Without the
+   tighter middle step, four names spread across and the fifth dropped alone. */
+@media (max-width: 1023px) {
+  .platforms { gap: 14px 28px; padding: 22px 0; }
+  .platforms-list { gap: 10px 20px; }
+}
+@media (max-width: 860px) {
+  .platforms { flex-direction: column; align-items: flex-start; padding: 20px 0; }
+  .platforms-list { justify-content: flex-start; gap: 10px 28px; }
+}
 
 /* ---- Risk strip ---- */
 /* Bottom padding was 2px, which only worked because the hero pulled itself up
@@ -240,13 +258,13 @@
 .risk-card { position: relative; padding: 22px 12px; background: var(--surface); border-radius: 12px; border: 1px solid var(--keyline); text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; transition: transform .28s cubic-bezier(.16,1,.3,1), border-color .28s ease, box-shadow .28s ease; }
 .risk-card:hover { transform: scale(1.1); border-color: var(--blue-500); box-shadow: 0 18px 40px -16px rgba(59,130,246,.55), 0 0 0 1px rgba(59,130,246,.4); z-index: 2; }
 .risk-num { font-size: 38px; font-weight: 800; letter-spacing: -1.5px; color: var(--text); line-height: 1; margin-bottom: 8px; }
-.risk-num .small { font-size: 24px; color: #FFFFFF; font-weight: 500; margin-left: 3px; }
+.risk-num .small { font-size: 24px; color: var(--text); font-weight: 500; margin-left: 3px; }
 .risk-label { width: 100%; max-width: 210px; font-size: 15px; color: var(--text-soft); line-height: 1.4; margin: 0 auto 13px; }
-.risk-source { font-size: 10px; color: var(--brand); letter-spacing: 0.6px; text-transform: uppercase; } /* 1px made the Arial fallback 242px in a 239px card: it wrapped until Inter loaded, then snapped to one line and shifted the page 12px (CLS 0.10) */
+.risk-source { font-size: 10px; color: var(--brand-text); letter-spacing: 0.6px; text-transform: uppercase; } /* 1px made the Arial fallback 242px in a 239px card: it wrapped until Inter loaded, then snapped to one line and shifted the page 12px (CLS 0.10) */
 
 /* ---- WCAG explainer section ---- */
 .wcag-section { padding: 50px var(--edge) 64px; }
-.section-eyebrow { font-size: 11px; letter-spacing: 3px; color: var(--brand); font-weight: 500; margin-bottom: 16px; text-align: center; }
+.section-eyebrow { font-size: 11px; letter-spacing: 3px; color: var(--brand-text); font-weight: 500; margin-bottom: 16px; text-align: center; }
 /* Section-heading default.
  *
  * Wrapped in :where() so it carries ZERO specificity. Written as `.site h2` it
@@ -265,17 +283,18 @@
 .wcag-lede strong { color: var(--text); font-weight: 600; }
 .pour { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 20px; }
 .pour-item { padding: 12px 14px; background: var(--surface); border-radius: 8px; border: 1px solid var(--keyline); }
-.pour-letter { font-size: 22px; font-weight: 800; color: var(--brand); letter-spacing: -1px; line-height: 1; margin-bottom: 4px; }
+.pour-letter { font-size: 22px; font-weight: 800; color: var(--brand-text); letter-spacing: -1px; line-height: 1; margin-bottom: 4px; }
 .pour-name { font-size: 13px; font-weight: 500; color: var(--text); margin-bottom: 2px; }
 .pour-desc { font-size: 11px; color: var(--text-faint); line-height: 1.4; } /* TODO(contrast): verify against WCAG 1.4.3 */
-.wcag-meta-row { display: flex; gap: 14px; padding: 20px 22px; background: rgba(var(--brand-rgb), 0.08); border: 1px solid rgba(var(--brand-rgb), 0.20); border-radius: 10px; }
+/* margin-top: the list reset in components.css zeroes .pour's bottom margin, which left this note touching the tiles above it. */
+.wcag-meta-row { display: flex; gap: 14px; margin-top: 20px; padding: 20px 22px; background: rgba(var(--brand-rgb), 0.08); border: 1px solid rgba(var(--brand-rgb), 0.20); border-radius: 10px; }
 .icon-box { width: 28px; height: 28px; background: var(--brand); color: var(--brand-ink); border-radius: 6px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 13px; flex-shrink: 0; }
 .wcag-meta-text { font-size: 12px; color: var(--text); line-height: 1.6; }
-.wcag-meta-text strong { color: var(--brand); }
+.wcag-meta-text strong { color: var(--brand-text); }
 .criteria-list { display: flex; flex-direction: column; gap: 8px; }
-.criteria-head { font-size: 15px; letter-spacing: 2px; color: var(--brand); font-weight: 600; margin-bottom: 16px; text-align: center; }
-.criteria-row { display: grid; grid-template-columns: 80px 1fr 60px; gap: 12px; padding: 12px 14px; background: var(--surface); border-radius: 8px; border: 1px solid rgba(240, 237, 229, 0.28); align-items: center; }
-.criteria-id { font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11px; color: var(--brand); font-weight: 600; }
+.criteria-head { font-size: 15px; letter-spacing: 2px; color: var(--brand-text); font-weight: 600; margin-bottom: 16px; text-align: center; }
+.criteria-row { display: grid; grid-template-columns: 80px 1fr 60px; gap: 12px; padding: 12px 14px; background: var(--surface); border-radius: 8px; border: 1px solid var(--hairline); align-items: center; }
+.criteria-id { font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11px; color: var(--brand-text); font-weight: 600; }
 .criteria-body { font-size: 13px; color: var(--text); line-height: 1.4; }
 .criteria-body .desc { display: block; font-size: 11px; color: var(--text-faint); margin-top: 2px; font-weight: 400; } /* TODO(contrast): verify against WCAG 1.4.3 */
 .criteria-freq { font-size: 12px; color: var(--warning); font-weight: 600; text-align: right; }
@@ -290,7 +309,7 @@
 .overlay-icon svg { width: 36px; height: 36px; stroke-width: 1.5; animation: overlayWarnBlink 1.8s ease-in-out infinite; }
 @keyframes overlayWarnBlink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
 @media (prefers-reduced-motion: reduce) { .overlay-icon svg { animation: none !important; opacity: 1; } }
-.overlay-content h3 { font-size: 22px; font-weight: 700; color: #FFFFFF; margin: 0 0 6px; }
+.overlay-content h3 { font-size: 22px; font-weight: 700; color: var(--text); margin: 0 0 6px; }
 .overlay-content p { font-size: 15px; color: var(--overlay-body); line-height: 1.55; margin: 0; }
 .overlay-content p strong { color: var(--text); font-weight: 700; background: rgba(var(--brand-rgb), 0.15); padding: 1px 5px; border-radius: 3px; }
 
@@ -304,19 +323,22 @@
 .features-note { font-size: 11px; line-height: 1.6; color: var(--text-fainter); font-style: italic; margin: 22px auto 0; max-width: 820px; text-align: center; text-wrap: pretty; } /* TODO(contrast): verify against WCAG 1.4.3 */
 
 /* ---- Stats strip ---- */
-.stats-strip { padding: 28px var(--edge); background: var(--blue-800); /* solid: text on a gradient leaves its contrast unverifiable */ display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; list-style: none; margin: 0; }
+/* Stats row. The same quiet strip as "Works with" in both themes: no fill, a
+ * hairline above and below, inset to the page edge. It was a solid blue band;
+ * the colours are tokens now, so the one rule serves dark and light. */
+.stats-strip { margin: 0 var(--edge); padding: 30px 0; border-top: 1px solid var(--hairline); border-bottom: 1px solid var(--hairline); display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; list-style: none; }
 .stat { text-align: center; padding: 0 20px; position: relative; display: flex; flex-direction: column; align-items: center; }
-.stat + .stat::before { content: ''; position: absolute; left: 0; top: 50%; transform: translateY(-50%); height: 38px; width: 1px; background: rgba(255, 255, 255, 0.18); }
-.stat-num { font-size: 34px; font-weight: 800; letter-spacing: -1.5px; color: #FFFFFF; line-height: 1; margin-bottom: 6px; }
-.stat-label { font-size: 12px; color: rgba(235, 242, 255, 0.78); line-height: 1.4; }
-.stat-src { font-size: 10.5px; color: rgba(235, 242, 255, 0.8); font-style: italic; } /* 0.5 measured 3.1:1 on the strip (hidden while it was a gradient); 0.8 is ~5.5:1 */
+.stat + .stat::before { content: ''; position: absolute; left: 0; top: 50%; transform: translateY(-50%); height: 38px; width: 1px; background: var(--hairline-strong); }
+.stat-num { font-size: 34px; font-weight: 800; letter-spacing: -1.5px; color: var(--text); line-height: 1; margin-bottom: 6px; }
+.stat-label { font-size: 12px; color: var(--text-muted); line-height: 1.4; }
+.stat-src { font-size: 10.5px; color: var(--text-faint); font-style: italic; }
 
 /* ---- Testimonial ---- */
 .testimonial { padding: 9px var(--edge) 56px; }
-.accent-yellow { color: var(--brand); }
+.accent-yellow { color: var(--brand-text); }
 .quote-card { background: var(--surface); border-radius: 14px; padding: 32px; border: 1px solid var(--keyline); max-width: 540px; margin: 25px auto 0; }
 .quote-text { font-size: 19px; line-height: 1.45; color: var(--text); font-weight: 500; letter-spacing: -0.3px; margin: 0 0 18px; }
-.quote-text .y { color: var(--brand); }
+.quote-text .y { color: var(--brand-text); }
 .quote-attr { display: flex; align-items: center; gap: 12px; }
 .avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--brand); color: var(--brand-ink); display: flex; align-items: center; justify-content: center; font-weight: 500; font-size: 13px; }
 .quote-name { font-size: 13px; color: var(--text); font-weight: 500; }
@@ -332,15 +354,16 @@
 .price-card.selected { border-color: var(--brand); box-shadow: 0 18px 40px -16px rgba(var(--brand-rgb),.5), 0 0 0 1px rgba(var(--brand-rgb),.4); transform: translateY(-3px); }
 .price-card.featured { border: 1px solid var(--keyline); }
 .price-card.featured:hover { border-color: var(--brand); }
-.price-tier { font-size: 12px; letter-spacing: 2px; color: var(--brand); font-weight: 500; margin-bottom: 8px; }
-.price-tier.featured-tier { color: var(--brand); }
+.price-tier { font-size: 12px; letter-spacing: 2px; color: var(--brand-text); font-weight: 500; margin-bottom: 8px; }
+.price-tier.featured-tier { color: var(--brand-text); }
 .price-amount { font-size: 30px; font-weight: 800; color: var(--text); letter-spacing: -1px; line-height: 1; margin-bottom: 4px; }
 .price-amount .per { font-size: 13px; color: var(--text-faint); font-weight: 400; } /* TODO(contrast): verify against WCAG 1.4.3 */
 .price-desc { font-size: 12px; color: var(--text-muted); margin-bottom: 16px; line-height: 1.5; }
 .price-features { list-style: none; padding: 0; margin: 0 0 16px; }
 .price-features li { font-size: 12px; color: var(--text-soft); padding: 5px 0 5px 18px; position: relative; line-height: 1.4; }
-.price-features li::before { content: '\2713'; position: absolute; left: 0; color: var(--brand); font-weight: 500; }
-.price-cta { display: block; text-align: center; text-decoration: none; background: transparent; color: var(--text); padding: 11px; border-radius: 8px; font-weight: 500; font-size: 13px; border: 1px solid #FFFFFF; width: 100%; font-family: inherit; cursor: pointer; transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease; }
+.price-features li::before { content: '\2713'; position: absolute; left: 0; color: var(--brand-text); font-weight: 500; }
+/* margin-top: the list reset in components.css zeroes .price-features' bottom margin, which left the button touching the last feature. */
+.price-cta { display: block; margin-top: 20px; text-align: center; text-decoration: none; background: transparent; color: var(--text); padding: 11px; border-radius: 8px; font-weight: 500; font-size: 13px; border: 1px solid var(--text); width: 100%; font-family: inherit; cursor: pointer; transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease; }
 .price-cta:hover, .price-card:hover .price-cta { background: var(--brand); color: var(--brand-ink); border-color: var(--brand); }
 .price-cta.featured-cta { background: var(--brand); color: var(--brand-ink); border: none; }
 
@@ -358,14 +381,14 @@
  * silently updated the price text but never revealed the struck-through
  * original price beside it, the only visual sign a discount was applied. */
 .pricing[data-mode="credit"] .price-was { display: inline; }
-.price-credit-line { font-size: 11px; color: var(--brand); font-weight: 600; margin: 0; min-height: 0; opacity: 0; transition: opacity 0.18s ease; }
+.price-credit-line { font-size: 11px; color: var(--brand-text); font-weight: 600; margin: 0; min-height: 0; opacity: 0; transition: opacity 0.18s ease; }
 .pricing[data-mode="credit"] .price-credit-line { opacity: 1; margin: 5px 0 0; }
 
 /* ---- Two-step "how it works" strip ---- */
 /* ---- Onboarding + monthly split on price cards ---- */
 .price-onboard { font-size: 27px; font-weight: 800; color: var(--text); letter-spacing: -1px; line-height: 1; margin-bottom: 8px; }
 .price-onboard-label { font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-fainter); font-weight: 500; margin-bottom: 9px; } /* TODO(contrast): verify against WCAG 1.4.3 */
-.price-timeline { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--brand); font-weight: 600; margin-bottom: 4px; }
+.price-timeline { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--brand-text); font-weight: 600; margin-bottom: 4px; }
 .price-monthly { font-size: 13px; color: var(--text-soft); line-height: 1.5; margin: 10px 0 14px; padding-top: 12px; border-top: 1px solid var(--hairline); }
 .price-monthly strong { color: var(--text); font-weight: 700; font-size: 15px; }
 .price-monthly .ann { color: var(--text-faint); white-space: nowrap; } /* TODO(contrast): verify against WCAG 1.4.3 */
@@ -387,12 +410,12 @@
 .lawsuit-pricebox { background: var(--bg); border: 1px solid rgba(255,210,63,0.45); border-radius: 12px; padding: 20px 22px; min-width: 0; }
 .lawsuit-price-amt { font-size: 27px; font-weight: 800; color: var(--text); letter-spacing: -1px; line-height: 1; }
 .lawsuit-price-amt .pre { font-size: 13px; color: var(--text-faint); font-weight: 500; letter-spacing: 0; } /* TODO(contrast): verify against WCAG 1.4.3 */
-.lawsuit-price-label { font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--brand); font-weight: 600; margin: 8px 0 13px; }
+.lawsuit-price-label { font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--brand-text); font-weight: 600; margin: 8px 0 13px; }
 .lawsuit-price-meta { font-size: 16px; font-weight: 600; color: var(--text); line-height: 1.45; padding-top: 12px; border-top: 1px solid var(--hairline); }
 .lawsuit-grid { position: relative; display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-bottom: 26px; }
 .lawsuit-tile { background: #131E42; border: 1px solid rgba(var(--brand-rgb), 0.18); border-radius: 10px; padding: 16px 16px; display: flex; flex-direction: row; align-items: center; gap: 16px; box-shadow: 0 12px 26px -16px rgba(0,0,0,0.7); transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease; }
 .lawsuit-tile:hover { transform: translateY(-3px); background: #1A2952; border-color: rgba(var(--brand-rgb), 0.6); box-shadow: 0 18px 34px -18px rgba(0,0,0,0.6); }
-.lawsuit-tile-num { font-size: 38px; font-weight: 800; color: var(--brand); letter-spacing: -1.5px; line-height: 1; flex-shrink: 0; font-variant-numeric: tabular-nums; }
+.lawsuit-tile-num { font-size: 38px; font-weight: 800; color: var(--brand-text); letter-spacing: -1.5px; line-height: 1; flex-shrink: 0; font-variant-numeric: tabular-nums; }
 .lawsuit-tile-text { font-size: 12.5px; line-height: 1.4; color: var(--text-soft); }
 .lawsuit-foot { position: relative; display: flex; flex-wrap: wrap; align-items: center; gap: 14px 20px; padding-top: 22px; border-top: 1px solid var(--hairline); }
 .lawsuit-cta { display: inline-flex; align-items: center; gap: 8px; background: var(--danger); color: #FFFFFF; padding: 13px 24px; border-radius: 8px; font-weight: 600; font-size: 14px; transition: background 0.15s ease, transform 0.15s ease; }
@@ -403,14 +426,14 @@
 
 /* ---- Disabled Access Credit ---- */
 .credit { padding: 56px var(--edge) 28px; }
-.credit-eyebrow { font-size: 11px; letter-spacing: 3px; color: var(--brand); font-weight: 500; margin-bottom: 16px; text-align: center; }
+.credit-eyebrow { font-size: 11px; letter-spacing: 3px; color: var(--brand-text); font-weight: 500; margin-bottom: 16px; text-align: center; }
 .credit h2 { margin-bottom: 14px; }
 .credit h2 .accent { color: inherit; }
 .credit-grid { display: grid; grid-template-columns: 1.1fr 1fr; gap: 40px; align-items: center; max-width: 940px; margin: 28px auto 0; }
 .credit-lede { font-size: 16px; line-height: 1.55; color: var(--text-soft); margin: 0 0 20px; }
 .credit-lede strong { color: var(--text); font-weight: 600; }
 .credit-elig { display: flex; flex-direction: column; gap: 8px; }
-.credit-elig-head { font-size: 11px; letter-spacing: 3px; color: var(--brand); font-weight: 500; margin-bottom: 2px; }
+.credit-elig-head { font-size: 11px; letter-spacing: 3px; color: var(--brand-text); font-weight: 500; margin-bottom: 2px; }
 .credit-chip { display: flex; align-items: baseline; gap: 12px; padding: 12px 14px; background: var(--surface); border-radius: 8px; border: 1px solid var(--keyline); }
 .credit-chip .big { font-size: 18px; font-weight: 800; letter-spacing: -0.5px; color: var(--text); white-space: nowrap; }
 .credit-chip .desc { font-size: 12px; color: var(--text); line-height: 1.4; }
@@ -426,13 +449,13 @@
 .credit-calc-row:has(+ .total) { border-bottom: none; }
 .credit-calc-row.total { border-bottom: none; padding-top: 19px; margin-top: 1px; border-top: 2px solid var(--brand); }
 .credit-calc-row.total .label { font-size: 13px; font-weight: 600; color: var(--text); }
-.credit-calc-row.total .val { font-size: 26px; letter-spacing: -1px; color: var(--brand); font-weight: 800; }
+.credit-calc-row.total .val { font-size: 26px; letter-spacing: -1px; color: var(--brand-text); font-weight: 800; }
 .credit-disclaimer { max-width: 1000px; margin: 0 auto; font-size: 12px; line-height: 1.5; color: var(--text-soft); text-align: center; font-style: italic; position: relative; top: 20px; text-wrap: pretty; }
 @media (max-width: 760px) { .credit-grid { grid-template-columns: 1fr; } }
 
 /* ---- Reduced motion (homepage-specific selectors; global parts are in base.css) ---- */
 @media (prefers-reduced-motion: reduce) {
-  .marquee-track, .pulse-dot, .scan-spinner, .swipe { animation: none !important; }
+  .pulse-dot, .scan-spinner, .swipe { animation: none !important; }
 }
 
 /* ---- Responsive ----
