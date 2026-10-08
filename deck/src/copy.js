@@ -6,11 +6,11 @@ export const copy = {
   brand: 'Accessrank',
   spine: "The web's biggest blind spot. Accessrank finds it, fixes it, and proves it.",
   legal: '<b>Accessrank</b> · Investor presentation · Not legal advice · Statistics from cited third-party sources · Confidential',
-  chapters: ['The blind spot', 'The letter', 'Plug-ins', 'The fix', 'Process', 'Engine', 'Model', 'Market', 'Libraries', 'Contact'],
+  chapters: ['The lawsuit', 'The letter', 'Plug-ins', 'The fix', 'Process', 'Engine', 'Model', 'Market', 'Libraries', 'Contact'],
 
   s01: {
-    title: ["THE WEB'S BIGGEST", 'BLIND SPOT.'],
-    sub: "95% of websites fail accessibility standards, and most brands don't find out until a demand letter arrives. Accessrank opens your store to the 1 in 4 adult Americans with disabilities and optimizes speed, search rankings, and AI visibility.",
+    title: ['THE LAWSUIT', 'HIDING IN YOUR WEBSITE.'],
+    sub: "Nearly 96% of websites fail accessibility standards, shutting out shoppers with blindness, low vision or mobility issues. Most brands don't find out until a demand letter arrives. We open your store to every shopper and optimize agentic visibility, search rankings and speed.",
     stats: [
       { value: '95.9%', label: 'of the top 1M sites fail WCAG' },
       { value: '70M+', label: 'U.S. adults live with a disability' },
