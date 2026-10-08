@@ -13,7 +13,8 @@ export default {
   build(root, ctx) {
     const { copy, assets } = ctx
     this._notes = copy.s01.notes
-    const title = heading(copy.s01.title, { tag: 'h1', cls: 'h-display s01-title', accent: 1, accentClass: 'is-accent' })
+    // first line white, every later line in the accent colour; one array entry per rendered line so the h1 box shrink-wraps the text
+    const title = heading(copy.s01.title, { tag: 'h1', cls: 'h-display s01-title', accent: copy.s01.title.map((_, i) => i).slice(1), accentClass: 'is-accent' })
     const sub = el('p', { class: 's01-sub', text: copy.s01.sub })
     const stats = copy.s01.stats.map((s) => tile(s, { cls: 's01-stat tile--bare', size: 'm' }))
     const statsRow = el('div', { class: 's01-stats' }, ...stats.map((s) => s.el))
@@ -21,7 +22,8 @@ export default {
     const anim = el('div', { class: 's01-mock-anim' }, assets.img(MOCK, { w: 1600, sizes: '58vw', alt: 'A floating ecommerce home page' }), beam)
     const inner = el('div', { class: 's01-mock-inner' }, anim)
     const mock = el('figure', { class: 's01-mock' }, inner)
-    root.append(el('div', { class: 's01-copy' }, title.el, sub, statsRow), mock)
+    // .s01-head shrink-wraps the headline so the paragraph under it spans exactly the headline's width on desktop (see style.css)
+    root.append(el('div', { class: 's01-copy' }, el('div', { class: 's01-head' }, title.el, sub), statsRow), mock)
     this.els = { title, sub, stats, statsRow, mock, inner, anim, beam }
     this.parallax = Parallax([{ el: inner, depth: .35 }], { pointer: 18, scroll: 0 })
     gsap.set([sub, statsRow], { opacity: 0 })

@@ -11,7 +11,7 @@ export function heading(lines, { tag = 'h2', cls = 'h-statement', accent = 1, ac
   const tl = gsap.timeline({ paused: true })
   let at = 0
   lines.forEach((line, i) => {
-    const span = el('span', { class: 'h-line' + (i === accent ? ' ' + accentClass : ''), text: line })
+    const span = el('span', { class: 'h-line' + ((Array.isArray(accent) ? accent.includes(i) : i === accent) ? ' ' + accentClass : ''), text: line })
     h.append(span)
     const k = KineticType(span, { per, from: 300, to: 800, dur, delay, y: 10, paused: true })
     tl.add(k.play(), at)

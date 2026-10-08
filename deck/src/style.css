@@ -77,6 +77,13 @@ html, body { font-family: var(--display); }
 .s01-brand { justify-self: start; margin-bottom: 8px; }
 .s01-title { font-size: clamp(48px, 5.4vw, 96px); }
 .s01-sub { font-size: 18px; line-height: 28px; color: var(--soft); max-width: 46ch; }
+.s01-head { display: grid; row-gap: 20px; }
+/* desktop: the paragraph spans the headline's width. .s01-head shrinks to the headline (the paragraph adds nothing to its
+   intrinsic width: width 0, then stretched back with min-width 100%), capped at the column so a longer headline still wraps. */
+@media (min-width: 768px) {
+  .s01-head { width: fit-content; max-width: 100%; }
+  .s01-sub { max-width: none; width: 0; min-width: 100%; }
+}
 .s01-stats { display: flex; gap: 32px; margin-top: 29px; }
 .tile--bare { padding: 0; border: none; background: none; -webkit-backdrop-filter: none; backdrop-filter: none; text-align: center; row-gap: 4px; justify-items: center; }
 .s01-stat.tile--bare .tile-num { font-size: clamp(26px, 2.5vw, 38px); }
@@ -451,12 +458,19 @@ a.contact-line:hover { color: var(--accent); }
   .chapters { display: none; }
   .presenter { display: none; }
   .footer { display: none; }
-  .s01-copy { position: relative; top: 0; transform: none; width: 100%; row-gap: 16px; padding-top: 24px; }
+  /* left: 0 — the slide's own padding is the margin here; keeping the desktop `left: var(--margin)` pushed the copy a second margin to the right and off the right edge */
+  .s01-copy { position: relative; left: 0; top: 0; transform: none; width: 100%; row-gap: 16px; padding-top: 24px; }
+  /* stacked layouts keep their own measure: paragraph back to 46ch, and the accent lines flow as one run of text
+     ("HIDING IN YOUR WEBSITE.") that wraps to the space available instead of always stacking */
+  .s01-head { row-gap: 16px; width: auto; max-width: none; }
+  .s01-sub { max-width: 46ch; width: auto; min-width: 0; }
+  .s01-title .h-line.is-accent { display: inline; }
+  .s01-title .h-line.is-accent:not(:last-child) .kt-word:last-child { margin-right: .26em; } /* the word space between the joined lines; a margin on the next line's start would indent it when it wraps */
   .s01-sub { font-size: 16px; line-height: 24px; }
   .s01-stats { flex-wrap: wrap; gap: 20px 28px; }
   .s01-title { font-size: clamp(36px, 10vw, 56px); }
   .s01-mock { position: relative; inset: auto; width: 100%; transform: none; margin-top: 16px; }
-  .s02-copy, .s03-copy, .s04-copy, .s05-copy, .s06-copy, .s07-copy, .s08-copy, .s10-copy { position: relative; top: 0; width: 100%; }
+  .s02-copy, .s03-copy, .s04-copy, .s05-copy, .s06-copy, .s07-copy, .s08-copy, .s10-copy { position: relative; left: 0; top: 0; width: 100%; }
   .s07-copy { transform: none; }
   .s02-right { position: relative; inset: auto; width: 100%; height: min(118vw, 520px); margin-top: 8px; }
   .s02-right.no-env { height: min(122vw, 540px); }
