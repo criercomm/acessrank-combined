@@ -21,7 +21,21 @@
 
     <div class="nav-right" id="nav-menu">
       {{#each nav}}
+      {{#if this.menu}}
+      <div class="nav-item has-menu" data-nav-menu>
+        <a class="nav-link" href="{{ this.href }}">{{ this.label }}</a>
+        <button class="nav-menu-toggle" type="button" aria-expanded="false" aria-haspopup="true" aria-label="Show {{ this.label }} pages">
+          <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true" focusable="false"><path d="M2.5 4.5 6 8l3.5-3.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <ul class="nav-submenu">
+          {{#each this.children}}
+          <li><a href="{{ this.href }}">{{ this.label }}</a></li>
+          {{/each}}
+        </ul>
+      </div>
+      {{else}}
       <a class="nav-link{{#if this.cta}} cta-nav{{/if}}" href="{{ this.href }}"{{#if this.deck}} data-open-deck{{/if}}>{{ this.label }}</a>
+      {{/if}}
       {{/each}}
       <!-- Theme switch. The label names what pressing it will do, and site.js
            keeps it in step with the current theme. -->

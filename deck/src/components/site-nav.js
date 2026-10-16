@@ -7,7 +7,7 @@
 import { el } from '@lib/util/dom.js'
 
 const LINKS = [
-  { label: 'How it works', href: '/#product', active: true },
+  { label: 'Introduction', href: '/#product', active: true },
   { label: 'WCAG explained', href: '/#wcag' },
   { label: 'Pricing', href: '/#pricing' },
 ]

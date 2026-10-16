@@ -161,6 +161,12 @@ select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmln
 .doc .back-link { margin-bottom: 22px; }
 .doc-head { padding-bottom: 26px; margin-bottom: 34px; border-bottom: 1px solid var(--hairline-strong); }
 .doc-head .eyebrow-pill { margin-bottom: 16px; }
+/* Row of pills under "Back to site": the current page plus links to its
+   sibling pages (About, How we score, Resources, Disclosure). */
+.doc-section-nav { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 16px; }
+.doc-section-nav .eyebrow-pill { margin-bottom: 0; }
+.doc-section-nav .eyebrow-link { background: transparent; border-color: var(--hairline-strong); color: var(--text-soft); transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease; }
+.doc-section-nav .eyebrow-link:hover, .doc-section-nav .eyebrow-link:focus-visible { border-color: var(--brand-border); background: var(--brand-soft); color: var(--brand-text); }
 .doc-head h1 { font-size: clamp(30px, 4vw, 44px); line-height: 1.06; letter-spacing: -1.4px; font-weight: 800; color: var(--text); margin: 0 0 12px; }
 .doc-head .updated { font-size: 13px; color: var(--text-faint); margin: 0; } /* TODO(contrast): verify against WCAG 1.4.3 */
 .doc-lede { font-size: 16px; line-height: 1.6; color: var(--text-soft); margin: 0 0 30px; text-wrap: pretty; }

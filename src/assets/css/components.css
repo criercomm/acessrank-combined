@@ -65,6 +65,52 @@
   .nav-right .cta-nav { text-align: center; margin-top: 6px; }
 }
 
+/* About us dropdown in the primary nav. Opens on hover/focus on desktop
+ * (and by the chevron button, for keyboard and touch); on the mobile menu
+ * the links are simply listed beneath the parent. */
+.nav-item.has-menu { position: relative; display: inline-flex; align-items: center; gap: 2px; }
+.nav-menu-toggle {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 22px; height: 22px; padding: 0; border: 0; border-radius: 4px;
+  background: transparent; color: var(--text-soft); cursor: pointer;
+}
+.nav-menu-toggle svg { transition: transform 0.15s ease; }
+.nav-menu-toggle:hover, .nav-menu-toggle:focus-visible { color: var(--text); }
+.nav-submenu {
+  list-style: none; margin: 0; padding: 6px;
+  position: absolute; top: calc(100% + 8px); left: -8px; z-index: 50;
+  min-width: 180px;
+  background: var(--surface); border: 1px solid var(--keyline); border-radius: 10px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.28);
+  display: none;
+}
+.nav-submenu li { margin: 0; }
+.nav-submenu a {
+  display: flex; align-items: center;
+  padding: 9px 12px; border-radius: 6px;
+  font-size: 13px; color: var(--text-soft); text-decoration: none;
+  white-space: nowrap;
+}
+.nav-submenu a:hover, .nav-submenu a:focus-visible { background: var(--surface-2); color: var(--text); }
+.nav-submenu a[aria-current="page"] { color: var(--brand-text); font-weight: 600; }
+.nav-item.has-menu.is-open .nav-submenu, .nav-item.has-menu:hover .nav-submenu, .nav-item.has-menu:focus-within .nav-submenu { display: block; }
+.nav-item.has-menu.is-open .nav-menu-toggle svg, .nav-item.has-menu:hover .nav-menu-toggle svg { transform: rotate(180deg); }
+/* keep the menu reachable while the pointer crosses the gap */
+.nav-item.has-menu::after { content: ""; position: absolute; left: 0; right: 0; top: 100%; height: 10px; }
+@media (max-width: 860px) {
+  .nav-item.has-menu { display: flex; flex-wrap: wrap; align-items: center; }
+  .nav-item.has-menu .nav-link { flex: 1; }
+  .nav-item.has-menu::after { display: none; }
+  .nav-submenu {
+    position: static; display: block; width: 100%; min-width: 0;
+    padding: 0 0 6px 14px; background: transparent; border: 0; box-shadow: none;
+  }
+  .nav-submenu a { padding: 10px 4px; color: var(--text-muted); }
+  .nav-item.has-menu:hover .nav-submenu, .nav-item.has-menu:focus-within .nav-submenu { display: block; }
+  .nav-menu-toggle { display: none; }
+}
+@media (prefers-reduced-motion: reduce) { .nav-menu-toggle svg { transition: none; } }
+
 /* Modal dialog for report lead capture. */
 .modal {
   position: fixed; inset: 0; z-index: 200;

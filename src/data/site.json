@@ -9,9 +9,14 @@
   "locale": "en",
 
   "nav": [
-    { "label": "How it works", "href": "/home#product", "deck": true },
+    { "label": "Introduction", "href": "/home#product", "deck": true },
     { "label": "WCAG explained", "href": "/home#wcag" },
     { "label": "Pricing", "href": "/home#pricing" },
+    { "label": "About us", "href": "/about", "menu": true, "children": [
+      { "label": "How we score", "href": "/methodology" },
+      { "label": "Resources", "href": "/resources" },
+      { "label": "Disclosure", "href": "/disclosure" }
+    ] },
     { "label": "Client login", "href": "/client-login" },
     { "label": "Free audit", "href": "/home#audit", "cta": true }
   ],

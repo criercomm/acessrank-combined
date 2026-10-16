@@ -37,6 +37,33 @@
     else if (mq.addListener) mq.addListener(onChange);
   }
 
+  /* --------------------------------------------------- nav dropdown --- */
+
+  document.querySelectorAll('[data-nav-menu]').forEach(function (item) {
+    var btn = item.querySelector('.nav-menu-toggle');
+    if (!btn) return;
+    var setOpen = function (open) {
+      item.classList.toggle('is-open', open);
+      btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    };
+    btn.addEventListener('click', function (e) {
+      e.stopPropagation();
+      setOpen(!item.classList.contains('is-open'));
+    });
+    document.addEventListener('click', function (e) {
+      if (!item.contains(e.target)) setOpen(false);
+    });
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && item.classList.contains('is-open')) { setOpen(false); btn.focus(); }
+    });
+    // Mark the page we are on.
+    var here = location.pathname.replace(/\/$/, '') || '/';
+    item.querySelectorAll('.nav-submenu a').forEach(function (a) {
+      var target = a.getAttribute('href').replace(/\/$/, '');
+      if (target === here) a.setAttribute('aria-current', 'page');
+    });
+  });
+
   /* ----------------------------------------------------- theme switch --- */
   /* /theme.js has already applied a saved choice before first paint; this
    * wires the button in the nav. Dark is the default, so "light" is the only
@@ -118,7 +145,7 @@
   }
 
   /* ------------------------------------------- investor deck overlay --- */
-  /* "How it works" in the primary nav (site.json: nav[].deck) opens the
+  /* "Introduction" in the primary nav (site.json: nav[].deck) opens the
    * investor deck (accessrank-deck, built to /deck/) full-screen over
    * whatever page the person is on, instead of navigating there. The href
    * stays a real "/#product" anchor so it still does something reasonable
