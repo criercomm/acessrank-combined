@@ -10,14 +10,15 @@
 
   "nav": [
     { "label": "Introduction", "href": "/home#product", "deck": true },
-    { "label": "WCAG explained", "href": "/home#wcag" },
+    { "label": "How we score", "href": "/methodology" },
     { "label": "Pricing", "href": "/home#pricing" },
-    { "label": "About us", "href": "/about", "menu": true, "children": [
-      { "label": "How we score", "href": "/methodology" },
+    { "label": "Why Accessrank", "href": "/about", "menu": true, "children": [
+      { "label": "Our approach", "href": "/about" },
+      { "label": "Access and rank", "href": "/home#product" },
+      { "label": "ADA guide", "href": "/guide/ada-eaa" },
       { "label": "Resources", "href": "/resources" },
       { "label": "Disclosure", "href": "/disclosure" }
     ] },
-    { "label": "Client login", "href": "/client-login" },
     { "label": "Free audit", "href": "/home#audit", "cta": true }
   ],
 
@@ -25,7 +26,7 @@
     {
       "heading": "Company",
       "links": [
-        { "label": "About", "href": "/about" },
+        { "label": "Our approach", "href": "/about" },
         { "label": "How we score", "href": "/methodology" },
         { "label": "Careers", "href": "/careers" },
         { "label": "Talk to sales", "href": "/contact-sales" },

@@ -29,7 +29,7 @@
         </button>
         <ul class="nav-submenu">
           {{#each this.children}}
-          <li><a href="{{ this.href }}">{{ this.label }}</a></li>
+          <li><a class="nav-submenu-link" href="{{ this.href }}">{{ this.label }}</a></li>
           {{/each}}
         </ul>
       </div>
@@ -37,6 +37,7 @@
       <a class="nav-link{{#if this.cta}} cta-nav{{/if}}" href="{{ this.href }}"{{#if this.deck}} data-open-deck{{/if}}>{{ this.label }}</a>
       {{/if}}
       {{/each}}
+      <a class="nav-link nav-utility" href="/client-login">Client login</a>
       <!-- Theme switch. The label names what pressing it will do, and site.js
            keeps it in step with the current theme. -->
       <button class="theme-toggle" type="button" data-theme-toggle>

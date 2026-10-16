@@ -9,8 +9,8 @@
  * so a page is never marked down for something it does not have.
  *
  * The score is the share of evaluated checks that pass. It is reported beside
- * accessibility and SEO; it does not feed the overall score, whose formula
- * (60% accessibility, 40% SEO) is documented on the methodology page and in
+ * accessibility and SEO; it does not feed the headline score, which is the
+ * accessibility score alone, as documented on the methodology page and in
  * the PDF report.
  */
 

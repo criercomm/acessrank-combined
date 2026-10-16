@@ -6,122 +6,142 @@
     </a>
     <header class="doc-head">
       <nav class="doc-section-nav" aria-label="Company pages">
-        <a class="eyebrow-pill eyebrow-link" href="/about">About</a>
+        <a class="eyebrow-pill eyebrow-link" href="/about">Our approach</a>
         <span class="eyebrow-pill" aria-current="page">How we score</span>
         <a class="eyebrow-pill eyebrow-link" href="/resources">Resources</a>
         <a class="eyebrow-pill eyebrow-link" href="/disclosure">Disclosure</a>
       </nav>
       <h1>How we score your site</h1>
-      <p class="updated">The model behind every Accessrank report</p>
+      <p class="updated">The model behind every Accessrank scan, report and client summary</p>
     </header>
 
-    <p class="doc-lede">Your Accessrank report cites this page, so here is the scoring model in full, with no black box. This explains exactly how a scan of your site becomes an accessibility score and an SEO score, and, just as importantly, what those scores do not tell you.</p>
+    <p class="doc-lede">Every Accessrank report leads with one number: the accessibility score. It tells you how much of the web accessibility standard (WCAG 2.2, the rulebook ADA claims are measured against) your store meets, and nothing else is mixed into it. Two further numbers, SEO and AI readiness, sit beside it. This page explains what each one measures, how we work it out, and what none of them can tell you.</p>
 
-    <nav class="doc-toc" aria-label="Contents">
-      <p class="doc-toc-label">Contents</p>
-      <ul>
-        <li><a href="#testing">1. How we test</a></li>
-        <li><a href="#accessibility-score">2. The accessibility score</a></li>
-        <li><a href="#why-criteria">3. Why criteria, not elements</a></li>
-        <li><a href="#element-counts">4. Element counts</a></li>
-        <li><a href="#seo-score">5. The SEO score</a></li>
-        <li><a href="#overall-score">6. Overall score</a></li>
-        <li><a href="#limitations">7. Limitations</a></li>
-      </ul>
-    </nav>
-
-    <section id="testing">
-      <h2><span class="num">1.</span>How we test</h2>
-      <p>We load every page in real, headless Chromium, not a static fetch of the HTML, so the page has actually laid out before we test it. That distinction matters: colour contrast depends on rendered colours and backgrounds, and focus behaviour (what actually receives keyboard focus, and whether you can see it) can only be measured once scripts have run and layout has settled. Against that rendered page, we run <strong>axe-core</strong>, the open-source accessibility testing engine, with the following rule sets enabled: <code>wcag2a</code>, <code>wcag2aa</code>, <code>wcag21a</code>, <code>wcag21aa</code>, <code>wcag22aa</code>, and axe's <code>best-practice</code> rules. The first five map directly onto WCAG 2.2 success criteria at Level A and Level AA; the best-practice set covers additional checks that are widely regarded as good practice but are not themselves WCAG success criteria.</p>
+    <section id="the-three-numbers">
+      <h2>The three numbers</h2>
+      <p>Shown here for a sample store, so you can see what a real result looks like.</p>
+      <div class="score-tiles">
+        <div class="score-tile">
+          <div class="score-tile-label">Accessibility score</div>
+          <div class="score-tile-num score-risk">58<small> / 100</small></div>
+          <p>The headline number. How much of the accessibility standard the store meets, with the most serious requirements counting for more. Below 90 is the range automated legal scanners look for; 100 is the only score that means the standard is fully met.</p>
+        </div>
+        <div class="score-tile">
+          <div class="score-tile-label">SEO score</div>
+          <div class="score-tile-num">71<small> / 100</small></div>
+          <p>Fourteen things a search engine looks for on a page, from the page title to the product facts written in for machines. Reported beside the accessibility score, never mixed into it.</p>
+        </div>
+        <div class="score-tile">
+          <div class="score-tile-label">AI agent readiness</div>
+          <div class="score-tile-num">64<small> / 100</small></div>
+          <p>Eight checks on whether AI assistants and shopping agents can read the page and use it, from the buttons to the page title. Also reported on its own.</p>
+        </div>
+      </div>
+      <div class="callout">
+        <p><strong>Why they stay separate.</strong> The number a plaintiff's lawyer or an insurer cares about is the accessibility result. A combined figure could look healthy while real accessibility failures remain, or look poor when the only problem is a missing page description. Keeping the three apart means each one answers one question.</p>
+      </div>
     </section>
 
     <section id="accessibility-score">
-      <h2><span class="num">2.</span>The accessibility score</h2>
-      <p><strong>Your accessibility score is a conformance-criterion pass rate, not a count of passing HTML elements.</strong> We take every axe-core rule that ran and group its results onto the WCAG success criterion it tests. A success criterion counts as met only if every rule mapped to it passed everywhere it was checked on the page; if any rule mapped to that criterion failed anywhere, the criterion counts as not met. Each criterion is then weighted by its conformance level, as shown below.</p>
+      <h2>How the accessibility score is calculated</h2>
+      <p>We open every page in a real web browser (the same engine as Chrome, running on our servers without a screen), so the page is fully loaded exactly as a shopper would see it before we test it. We then run <strong>axe-core</strong>, the open-source testing engine most accessibility tools are built on. It checks the page against the requirements of WCAG 2.2, the standard. A requirement counts as met only if every check for it passes everywhere on the page; one failure anywhere and that requirement is not met. Each requirement then carries a weight, because some matter more than others.</p>
 
       <table class="weight-table">
-        <caption class="visually-hidden">Weight applied to each conformance level when calculating the accessibility score</caption>
+        <caption class="visually-hidden">Weight applied to each conformance level</caption>
         <thead>
           <tr>
-            <th scope="col">Conformance level</th>
+            <th scope="col">Requirement level</th>
             <th scope="col" class="num-col">Weight</th>
-            <th scope="col">Example criterion</th>
+            <th scope="col">Example</th>
           </tr>
         </thead>
         <tbody>
-          <tr>
-            <td><strong>Level A</strong></td>
-            <td class="num-col">3</td>
-            <td>Alt text present <span class="sc">SC 1.1.1</span></td>
-          </tr>
-          <tr>
-            <td><strong>Level AA</strong></td>
-            <td class="num-col">2</td>
-            <td>Colour contrast <span class="sc">SC 1.4.3</span></td>
-          </tr>
-          <tr>
-            <td><strong>Best practice</strong></td>
-            <td class="num-col">1</td>
-            <td>axe-core checks not tied to a WCAG success criterion</td>
-          </tr>
+          <tr><td><strong>Level A</strong> (the basics every site must meet)</td><td class="num-col">3</td><td>Every image has a text description <span class="sc">1.1.1</span></td></tr>
+          <tr><td><strong>Level AA</strong> (the level ADA claims cite)</td><td class="num-col">2</td><td>Text is readable against its background <span class="sc">1.4.3</span></td></tr>
+          <tr><td><strong>Best practice</strong> (recommended, not required)</td><td class="num-col">1</td><td>Extra checks that are good practice but not part of the standard</td></tr>
         </tbody>
       </table>
 
       <p class="formula-label">The score is then calculated as</p>
-      <div class="formula" role="img" aria-label="Accessibility score equals weighted criteria met, divided by weighted criteria evaluated, times 100">
+      <div class="formula" role="img" aria-label="Accessibility score equals weighted requirements met, divided by weighted requirements checked, times 100">
         <span class="formula-result">Accessibility score</span>
         <span class="formula-eq">=</span>
-        <span class="formula-fraction"><span class="formula-top">weighted criteria met</span><span class="formula-bottom">weighted criteria evaluated</span></span>
-        <span class="formula-eq">×</span>
+        <span class="formula-fraction"><span class="formula-top">requirements met, weighted</span><span class="formula-bottom">requirements checked, weighted</span></span>
+        <span class="formula-eq">&times;</span>
         <span class="formula-const">100</span>
       </div>
-      <p>A small number of axe-core checks cannot be resolved automatically one way or the other. For example, whether a piece of alt text is genuinely descriptive, rather than merely present, needs a person to look at it. Where automated testing cannot decide whether a criterion is met, we count that criterion as half met rather than guessing in either direction.</p>
-    </section>
 
-    <section id="why-criteria">
-      <h2><span class="num">3.</span>Why criteria, not elements</h2>
-      <p>We deliberately do not weight the score by the number of HTML elements a rule touches. If your product pages contain five images missing alt text, you fail Success Criterion 1.1.1 (Non-text Content), full stop. It does not matter that the same page also has two thousand other elements that passed unrelated checks; those passing elements do not buy back the failure, because a screen reader user who lands on any one of those five images still hits a wall. Scoring by element count would let a large page with a handful of serious, blocking failures, buried inside thousands of trivial passes, report a misleadingly high score. Scoring by success criterion keeps the score honest: it answers "how many of the things WCAG actually requires does this page get right," not "what percentage of elements on this page happen to be fine."</p>
-    </section>
+      <h3>Worked example</h3>
+      <table class="example-table">
+        <tbody>
+          <tr><td>Requirements checked</td><td class="num-col">31 Level A &times; 3 + 24 Level AA &times; 2</td><td class="num-col">141</td></tr>
+          <tr><td>Requirements not met</td><td class="num-col">13 Level A &times; 3 + 10 Level AA &times; 2</td><td class="num-col">59</td></tr>
+          <tr><td>Requirements met</td><td class="num-col">141 &minus; 59</td><td class="num-col">82</td></tr>
+          <tr class="total"><td>Accessibility score</td><td class="num-col">82 &divide; 141 &times; 100</td><td class="num-col">58</td></tr>
+        </tbody>
+      </table>
+      <p>The sample store had 117 individual problems behind those 23 unmet requirements. The problem count tells you the size of the fix; the score tells you how close the store is to meeting the standard. Both are reported, and they are never mixed.</p>
 
-    <section id="element-counts">
-      <h2><span class="num">4.</span>Element counts</h2>
-      <p>We still report the number of elements affected by each failing rule, but as a separate figure, not as an input to the score. Element counts describe the <strong>size of the remediation job</strong>: five broken buttons repeated across a template used on every product page is a bigger job than one broken button on a single one-off landing page, even though both might represent the same single failed success criterion. Use the score to see how close a page is to conformance; use the element counts to scope the work.</p>
+      <details class="more">
+        <summary>Why we score by requirement, not by how many things are wrong</summary>
+        <p>If a product page has five images with no text description, it fails the requirement that every image have one, full stop. It does not matter that the same page has two thousand other elements that pass unrelated checks; those do not buy back the failure, because a shopper using a screen reader who lands on any of those five images still hits a wall. Scoring by counting elements would let a big page with a handful of serious failures, buried among thousands of trivial passes, report a flattering score. Scoring by requirement keeps it honest: it answers "how many of the things the standard actually asks for does this page get right?"</p>
+        <p>We still report how many elements each failure affects, as a separate figure. Five broken buttons repeated on every product page is a bigger job than one broken button on a single landing page, even though both count as one unmet requirement. Use the score to see how close a page is to the standard; use the counts to size the work.</p>
+      </details>
+      <details class="more">
+        <summary>Checks that need a person to decide</summary>
+        <p>A few checks cannot be settled by software alone. Whether an image description actually describes the image, rather than just existing, needs someone to look at it. Where the automated test cannot decide, we count that requirement as half met rather than guessing either way, and flag it for a person to review as part of the fix.</p>
+      </details>
+      <details class="more">
+        <summary>Which versions of the standard we test against</summary>
+        <p>The tests cover WCAG versions 2.0, 2.1 and 2.2 at Levels A and AA, which together make up the current standard, plus a set of best-practice checks that are widely recommended but not part of the standard itself. Best-practice checks carry the lowest weight. For the technically minded: axe-core runs with the <code>wcag2a</code>, <code>wcag2aa</code>, <code>wcag21a</code>, <code>wcag21aa</code>, <code>wcag22aa</code> and <code>best-practice</code> rule sets.</p>
+      </details>
     </section>
 
     <section id="seo-score">
-      <h2><span class="num">5.</span>The SEO score</h2>
-      <p>The SEO score is a weighted checklist of 14 on-page signals, evaluated per page:</p>
-      <ul>
+      <h2>How the SEO score is calculated</h2>
+      <p>A checklist of 14 things search engines look for on a page, combined into a score out of 100. Each is checked as present and correct or missing, and weighted by how much it usually affects whether a page is understood by Google and how it looks when shared.</p>
+      <ul class="signal-grid">
         <li>Page title</li>
         <li>Meta description</li>
         <li>Single H1</li>
         <li>Correctly ordered headings</li>
         <li>Image alt-text coverage</li>
-        <li>Canonical link</li>
-        <li>Declared <code>lang</code> attribute</li>
-        <li>Responsive viewport tag</li>
-        <li>JSON-LD structured data</li>
-        <li>Open Graph tags</li>
+        <li>One official address per page (canonical link)</li>
+        <li>Page language declared</li>
+        <li>Works on phones (viewport tag)</li>
+        <li>Product facts written in for machines (schema)</li>
+        <li>Preview image and text when shared (Open Graph)</li>
         <li>HTTPS</li>
-        <li>Indexability (no accidental <code>noindex</code> or robots block)</li>
+        <li>Page allowed in search results</li>
         <li>Descriptive link text</li>
         <li>Favicon</li>
       </ul>
-      <p>Each signal is checked as present/correct or missing/incorrect, weighted by how much it typically affects how a page is understood by search engines and rendered when shared, and combined into a score out of 100.</p>
+      <p>Several of these overlap with accessibility: image descriptions, heading order, link text and page language count in both scores, because screen readers and search engines read the same structure. That is why SEO tends to improve once a site is fixed for accessibility, though the reverse is not always true.</p>
     </section>
 
-    <section id="overall-score">
-      <h2><span class="num">6.</span>Overall score</h2>
-      <p>Your overall Accessrank score blends the two: <strong>60% accessibility, 40% SEO</strong>. We weight accessibility higher because it is both the larger technical job on most sites we see and the one carrying direct legal exposure. SEO tends to improve naturally once markup is cleaned up for accessibility (descriptive alt text, a real heading structure, meaningful link text), though the reverse is not always true.</p>
+    <section id="agent-readiness">
+      <h2>How AI agent readiness is calculated</h2>
+      <p>Eight checks on whether AI assistants and shopping agents can read a page and act on it. A check is skipped when it does not apply (no forms on the page, say), so a page is never marked down for something it does not have. The score is the share of checks that pass.</p>
+      <ul class="signal-grid">
+        <li>Buttons have names agents can read</li>
+        <li>Links say where they go</li>
+        <li>Form fields are labeled</li>
+        <li>Clear main region and heading structure</li>
+        <li>Links can be followed by crawlers</li>
+        <li>Search and AI crawlers are allowed in</li>
+        <li>Descriptive page title and summary</li>
+        <li>Page language is declared</li>
+      </ul>
+      <p>For clients we add a fourth measure alongside these: an <strong>AI visibility baseline</strong>. We ask five AI assistants for brands in the client's category and record how many name the client. It is a count, not a score, re-run at 30 and 60 days, and it is never folded into any of the others.</p>
     </section>
 
     <section id="limitations">
-      <h2><span class="num">7.</span>Limitations</h2>
+      <h2>What the scores don't tell you</h2>
       <div class="callout">
-        <p>Read this section as carefully as your score.</p>
+        <p>Read this as carefully as your score.</p>
       </div>
-      <p>Automated testing, ours included, is generally accepted to catch somewhere between a third and a half of real-world accessibility barriers. It cannot judge whether alt text is <em>meaningful</em>, only whether it exists. It cannot judge whether a keyboard focus order is <em>logical</em>, only whether something is focusable. It cannot judge whether an error message is actually <em>helpful</em> to the person reading it, only whether one is announced. A conformance claim (that a site meets WCAG 2.2 Level AA) is a claim about all of a site's applicable success criteria being satisfied, and properly substantiating that claim requires manual testing and testing with real assistive technology, not an automated scan alone.</p>
-      <p>A good Accessrank score is a strong, evidence-based signal that a site's code is in good shape. It is not, on its own, a legal guarantee of ADA or WCAG conformance, and we do not represent it as one. For more on the legal context this score sits in, see our <a href="/guide/ada-eaa">ADA &amp; EAA guide</a> and our <a href="/disclosure">Disclosure</a>.</p>
+      <p>Automated testing, ours included, is generally accepted to catch between a third and a half of real-world accessibility barriers. It cannot judge whether an image description is <em>meaningful</em>, only whether it exists; whether the order you tab through a page makes <em>sense</em>, only whether each item can be reached; whether an error message is <em>helpful</em>, only whether one appears. Saying a site meets the standard is saying every applicable requirement is met, and backing that up takes a person testing with a screen reader and a keyboard. That human testing is part of every Accessrank fix, and it is why a perfect automated score is a milestone, not a finish line.</p>
+      <p>A good Accessrank score is a strong, evidence-based signal that a site's code is in good shape. It is not, on its own, a legal guarantee of ADA or WCAG conformance, and we do not represent it as one. For the legal context this score sits in, see our <a href="/guide/ada-eaa">ADA guide</a> and our <a href="/disclosure">Disclosure</a>.</p>
     </section>
   </article>
 </section>

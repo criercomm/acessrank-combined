@@ -892,15 +892,10 @@
 
     <div class="score-cards">
       <div class="score-card score-card--overall tone-{{ scores.band.tone }}">
-        <p class="score-card-label">Overall score</p>
+        <p class="score-card-label">Accessibility score</p>
         <p class="score-card-num">{{ scores.overall }}</p>
         <span class="score-card-band tone-{{ scores.band.tone }}">{{ scores.band.label }}</span>
         <div class="meter" aria-hidden="true"><div class="meter-fill" style="width:{{ scores.overall }}%"></div></div>
-      </div>
-      <div class="score-card">
-        <p class="score-card-label">Accessibility</p>
-        <p class="score-card-num">{{ scores.accessibility }}</p>
-        <div class="meter" aria-hidden="true"><div class="meter-fill" style="width:{{ scores.accessibility }}%; background: var(--amber);"></div></div>
       </div>
       <div class="score-card">
         <p class="score-card-label">SEO</p>
@@ -953,10 +948,11 @@
       <p>
         Criteria are weighted by how strictly they matter: <strong>Level A</strong> criteria
         (the baseline most legal claims cite) carry a weight of 3, <strong>Level AA</strong>
-        criteria (the common ADA/EAA conformance target) carry a weight of 2, and
+        criteria (the common ADA conformance target) carry a weight of 2, and
         <strong>best-practice</strong> checks that sit outside formal WCAG criteria carry a
-        weight of 1. Your overall score then blends accessibility (60%) with SEO (40%),
-        reflecting how much each tends to affect legal exposure and organic visibility.
+        weight of 1. That accessibility score is the headline number on this report. SEO and
+        AI agent readiness are scored separately and reported beside it; they are never blended
+        into the headline, so it reads unambiguously as a measure of legal exposure.
       </p>
       <p>
         The <strong>element counts</strong> in the severity breakdown above are a different
@@ -1198,7 +1194,7 @@
       <p>
         <strong>This is not legal advice.</strong> Nothing in this report should be relied upon as
         a legal opinion regarding compliance with the Americans with Disabilities Act (ADA), the
-        European Accessibility Act (EAA), Section 508, or any other law or regulation. Consult
+        Section 508, or any other law or regulation. Consult
         qualified legal counsel for advice specific to your business.
       </p>
       <p>

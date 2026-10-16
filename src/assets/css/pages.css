@@ -202,6 +202,36 @@ select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmln
   .doc .weight-table th, .doc .weight-table td { padding: 10px 12px; }
   .doc .weight-table .sc { display: block; margin: 4px 0 0; }
 }
+/* ---- Methodology: score tiles, worked example, signal grids, disclosures ---- */
+.doc .score-tiles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin: 14px 0 16px; }
+.doc .score-tile { background: var(--surface-2); border: 1px solid var(--keyline); border-radius: 10px; padding: 16px 16px 12px; display: flex; flex-direction: column; min-width: 0; }
+.doc .score-tile-label { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-faint); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.doc .score-tile-num { font-family: 'JetBrains Mono', monospace; font-size: 40px; line-height: 1.05; font-weight: 500; color: var(--text); margin: 8px 0 10px; font-variant-numeric: tabular-nums; }
+.doc .score-tile-num small { font-size: 15px; color: var(--text-muted); font-weight: 400; }
+.doc .score-tile-num.score-risk { color: var(--warning, #e5533c); }
+.doc .score-tile p { font-size: 13px; line-height: 1.5; margin: 0; color: var(--text-muted); }
+.doc .example-table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0 14px; background: var(--surface-2); border: 1px solid var(--keyline); border-radius: 10px; overflow: hidden; }
+.doc .example-table td { padding: 10px 16px; border-bottom: 1px solid var(--keyline); color: var(--text-muted); }
+.doc .example-table td:first-child { color: var(--text); }
+.doc .example-table tr:last-child td { border-bottom: 0; }
+.doc .example-table .num-col { text-align: right; font-family: 'JetBrains Mono', monospace; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.doc .example-table tr.total td { background: var(--surface); color: var(--text); font-weight: 600; }
+.doc .example-table tr.total td:last-child { color: var(--brand-text); font-size: 18px; }
+.doc .signal-grid { list-style: none; padding: 0; margin: 10px 0 14px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px 20px; }
+.doc .signal-grid li { margin: 0; padding: 8px 12px; background: var(--surface-2); border: 1px solid var(--keyline); border-radius: 8px; font-size: 13.5px; color: var(--text-soft); }
+.doc details.more { border: 1px solid var(--keyline); border-radius: 10px; margin: 0 0 10px; background: var(--surface); }
+.doc details.more summary { cursor: pointer; padding: 12px 16px; font-size: 14.5px; font-weight: 600; color: var(--text); list-style: none; display: flex; align-items: center; gap: 10px; }
+.doc details.more summary::-webkit-details-marker { display: none; }
+.doc details.more summary::before { content: ""; width: 7px; height: 7px; border-right: 1.6px solid var(--text-muted); border-bottom: 1.6px solid var(--text-muted); transform: rotate(-45deg); transition: transform 0.15s ease; flex: none; }
+.doc details.more[open] summary::before { transform: rotate(45deg); }
+.doc details.more summary:hover { color: var(--brand-text); }
+.doc details.more p { padding: 0 16px; }
+.doc details.more p:last-child { padding-bottom: 14px; }
+@media (max-width: 720px) {
+  .doc .score-tiles { grid-template-columns: 1fr; }
+  .doc .signal-grid { grid-template-columns: 1fr; }
+  .doc .score-tile-label { white-space: normal; }
+}
 .citation-list { list-style: none; margin: 0 0 28px; padding: 0; display: flex; flex-direction: column; gap: 18px; }
 .citation-list li { padding: 16px 18px; background: var(--surface-2); border: 1px solid var(--keyline); border-radius: 10px; }
 .citation-claim { font-size: 14.5px; line-height: 1.5; color: var(--text-soft); font-weight: 600; margin: 0 0 6px; }

@@ -111,8 +111,7 @@ export function reportEmail({ lead, result }) {
 
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0"
            style="border:1px solid #e3e5ea;border-radius:10px;padding:6px 16px;margin:0 0 20px;">
-      ${scoreRow('Overall score', scores.overall)}
-      ${scoreRow('Accessibility', scores.accessibility)}
+      ${scoreRow('Accessibility score', scores.accessibility)}
       ${scoreRow('SEO', scores.seo)}
     </table>
 
@@ -140,7 +139,6 @@ export function reportEmail({ lead, result }) {
     '',
     `Your accessibility and SEO report for ${origin} is attached as a PDF.`,
     '',
-    `Overall score:  ${scores.overall ?? '—'}`,
     `Accessibility:  ${scores.accessibility ?? '—'}`,
     `SEO:            ${scores.seo ?? '—'}`,
     '',
@@ -170,8 +168,7 @@ export function leadNotificationEmail({ lead, result = null, kind = 'audit_repor
     ['Source', kind],
     ['Plan', lead.plan],
     ['Platform', lead.platform],
-    ['Overall score', result?.scores?.overall],
-    ['Accessibility', result?.scores?.accessibility],
+    ['Accessibility score', result?.scores?.accessibility],
     ['SEO', result?.scores?.seo],
     ['Failed criteria', result?.accessibility?.failedCriteria?.join(', ')],
     ['Message', lead.message],

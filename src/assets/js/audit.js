@@ -168,7 +168,7 @@
     head.appendChild(ring);
 
     var headText = el('div', 'result-head-text');
-    headText.appendChild(el('p', 'result-band', (scores.band && scores.band.label) || 'Scored'));
+    headText.appendChild(el('p', 'result-band', ((scores.band && scores.band.label) || 'Scored') + ' · accessibility score'));
     headText.appendChild(el('p', 'result-host', host));
     headText.appendChild(el(
       'p',
@@ -182,13 +182,12 @@
 
     /* Two sub-scores */
     var subs = el('div', 'score-split');
+    // The ring is the accessibility score (the Accessrank score). SEO and AI agent
+    // readiness are reported beside it and never blended in.
     var subScores = [
-      { label: 'Accessibility', value: scores.accessibility },
       { label: 'SEO', value: scores.seo }
     ];
-    // Results cached before agent readiness existed carry no `agent`; they keep the two-score layout.
     if (data.agent && data.agent.total) subScores.push({ label: 'AI agent readiness', value: data.agent.score });
-    if (subScores.length === 3) subs.classList.add('score-split--3');
     subScores.forEach(function (item) {
       var box = el('div', 'score-split-item');
       box.appendChild(el('span', 'split-label', item.label));

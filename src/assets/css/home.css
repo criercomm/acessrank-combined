@@ -366,6 +366,8 @@
 .price-cta { display: block; margin-top: 20px; text-align: center; text-decoration: none; background: transparent; color: var(--text); padding: 11px; border-radius: 8px; font-weight: 500; font-size: 13px; border: 1px solid var(--text); width: 100%; font-family: inherit; cursor: pointer; transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease; }
 .price-cta:hover, .price-card:hover .price-cta { background: var(--brand); color: var(--brand-ink); border-color: var(--brand); }
 .price-cta.featured-cta { background: var(--brand); color: var(--brand-ink); border: none; }
+.price-method { display: block; text-align: center; margin-top: 10px; font-size: 12px; color: var(--text-muted); text-decoration: underline; text-underline-offset: 2px; }
+.price-method:hover { color: var(--brand-text); }
 
 .price-toggle { display: flex; justify-content: center; gap: 0; margin: 0 auto 30px; background: var(--surface); border: 1px solid var(--hairline-strong); border-radius: 100px; padding: 7px; width: max-content; max-width: 100%; }
 .price-toggle button { padding: 9px 18px; border-radius: 100px; font-size: 12px; font-weight: 500; color: var(--text-faint); font-family: inherit; cursor: pointer; transition: background 0.15s ease, color 0.15s ease; white-space: nowrap; } /* TODO(contrast): verify against WCAG 1.4.3 */

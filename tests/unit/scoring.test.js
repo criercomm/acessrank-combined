@@ -161,11 +161,11 @@ test('SEO checklist scores and reports per-signal status', () => {
   assert.equal(titleCheck.detail, '12 characters');
 });
 
-test('overall blends 60/40 and tolerates a missing half', () => {
+test('the headline score is the accessibility score, never blended with SEO', () => {
   assert.equal(scoreOverall(100, 100), 100);
-  assert.equal(scoreOverall(50, 100), 70);
+  assert.equal(scoreOverall(50, 100), 50);
   assert.equal(scoreOverall(80, null), 80);
-  assert.equal(scoreOverall(null, 80), 80);
+  assert.equal(scoreOverall(null, 80), null);
   assert.equal(scoreOverall(null, null), null);
 });
 

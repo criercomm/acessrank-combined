@@ -27,7 +27,7 @@
  *   the numerator):
  *
  *     Level A criteria      weight 3   (baseline; failing these is the usual claim)
- *     Level AA criteria     weight 2   (the ADA/EAA target)
+ *     Level AA criteria     weight 2   (the ADA target)
  *     Best practice only    weight 1   (not a conformance failure)
  *
  *   Element counts still drive issue ranking and the remediation-effort figure —
@@ -36,7 +36,10 @@
  *
  * SEO — a weighted checklist of on-page signals extracted from the same DOM.
  *
- * OVERALL — 60% accessibility, 40% SEO, matching how the product is positioned.
+ * HEADLINE — the Accessrank score IS the accessibility score. SEO and AI agent
+ * readiness are reported beside it as their own numbers and are never blended
+ * in, so the headline reads unambiguously as legal exposure. (Earlier builds
+ * blended 60/40; OVERALL_WEIGHTS is kept only so stored scans still decode.)
  */
 
 /** Weight a rule by the strictest conformance level it belongs to. */
@@ -220,13 +223,12 @@ export function scoreSeo(signals = {}) {
   };
 }
 
-export const OVERALL_WEIGHTS = { accessibility: 0.6, seo: 0.4 };
+export const OVERALL_WEIGHTS = { accessibility: 1, seo: 0 };
 
+/** The headline ("Accessrank") score: the accessibility score, unblended. */
 export function scoreOverall(a11yScore, seoScore) {
-  if (a11yScore == null && seoScore == null) return null;
-  if (a11yScore == null) return seoScore;
-  if (seoScore == null) return a11yScore;
-  return clamp(Math.round(a11yScore * OVERALL_WEIGHTS.accessibility + seoScore * OVERALL_WEIGHTS.seo));
+  if (a11yScore == null) return null;
+  return clamp(Math.round(a11yScore));
 }
 
 /** Plain-English band used for the headline and the PDF cover. */
