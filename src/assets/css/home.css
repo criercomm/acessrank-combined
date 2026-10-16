@@ -249,9 +249,11 @@
  * over it with a transform. */
 .risk-strip { padding: 37px var(--edge) 20px; --warning: var(--blue-500); --warning-soft: #60A5FA; } /* --warning-soft: unused as of migration */
 .risk-eyebrow { font-size: 11px; letter-spacing: 3px; color: var(--warning); font-weight: 500; margin-bottom: 16px; text-align: center; }
-.risk-title { font-size: 42px; line-height: 1.2; letter-spacing: -1.6px; font-weight: 800; margin: 0 auto 12px; color: var(--text); text-align: center; max-width: 1080px; }
+/* Set in the type of the deck's opening slide: Inter 800, all caps, tight leading, accent lines in brand yellow. */
+.risk-title { font-size: clamp(44px, 5.4vw, 88px); line-height: .96; letter-spacing: -.04em; font-weight: 800; text-transform: uppercase; margin: 0 auto 20px; color: var(--text); text-align: center; max-width: 1080px; text-wrap: balance; }
+.risk-title .h-line { display: block; }
 .risk-sub { font-size: 20px; line-height: 1.45; color: var(--text-soft); text-align: center; max-width: 860px; margin: 0 auto 36px; }
-.risk-title .red { color: inherit; }
+.risk-title .red { color: var(--brand); }
 .risk-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; max-width: 820px; margin: 0 auto; }
 /* The shared list reset (.risk-grid, .pour, ... { margin: 0 }) loads later and zeroed the auto margins, which only went unnoticed while the grid nearly filled its container. */
 .risk-strip .risk-grid { margin-inline: auto; }
@@ -475,7 +477,7 @@
   /* The links live in the .nav-toggle dropdown below 860px (components.css), so the bar stays one row: logo left,
    * hamburger right. It used to stack into a column from before the toggle existed, parking the hamburger under the logo. */
   .site-nav, .nav { padding-top: 24px; }
-  .risk-title { font-size: 30px; }
+  .risk-title { font-size: 40px; }
   :where(.site h2) { font-size: 26px; }
   .risk-title br { display: none; }
   .section-sub, .risk-sub { font-size: 17px; }
