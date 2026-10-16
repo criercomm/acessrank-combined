@@ -114,6 +114,16 @@ app.use(helmet({
   referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
 }));
 
+// The email-signature logo is hotlinked from other origins (mail clients, and
+// pages that preview a signature), so it is the one file that must opt out of
+// helmet's Cross-Origin-Resource-Policy: same-origin default.
+app.use((req, res, next) => {
+  if (req.path === '/assets/img/email-logo.png') {
+    res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+  }
+  next();
+});
+
 // The homepage frames the investor deck same-origin (site.js openDeck, the
 // #deck-overlay-frame iframe). The site-wide frame-ancestors 'none' above is
 // the right default everywhere else, but it also stops /deck being framed by
