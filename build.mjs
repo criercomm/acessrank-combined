@@ -166,6 +166,9 @@ function build() {
   const portalCssName = `portal.${hashOf(portalCss)}.css`;
   const portalJs = bundle(['portal.js'], jsDir);
   const portalJsName = `portal.${hashOf(portalJs)}.js`;
+  // The home page headline animation: GSAP plus hero-motion.js, linked only from pages marked `heroMotion`.
+  const heroJs = bundle(['vendor/gsap.min.js', 'hero-motion.js'], jsDir);
+  const heroJsName = `hero.${hashOf(heroJs)}.js`;
 
   fs.mkdirSync(path.join(DIST, 'assets', 'css'), { recursive: true });
   fs.mkdirSync(path.join(DIST, 'assets', 'js'), { recursive: true });
@@ -173,6 +176,7 @@ function build() {
   fs.writeFileSync(path.join(DIST, 'assets', 'js', jsName), jsSource);
   fs.writeFileSync(path.join(DIST, 'assets', 'css', portalCssName), portalCss);
   fs.writeFileSync(path.join(DIST, 'assets', 'js', portalJsName), portalJs);
+  fs.writeFileSync(path.join(DIST, 'assets', 'js', heroJsName), heroJs);
 
   // The stylesheet is inlined into every page's <head> (see shell.html), which
   // removes the one render-blocking request from the critical path. CSP must
@@ -234,6 +238,7 @@ function build() {
       jsHref: `/assets/js/${jsName}`,
       portalCssHref: `/assets/css/${portalCssName}`,
       portalJsHref: `/assets/js/${portalJsName}`,
+      heroJsHref: `/assets/js/${heroJsName}`,
       maxFileMb: process.env.PORTAL_MAX_FILE_MB || '25',
       canonical: `${SITE_URL}${page.url === '/' ? '/' : page.url}`,
       siteUrl: SITE_URL,

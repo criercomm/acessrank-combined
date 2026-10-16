@@ -52,6 +52,7 @@
        touch a form get no third-party cookie (Lighthouse Best Practices). -->
   <script src="{{ jsHref }}" defer></script>
   {{#if page.portal}}<script src="{{ portalJsHref }}" defer></script>{{/if}}
+  {{#if page.heroMotion}}<script src="{{ heroJsHref }}" defer></script>{{/if}}
 </head>
 <body class="site" data-page="{{ page.url }}"{{#if turnstileSiteKey}} data-turnstile-key="{{ turnstileSiteKey }}"{{/if}}>
   <a class="skip-link" href="#main-content">Skip to main content</a>
