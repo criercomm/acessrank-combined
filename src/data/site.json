@@ -77,7 +77,7 @@
         },
         {
           "q": "What is WCAG 2.2 Level AA?",
-          "a": "WCAG 2.2 is the W3C's web accessibility standard: 86 success criteria organized under four principles — Perceivable, Operable, Understandable, Robust (POUR). Level AA is the middle of three conformance levels and is the target referenced by ADA guidance and Section 508. Level A alone isn't enough, and Level AAA is aspirational and largely unachievable for ecommerce content."
+          "a": "WCAG 2.2 is the W3C's web accessibility standard: 86 success criteria organized under four principles — Perceivable, Operable, Understandable, Robust (POUR). Level AA is the middle of three conformance levels and is the target referenced by ADA guidance and Section 508. We score and remediate against the 55 Level A and AA criteria — the legally relevant ones. Level A alone isn't enough, and Level AAA is aspirational and largely unachievable for ecommerce content, so we don't test against it."
         },
         {
           "q": "Does the free check prove I am compliant?",

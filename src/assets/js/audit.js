@@ -117,7 +117,7 @@
   /* Honest progress: these are the phases the server actually works through. */
   var PHASES = [
     'Loading the page in a real browser',
-    'Running axe-core against WCAG 2.2 AA',
+    'Running axe-core against WCAG 2.2 A/AA',
     'Checking colour contrast and focus order',
     'Reading SEO and AI agent signals',
     'Scoring'
@@ -174,7 +174,7 @@
       'p',
       'result-sub',
       data.pagesScanned + (data.pagesScanned === 1 ? ' page' : ' pages') +
-      ' checked against WCAG 2.2 AA with axe-core ' + (data.axeVersion || '') +
+      ' checked against WCAG 2.2 A/AA with axe-core ' + (data.axeVersion || '') +
       (a11y.violationsTotal ? ' · ' + a11y.violationsTotal + (a11y.violationsTotal === 1 ? ' element' : ' elements') + ' affected' : '')
     ));
     head.appendChild(headText);
