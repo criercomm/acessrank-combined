@@ -87,7 +87,7 @@
       "file": "about.html",
       "url": "/about",
       "layout": "page",
-      "title": "About Accessrank — accessibility engineers, not overlay vendors",
+      "title": "About Accessrank | accessibility engineers, not overlay vendors",
       "description": "Who we are, why we fix source code instead of installing an overlay widget, and how we think about accessibility, risk and search.",
       "priority": "0.6",
       "changefreq": "monthly"
@@ -96,7 +96,7 @@
       "file": "methodology.html",
       "url": "/methodology",
       "layout": "page",
-      "title": "How we score your site — Accessrank audit methodology",
+      "title": "How we score your site | Accessrank audit methodology",
       "description": "The exact scoring model behind your Accessrank report: axe-core rules, WCAG conformance weighting, and the on-page SEO checklist. No black box.",
       "priority": "0.7",
       "changefreq": "monthly"
@@ -114,7 +114,7 @@
       "file": "resources.html",
       "url": "/resources",
       "layout": "page",
-      "title": "Accessibility & SEO resources for DTC ecommerce — Accessrank",
+      "title": "Accessibility & SEO resources for DTC ecommerce | Accessrank",
       "description": "Plain-English explainers on WCAG 2.2 AA, ADA and EAA compliance, accessibility scoring, and how accessibility work affects organic search.",
       "priority": "0.6",
       "changefreq": "weekly"
@@ -124,7 +124,7 @@
       "url": "/careers",
       "layout": "page",
       "title": "Careers at Accessrank — make ecommerce work for everyone",
-      "description": "Open roles at Accessrank. Remote-first across the US and EU, building accessibility remediation that actually ships.",
+      "description": "Open roles at Accessrank. Remote-first and US-based, building accessibility remediation that actually ships.",
       "priority": "0.5",
       "changefreq": "weekly"
     },
@@ -169,7 +169,7 @@
       "file": "disclosure.html",
       "url": "/disclosure",
       "layout": "doc",
-      "title": "Disclosure — Accessrank",
+      "title": "Disclosure | Accessrank",
       "description": "Important disclosures about litigation risk, results claims, tax credit guidance and WCAG conformance.",
       "priority": "0.3",
       "changefreq": "yearly"
@@ -229,7 +229,7 @@
       "slug": "senior-accessibility-engineer",
       "title": "Senior Accessibility Engineer",
       "team": "Engineering",
-      "location": "Remote — US / EU",
+      "location": "Remote — US",
       "type": "Full-time",
       "summary": "Lead remediation work on real storefronts: audit against WCAG 2.2 AA, write the patches, and prove the fix with automated and assistive-technology testing.",
       "responsibilities": [
@@ -250,7 +250,7 @@
       "slug": "remediation-specialist",
       "title": "Remediation Specialist",
       "team": "Delivery",
-      "location": "Remote — US / EU",
+      "location": "Remote — US",
       "type": "Full-time",
       "summary": "Turn audit findings into shipped fixes at volume, with an eye for the pattern behind a hundred individual failures.",
       "responsibilities": [
@@ -269,7 +269,7 @@
       "slug": "product-designer",
       "title": "Product Designer",
       "team": "Product",
-      "location": "Remote — US / EU",
+      "location": "Remote — US",
       "type": "Full-time",
       "summary": "Design an accessibility product that is itself exemplary. Everything you ship gets audited by the same standard we sell.",
       "responsibilities": [
