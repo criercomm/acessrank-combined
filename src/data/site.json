@@ -36,7 +36,7 @@
       "heading": "Learn",
       "links": [
         { "label": "WCAG 2.2 explained", "href": "/home#wcag" },
-        { "label": "ADA & EAA guide", "href": "/guide/ada-eaa" },
+        { "label": "ADA guide", "href": "/guide/ada-eaa" },
         { "label": "Resources", "href": "/resources" }
       ]
     },
@@ -76,7 +76,7 @@
         },
         {
           "q": "What is WCAG 2.2 Level AA?",
-          "a": "WCAG 2.2 is the W3C's web accessibility standard: 86 success criteria organized under four principles — Perceivable, Operable, Understandable, Robust (POUR). Level AA is the middle of three conformance levels and is the target referenced by ADA guidance, the European Accessibility Act, and Section 508. Level A alone isn't enough, and Level AAA is aspirational and largely unachievable for ecommerce content."
+          "a": "WCAG 2.2 is the W3C's web accessibility standard: 86 success criteria organized under four principles — Perceivable, Operable, Understandable, Robust (POUR). Level AA is the middle of three conformance levels and is the target referenced by ADA guidance and Section 508. Level A alone isn't enough, and Level AAA is aspirational and largely unachievable for ecommerce content."
         },
         {
           "q": "Does the free check prove I am compliant?",
@@ -110,8 +110,8 @@
       "file": "guide-ada-eaa.html",
       "url": "/guide/ada-eaa",
       "layout": "page",
-      "title": "ADA & European Accessibility Act — the ecommerce guide",
-      "description": "What the ADA, Section 508 and the European Accessibility Act actually require of an online store, what the deadlines are, and what happens if you miss them.",
+      "title": "The ADA and your online store | Accessrank guide",
+      "description": "What the ADA and Section 508 actually require of an online store, who is covered, and what happens when a demand letter arrives.",
       "priority": "0.8",
       "changefreq": "monthly"
     },
@@ -120,7 +120,7 @@
       "url": "/resources",
       "layout": "page",
       "title": "Accessibility & SEO resources for DTC ecommerce | Accessrank",
-      "description": "Plain-English explainers on WCAG 2.2 AA, ADA and EAA compliance, accessibility scoring, and how accessibility work affects organic search.",
+      "description": "Plain-English explainers on WCAG 2.2 AA, ADA compliance, accessibility scoring, and how accessibility work affects organic search.",
       "priority": "0.6",
       "changefreq": "weekly"
     },
