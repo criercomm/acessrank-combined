@@ -508,6 +508,9 @@ body.modal-open { overflow: hidden; }
  * ------------------------------------------------------------------------- */
 
 .faq { padding: 8px var(--edge) 64px; }
+/* No .section-sub under this heading, so give it the same 36px of air the
+ * other sections get from their subhead's bottom margin. */
+.faq h2 { margin-bottom: 36px; }
 
 .faq-list {
   margin: 0 auto;
