@@ -236,23 +236,91 @@
 <section class="faq" id="faq">
   <div class="section-eyebrow">FAQ</div>
   <h2>Questions worth answering honestly.</h2>
-  <dl class="faq-list">
-    <dt>Is an accessibility overlay enough?</dt>
-    <dd>No. Overlay widgets sit on top of your existing code without fixing it, and courts and regulators increasingly treat them as a red flag rather than a defense &mdash; 25% of accessibility lawsuits in 2024 involved sites running an overlay, and the FTC fined accessiBe $1 million in 2025 for misleading accessibility claims. Accessrank remediates the underlying HTML, CSS and ARIA in your theme instead of masking it with a script.</dd>
-
-    <dt>How long does remediation take?</dt>
-    <dd>Most stores are live with a raised score in 2&ndash;4 weeks, depending on catalog size and how much custom code your theme carries. If you've already been served a demand letter or lawsuit, our express lane targets the cited and critical-path issues in about 7 days.</dd>
-
-    <dt>Will this actually help my SEO?</dt>
-    <dd>The same fixes that raise your accessibility score &mdash; alt text, heading structure, semantic HTML, ARIA labeling &mdash; are structural signals search engines read too. In a Semrush study of 847 sites, 73% saw organic-traffic growth after remediation (avg. +12%), and a larger 2025 Semrush study of 10,000 sites found higher-accessibility-score sites averaged 23% more organic traffic and 27% more ranking keywords. These results are correlational, not causal, and individual results vary.</dd>
-
-    <dt>What is WCAG 2.2 Level AA?</dt>
-    <dd>WCAG 2.2 is the W3C's web accessibility standard: 86 success criteria organized under four principles &mdash; Perceivable, Operable, Understandable, Robust (POUR). Level AA is the middle of three conformance levels and is the target referenced by ADA guidance and Section 508. We score and remediate against the 55 Level A and AA criteria &mdash; the legally relevant ones. Level A alone isn't enough, and Level AAA is aspirational and largely unachievable for ecommerce content, so we don't test against it.</dd>
-
-    <dt>Does the free check prove I am compliant?</dt>
-    <dd>No, and be wary of any tool that claims it does. Automated testing &mdash; including our free check &mdash; catches roughly a third to a half of accessibility barriers. It's a fast way to surface obvious issues, but full WCAG conformance also requires manual testing with a keyboard and a screen reader, which is what our paid audits and remediation include.</dd>
-
-    <dt>What if I have already received a demand letter?</dt>
-    <dd>Talk to us right away. Our lawsuit-response engagement starts at $5,900, moves in about 7 days, and covers an emergency audit of the cited and critical-path barriers, source-code remediation of the complaint items, a screen-reader proof video, VPAT and conformance documentation, and a settlement-terms review. Accessrank is not a law firm and does not provide legal representation or advice &mdash; this runs alongside your attorney, not instead of one.</dd>
-  </dl>
+  <div class="faq-list">
+    <details class="faq-item" id="faq-1">
+      <summary class="faq-q"><span class="faq-q-text">Is a Shopify store automatically ADA compliant?</span><span class="faq-icon" aria-hidden="true"><svg viewBox="0 0 16 16" width="16" height="16" focusable="false"><path d="M8 3v10M3 8h10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span></summary>
+      <div class="faq-a">
+        <p>No. Shopify provides a well-built foundation, but it does not warrant that any store meets accessibility standards. Shopify's own published <a href="https://www.shopify.com/accessibility/vpat-checkout">Accessibility Conformance Reports</a> describe its checkout and default Dawn theme as &ldquo;partially supporting&rdquo; several WCAG Level AA criteria, including color contrast and visible focus, and Shopify expressly disclaims any warranty regarding those reports.</p>
+        <p>Everything a merchant adds on top of the platform, including custom themes, design changes and third-party apps, is the merchant's responsibility. Apps are not reviewed for accessibility as a condition of listing in the Shopify App Store. Independent research by <a href="https://webaim.org/projects/million/">WebAIM</a> found that in 2026, Shopify home pages in its sample averaged more detectable accessibility errors than the overall average of the top one million websites.</p>
+        <p>Accessibility &ldquo;overlay&rdquo; widgets do not change this, since they do not alter the underlying code. The U.S. Federal Trade Commission has taken enforcement action against unsubstantiated claims that such tools make websites compliant.</p>
+        <p>Accessrank identifies barriers in your store's actual theme and app code, remediates them at the source, and documents the work. That is the approach courts and settlement agreements consistently look for.</p>
+      </div>
+    </details>
+    <details class="faq-item" id="faq-2">
+      <summary class="faq-q"><span class="faq-q-text">Is an accessibility overlay enough?</span><span class="faq-icon" aria-hidden="true"><svg viewBox="0 0 16 16" width="16" height="16" focusable="false"><path d="M8 3v10M3 8h10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span></summary>
+      <div class="faq-a">
+        <p>No. An overlay is a script that loads on top of your store and tries to patch problems while the page is displayed. It leaves the underlying code exactly as it was, so a screen reader or keyboard user hits the same barriers, and plaintiffs' firms have learned to look for overlay scripts as a sign that nothing was actually fixed. In 2024, about 25% of accessibility lawsuits involved sites that were running an overlay.</p>
+        <p>In 2025 the Federal Trade Commission <a href="https://www.ftc.gov/news-events/news/press-releases/2025/04/ftc-approves-final-order-requiring-accessibe-pay-1-million">ordered overlay vendor accessiBe to pay $1 million</a> to settle charges that it misrepresented its product's ability to make websites compliant with WCAG.</p>
+        <p>Accessrank does not install a widget. We fix the HTML, CSS and ARIA in your theme and app code, so the improvement is in the store itself.</p>
+      </div>
+    </details>
+    <details class="faq-item" id="faq-3">
+      <summary class="faq-q"><span class="faq-q-text">What exactly is the Accessrank score?</span><span class="faq-icon" aria-hidden="true"><svg viewBox="0 0 16 16" width="16" height="16" focusable="false"><path d="M8 3v10M3 8h10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span></summary>
+      <div class="faq-a">
+        <p>It is your accessibility score, and only that: how your store measures against the 55 WCAG 2.2 Level A and AA checks, the ones US courts and settlements reference. Nothing else is blended in.</p>
+        <p>Your report also shows two separate numbers beside it: an on-page SEO score and an AI readiness score, which measures how well shopping agents and AI search tools can read your store. They are reported alongside the accessibility score, not folded into it, so you always know which number a lawyer would look at. <a href="/methodology">See how we score</a>.</p>
+      </div>
+    </details>
+    <details class="faq-item" id="faq-4">
+      <summary class="faq-q"><span class="faq-q-text">Who actually does the remediation work?</span><span class="faq-icon" aria-hidden="true"><svg viewBox="0 0 16 16" width="16" height="16" focusable="false"><path d="M8 3v10M3 8h10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span></summary>
+      <div class="faq-a">
+        <p>Accessrank fixes every finding in your theme code, and most of it within the first remediation cycle. Our remediation tooling handles the fixes that follow clear rules, such as labels, structure, focus handling and markup.</p>
+        <p>The findings that need a judgment call, such as writing or reviewing alt text, describing media and deciding how a control should behave, are done and reviewed by an Accessrank staff member. You get a record of what changed and why.</p>
+      </div>
+    </details>
+    <details class="faq-item" id="faq-5">
+      <summary class="faq-q"><span class="faq-q-text">Will this change how my store looks?</span><span class="faq-icon" aria-hidden="true"><svg viewBox="0 0 16 16" width="16" height="16" focusable="false"><path d="M8 3v10M3 8h10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span></summary>
+      <div class="faq-a">
+        <p>Almost never in a way shoppers would notice. The large majority of fixes are invisible: labels for screen readers, heading structure, keyboard focus handling, form markup and alt text.</p>
+        <p>The one visible exception is color contrast. If your brand palette uses text that is too light against its background, we propose the smallest adjustment that passes and agree it with you before anything goes live.</p>
+      </div>
+    </details>
+    <details class="faq-item" id="faq-6">
+      <summary class="faq-q"><span class="faq-q-text">How long does remediation take?</span><span class="faq-icon" aria-hidden="true"><svg viewBox="0 0 16 16" width="16" height="16" focusable="false"><path d="M8 3v10M3 8h10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span></summary>
+      <div class="faq-a">
+        <p>Most stores are live with a raised score in 2 to 4 weeks, depending on catalog size and how much custom code your theme carries. If you have already been served a demand letter or lawsuit, our express lane targets the cited and critical-path issues in about 7 days.</p>
+      </div>
+    </details>
+    <details class="faq-item" id="faq-7">
+      <summary class="faq-q"><span class="faq-q-text">Will this actually help my SEO?</span><span class="faq-icon" aria-hidden="true"><svg viewBox="0 0 16 16" width="16" height="16" focusable="false"><path d="M8 3v10M3 8h10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span></summary>
+      <div class="faq-a">
+        <p>The same fixes that raise your accessibility score, such as alt text, heading structure, semantic HTML and ARIA labeling, are structural signals search engines read too. In a Semrush study of 847 sites, 73% saw organic-traffic growth after remediation (avg. +12%), and a larger 2025 Semrush study of 10,000 sites found higher-accessibility-score sites averaged 23% more organic traffic and 27% more ranking keywords.</p>
+        <p>These results are correlational, not causal, and individual results vary.</p>
+      </div>
+    </details>
+    <details class="faq-item" id="faq-8">
+      <summary class="faq-q"><span class="faq-q-text">What is WCAG 2.2 Level AA?</span><span class="faq-icon" aria-hidden="true"><svg viewBox="0 0 16 16" width="16" height="16" focusable="false"><path d="M8 3v10M3 8h10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span></summary>
+      <div class="faq-a">
+        <p>WCAG (the Web Content Accessibility Guidelines) is the international checklist for whether a website works for people with disabilities. It is published by the W3C, the body that sets web standards, and it is the yardstick US courts, the Department of Justice and settlement agreements use when they decide whether a site meets the ADA.</p>
+        <p>It has three levels. Level A is the minimum and is not enough on its own. Level AA is the middle level and the one legal guidance references. Level AAA is aspirational and largely unachievable for an ecommerce catalog, so we do not test against it. We score and fix against the 55 Level A and AA checks, the legally relevant ones.</p>
+      </div>
+    </details>
+    <details class="faq-item" id="faq-9">
+      <summary class="faq-q"><span class="faq-q-text">Does the free check prove I am compliant?</span><span class="faq-icon" aria-hidden="true"><svg viewBox="0 0 16 16" width="16" height="16" focusable="false"><path d="M8 3v10M3 8h10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span></summary>
+      <div class="faq-a">
+        <p>No, and be wary of any tool that claims it does. Automated testing, including our free check, catches roughly a third to a half of accessibility barriers. It is a fast way to surface obvious issues, but full WCAG conformance also requires manual testing with a keyboard and a screen reader, which is what our paid audits and remediation include.</p>
+        <p>Our ongoing monitoring works the same way: it watches your store for the problems that can be machine-checked, so a new app, theme edit or product upload does not quietly undo the work. The manual pass happens at onboarding and in each remediation cycle.</p>
+      </div>
+    </details>
+    <details class="faq-item" id="faq-10">
+      <summary class="faq-q"><span class="faq-q-text">Do I qualify for the Form 8826 tax credit?</span><span class="faq-icon" aria-hidden="true"><svg viewBox="0 0 16 16" width="16" height="16" focusable="false"><path d="M8 3v10M3 8h10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span></summary>
+      <div class="faq-a">
+        <p>Many of the stores we work with do. The IRS Disabled Access Credit (<a href="https://www.irs.gov/forms-pubs/about-form-8826">Form 8826</a>) lets eligible small businesses claim 50% of qualifying accessibility expenses between $250 and $10,250 in a year, up to $5,000 back against your tax bill.</p>
+        <p>To be eligible, your business needs either $1 million or less in gross receipts, or 30 or fewer full-time employees, in the preceding tax year. The credit is non-refundable and subject to IRS rules. Accessrank is not a tax advisor and this is not tax advice, so confirm your eligibility with a qualified professional.</p>
+      </div>
+    </details>
+    <details class="faq-item" id="faq-11">
+      <summary class="faq-q"><span class="faq-q-text">Does Accessrank cover European requirements (the EAA)?</span><span class="faq-icon" aria-hidden="true"><svg viewBox="0 0 16 16" width="16" height="16" focusable="false"><path d="M8 3v10M3 8h10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span></summary>
+      <div class="faq-a">
+        <p>No. Accessrank's services are built around US standards: the ADA and WCAG 2.2 Level AA. We do not currently offer European Accessibility Act conformance work or make any claims about EU compliance. The code-level fixes we make are the same ones any accessibility standard asks for, but if you need documented EAA conformance you will want a specialist in that market.</p>
+      </div>
+    </details>
+    <details class="faq-item" id="faq-12">
+      <summary class="faq-q"><span class="faq-q-text">What if I have already received a demand letter?</span><span class="faq-icon" aria-hidden="true"><svg viewBox="0 0 16 16" width="16" height="16" focusable="false"><path d="M8 3v10M3 8h10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span></summary>
+      <div class="faq-a">
+        <p>Talk to us right away. Our lawsuit-response engagement starts at $5,900 and moves in about 7 days: an emergency audit of the cited and critical-path barriers, source-code remediation of the complaint items, a screen-reader proof video, VPAT and conformance documentation, and a settlement-terms review. The details are in the <a href="#lawsuit-response">&ldquo;Already facing a claim&rdquo;</a> section above.</p>
+        <p>Accessrank is not a law firm and does not provide legal representation or advice. This runs alongside your attorney, not instead of one.</p>
+      </div>
+    </details>
+  </div>
 </section>
