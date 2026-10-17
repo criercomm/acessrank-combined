@@ -52,24 +52,28 @@ body { position: relative; overflow-x: hidden; }
  * eight blurred, drifting blob elements. The blobs were boxes that covered some lines of a paragraph and not others as
  * they drifted, which is exactly what makes axe give up on a colour-contrast check ("partially overlaps other elements"):
  * /home's own free check scored itself "needs review" on WCAG 1.4.3. Layers that always cover the whole page are the same
- * behind every line. Opacity is the only thing animated, so it stays a cheap composited animation; no blur filter. */
-.aurora span { position: absolute; inset: 0; }
-.aurora-a { background: radial-gradient(circle calc(29vw + 80px) at 19% calc(8% + 29vw), rgba(37, 99, 235, .42) calc(29vw - 80px), rgba(37, 99, 235, 0) calc(29vw + 80px)),
-  radial-gradient(circle calc(32vw + 80px) at 84% calc(32% + 32vw), rgba(59, 130, 246, .42) calc(32vw - 80px), rgba(59, 130, 246, 0) calc(32vw + 80px)),
-  radial-gradient(circle calc(27vw + 80px) at 53% calc(52% + 27vw), rgba(30, 64, 175, .42) calc(27vw - 80px), rgba(30, 64, 175, 0) calc(27vw + 80px)),
-  radial-gradient(circle calc(26vw + 80px) at 70% calc(-12% + 26vw), rgba(37, 99, 235, .42) calc(26vw - 80px), rgba(37, 99, 235, 0) calc(26vw + 80px)),
-  radial-gradient(circle calc(28vw + 80px) at 16% calc(70% + 28vw), rgba(59, 130, 246, .42) calc(28vw - 80px), rgba(59, 130, 246, 0) calc(28vw + 80px)),
-  radial-gradient(circle calc(28vw + 80px) at 86% calc(80% + 28vw), rgba(29, 78, 216, .42) calc(28vw - 80px), rgba(29, 78, 216, 0) calc(28vw + 80px)),
-  radial-gradient(circle calc(27vw + 80px) at 51% calc(88% + 27vw), rgba(37, 99, 235, .42) calc(27vw - 80px), rgba(37, 99, 235, 0) calc(27vw + 80px)),
-  radial-gradient(circle calc(24vw + 80px) at 58% calc(108% - 24vw), rgba(30, 64, 175, .42) calc(24vw - 80px), rgba(30, 64, 175, 0) calc(24vw + 80px)); }
-.aurora-b { opacity: 0; background: radial-gradient(circle calc(35vw + 80px) at calc(19% + 22vw) calc(8% + 55.7vw), rgba(37, 99, 235, .42) calc(35vw - 80px), rgba(37, 99, 235, 0) calc(35vw + 80px)),
-  radial-gradient(circle calc(36vw + 80px) at calc(84% - 30.7vw) calc(32% + 53.8vw), rgba(59, 130, 246, .42) calc(36vw - 80px), rgba(59, 130, 246, 0) calc(36vw + 80px)),
-  radial-gradient(circle calc(24vw + 80px) at calc(53% + 29.2vw) calc(52% + 8.6vw), rgba(30, 64, 175, .42) calc(24vw - 80px), rgba(30, 64, 175, 0) calc(24vw + 80px)),
-  radial-gradient(circle calc(31vw + 80px) at calc(70% - 15.6vw) calc(-12% + 0vw), rgba(37, 99, 235, .42) calc(31vw - 80px), rgba(37, 99, 235, 0) calc(31vw + 80px)),
-  radial-gradient(circle calc(31vw + 80px) at calc(16% + 22.4vw) calc(70% - 4.5vw), rgba(59, 130, 246, .42) calc(31vw - 80px), rgba(59, 130, 246, 0) calc(31vw + 80px)),
-  radial-gradient(circle calc(25vw + 80px) at calc(86% - 28vw) calc(80% + 44.8vw), rgba(29, 78, 216, .42) calc(25vw - 80px), rgba(29, 78, 216, 0) calc(25vw + 80px)),
-  radial-gradient(circle calc(31vw + 80px) at calc(51% + 23.8vw) calc(88% + 3.2vw), rgba(37, 99, 235, .42) calc(31vw - 80px), rgba(37, 99, 235, 0) calc(31vw + 80px)),
-  radial-gradient(circle calc(27vw + 80px) at calc(58% - 18.2vw) calc(108% - 40.3vw), rgba(30, 64, 175, .42) calc(27vw - 80px), rgba(30, 64, 175, 0) calc(27vw + 80px));
+ * behind every line. Opacity and transform are the only things animated, so it stays a cheap composited animation. */
+.aurora span { position: absolute; inset: -100px; filter: blur(70px); }
+/* The glows are softened two ways: each gradient holds its colour to 30% of its radius and then fades over the remaining
+ * 70% (it used to switch off across a fixed 160px band, which read as a ring on large screens), and the whole layer is
+ * blurred like the original blob elements were. The layer overscans the page by 100px so the blur's own soft edge is
+ * clipped by .aurora rather than visible. Coverage of every line of text is unchanged, so the contrast check stays clean. */
+.aurora-a { background: radial-gradient(circle calc(29vw + 80px) at 19% calc(8% + 29vw), rgba(37, 99, 235, .42) calc(29vw * 0.3), rgba(37, 99, 235, 0) calc(29vw + 80px)),
+  radial-gradient(circle calc(32vw + 80px) at 84% calc(32% + 32vw), rgba(59, 130, 246, .42) calc(32vw * 0.3), rgba(59, 130, 246, 0) calc(32vw + 80px)),
+  radial-gradient(circle calc(27vw + 80px) at 53% calc(52% + 27vw), rgba(30, 64, 175, .42) calc(27vw * 0.3), rgba(30, 64, 175, 0) calc(27vw + 80px)),
+  radial-gradient(circle calc(26vw + 80px) at 70% calc(-12% + 26vw), rgba(37, 99, 235, .42) calc(26vw * 0.3), rgba(37, 99, 235, 0) calc(26vw + 80px)),
+  radial-gradient(circle calc(28vw + 80px) at 16% calc(70% + 28vw), rgba(59, 130, 246, .42) calc(28vw * 0.3), rgba(59, 130, 246, 0) calc(28vw + 80px)),
+  radial-gradient(circle calc(28vw + 80px) at 86% calc(80% + 28vw), rgba(29, 78, 216, .42) calc(28vw * 0.3), rgba(29, 78, 216, 0) calc(28vw + 80px)),
+  radial-gradient(circle calc(27vw + 80px) at 51% calc(88% + 27vw), rgba(37, 99, 235, .42) calc(27vw * 0.3), rgba(37, 99, 235, 0) calc(27vw + 80px)),
+  radial-gradient(circle calc(24vw + 80px) at 58% calc(108% - 24vw), rgba(30, 64, 175, .42) calc(24vw * 0.3), rgba(30, 64, 175, 0) calc(24vw + 80px)); }
+.aurora-b { opacity: 0; background: radial-gradient(circle calc(35vw + 80px) at calc(19% + 22vw) calc(8% + 55.7vw), rgba(37, 99, 235, .42) calc(35vw * 0.3), rgba(37, 99, 235, 0) calc(35vw + 80px)),
+  radial-gradient(circle calc(36vw + 80px) at calc(84% - 30.7vw) calc(32% + 53.8vw), rgba(59, 130, 246, .42) calc(36vw * 0.3), rgba(59, 130, 246, 0) calc(36vw + 80px)),
+  radial-gradient(circle calc(24vw + 80px) at calc(53% + 29.2vw) calc(52% + 8.6vw), rgba(30, 64, 175, .42) calc(24vw * 0.3), rgba(30, 64, 175, 0) calc(24vw + 80px)),
+  radial-gradient(circle calc(31vw + 80px) at calc(70% - 15.6vw) calc(-12% + 0vw), rgba(37, 99, 235, .42) calc(31vw * 0.3), rgba(37, 99, 235, 0) calc(31vw + 80px)),
+  radial-gradient(circle calc(31vw + 80px) at calc(16% + 22.4vw) calc(70% - 4.5vw), rgba(59, 130, 246, .42) calc(31vw * 0.3), rgba(59, 130, 246, 0) calc(31vw + 80px)),
+  radial-gradient(circle calc(25vw + 80px) at calc(86% - 28vw) calc(80% + 44.8vw), rgba(29, 78, 216, .42) calc(25vw * 0.3), rgba(29, 78, 216, 0) calc(25vw + 80px)),
+  radial-gradient(circle calc(31vw + 80px) at calc(51% + 23.8vw) calc(88% + 3.2vw), rgba(37, 99, 235, .42) calc(31vw * 0.3), rgba(37, 99, 235, 0) calc(31vw + 80px)),
+  radial-gradient(circle calc(27vw + 80px) at calc(58% - 18.2vw) calc(108% - 40.3vw), rgba(30, 64, 175, .42) calc(27vw * 0.3), rgba(30, 64, 175, 0) calc(27vw + 80px));
   animation: auroraFade 26s ease-in-out infinite alternate, auroraDriftB 48s ease-in-out infinite alternate; }
 @keyframes auroraFade { from { opacity: 0; } to { opacity: 1; } }
 .aurora-a { animation: auroraFadeOut 26s ease-in-out infinite alternate, auroraDriftA 44s ease-in-out infinite alternate; }
