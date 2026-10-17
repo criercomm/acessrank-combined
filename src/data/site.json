@@ -5,7 +5,7 @@
   "email": "info@accessrank.ai",
   "reportFrom": "reports@accessrank.ai",
   "legalName": "Accessrank",
-  "foundingYear": 2025,
+  "foundingYear": 2026,
   "locale": "en",
 
   "nav": [
@@ -70,7 +70,7 @@
         },
         {
           "q": "Is an accessibility overlay enough?",
-          "a": "No. An overlay is a script that loads on top of your store and tries to patch problems while the page is displayed. It leaves the underlying code exactly as it was, so a screen reader or keyboard user hits the same barriers, and plaintiffs' firms have learned to look for overlay scripts as a sign that nothing was actually fixed. In 2024, about 25% of accessibility lawsuits involved sites that were running an overlay. In 2025 the Federal Trade Commission ordered overlay vendor accessiBe to pay $1 million to settle charges that it misrepresented its product's ability to make websites compliant with WCAG. Accessrank does not install a widget. We fix the HTML, CSS and ARIA in your theme and app code, so the improvement is in the store itself."
+          "a": "No. An overlay is a script that loads on top of your store and tries to patch problems while the page is displayed. It leaves the underlying code exactly as it was, so a screen reader or keyboard user hits the same barriers, and plaintiffs' firms have learned to look for overlay scripts as a sign that nothing was actually fixed. In 2024, more than 1,000 of the 4,187 ADA digital accessibility lawsuits filed, about one in four, targeted sites that were running an overlay or widget (UsableNet). In 2025 the Federal Trade Commission ordered overlay vendor accessiBe to pay $1 million to settle charges that it misrepresented its product's ability to make websites compliant with WCAG. Accessrank does not install a widget. We fix the HTML, CSS and ARIA in your theme and app code, so the improvement is in the store itself."
         },
         {
           "q": "What exactly is the Accessrank score?",
@@ -102,7 +102,7 @@
         },
         {
           "q": "Do I qualify for the Form 8826 tax credit?",
-          "a": "Many of the stores we work with do. The IRS Disabled Access Credit (Form 8826) lets eligible small businesses claim 50% of qualifying accessibility expenses between $250 and $10,250 in a year, up to $5,000 back against your tax bill. To be eligible, your business needs either $1 million or less in gross receipts, or 30 or fewer full-time employees, in the preceding tax year. The credit is non-refundable and subject to IRS rules. Accessrank is not a tax advisor and this is not tax advice, so confirm your eligibility with a qualified professional."
+          "a": "Many DTC stores do. The IRS Disabled Access Credit (Form 8826) lets eligible small businesses claim 50% of qualifying accessibility expenses between $250 and $10,250 in a year, up to $5,000 back against your tax bill. To be eligible, your business needs either $1 million or less in gross receipts, or 30 or fewer full-time employees, in the preceding tax year. The credit is non-refundable and subject to IRS rules. Accessrank is not a tax advisor and this is not tax advice, so confirm your eligibility with a qualified professional."
         },
         {
           "q": "Does Accessrank cover European requirements (the EAA)?",
@@ -110,7 +110,7 @@
         },
         {
           "q": "What if I have already received a demand letter?",
-          "a": "Talk to us right away. Our lawsuit-response engagement starts at $5,900 and moves in about 7 days: an emergency audit of the cited and critical-path barriers, source-code remediation of the complaint items, a screen-reader proof video, VPAT and conformance documentation, and a settlement-terms review. The details are in the “Already facing a claim” section above. Accessrank is not a law firm and does not provide legal representation or advice. This runs alongside your attorney, not instead of one."
+          "a": "Talk to us right away. Our lawsuit-response engagement starts at $5,900 and moves in about 7 days: an emergency audit of the cited and critical-path barriers, source-code remediation of the complaint items, a screen-reader proof video, VPAT and conformance documentation, and a technical review of the remediation requirements in any proposed settlement terms, prepared for your attorney. The details are in the “Already facing a claim” section above. Accessrank is not a law firm and does not provide legal representation or advice. This runs alongside your attorney, not instead of one."
         }
       ]
     },

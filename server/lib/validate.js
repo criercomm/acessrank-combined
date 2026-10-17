@@ -40,7 +40,7 @@ export const reportSchema = z.object({
   scanId: z.string().uuid('That scan has expired — run the check again.'),
   name: trimmed(120).min(2, 'Enter your name.'),
   email: trimmed(254).min(3, 'Enter your email address.'),
-  phone: trimmed(40).min(5, 'Enter a phone number we can reach you on.'),
+  phone: trimmed(40).optional().nullable(),
   consent: z.union([z.boolean(), z.literal('on'), z.literal('true')]).refine(
     (v) => v === true || v === 'on' || v === 'true',
     'Please agree to the privacy policy so we can send your report.',

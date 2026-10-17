@@ -594,8 +594,8 @@
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email.value.trim())) {
       problems.push({ field: 'email', message: 'Enter a valid email address.' });
     }
-    if (phone.value.replace(/[^\d]/g, '').length < 7) {
-      problems.push({ field: 'phone', message: 'Enter a phone number we can reach you on.' });
+    if (phone.value.trim() && phone.value.replace(/[^\d]/g, '').length < 7) {
+      problems.push({ field: 'phone', message: 'Enter a valid phone number, or leave it blank.' });
     }
     if (!consent.checked) {
       problems.push({ field: 'consent', message: 'Please agree to the privacy policy so we can send your report.' });

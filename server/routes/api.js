@@ -208,7 +208,7 @@ router.post('/report', wrap(async (req, res) => {
 
   await verifyTurnstile(input.turnstileToken, ip);
 
-  const contact = normalizeContact(input, { requirePhone: true });
+  const contact = normalizeContact(input, { requirePhone: false });
 
   if (!isUuid(input.scanId)) {
     throw new ValidationError('That scan has expired — run the check again.', { field: 'scanId', code: 'scan_missing' });

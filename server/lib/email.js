@@ -79,7 +79,7 @@ const brandShell = (title, bodyHtml) => `<!doctype html>
     ${bodyHtml}
   </td></tr>
   <tr><td style="padding:18px 28px;background:#fafbfc;border-top:1px solid #e3e5ea;font:400 12px/1.55 -apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#6a6f7d;">
-    Accessrank &middot; <a href="${config.siteUrl}" style="color:#6a6f7d;">${escapeHtml(config.siteUrl.replace(/^https?:\/\//, ''))}</a><br>
+    Accessrank &middot; 2722 N. Beverly Glen Blvd, Los Angeles, CA 90077 &middot; <a href="${config.siteUrl}" style="color:#6a6f7d;">${escapeHtml(config.siteUrl.replace(/^https?:\/\//, ''))}</a><br>
     You received this because you requested an accessibility report for your website.
     <a href="${config.siteUrl}/privacy" style="color:#6a6f7d;">Privacy</a>
   </td></tr>
