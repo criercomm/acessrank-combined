@@ -260,7 +260,8 @@
    the headline shows after 3 seconds. */
 .risk-title .hw { display: inline-block; overflow: hidden; vertical-align: top; padding-bottom: .14em; margin-bottom: -.14em; }
 .risk-title .hw-i { display: inline-block; position: relative; will-change: transform; }
-.risk-title .hw-bar { position: absolute; left: -.03em; right: -.03em; top: .06em; bottom: .08em; background: #000; transform: scaleX(0); transform-origin: 0 50%; }
+.risk-title .hw-bar { position: absolute; left: -.03em; right: -.03em; top: .06em; bottom: .08em; background: #000; transform: scaleX(0); transform-origin: 0 50%; will-change: transform; }
+.risk-title .hw-i span { will-change: opacity; }
 html.hero-fx .risk-title { visibility: hidden; animation: hero-failsafe 1ms linear 3s forwards; }
 @keyframes hero-failsafe { to { visibility: visible; } }
 .risk-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px; max-width: 1080px; margin: 0 auto; }

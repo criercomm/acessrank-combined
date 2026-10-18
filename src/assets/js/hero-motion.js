@@ -2,13 +2,14 @@
  *
  * The words "lawsuit" and "hidden" start redacted. Every word rolls up into place,
  * black bars cover the two hidden words, and as the bars lift the words fade back
- * in from the page colour to their normal colour.
+ * in. The fade is an opacity tween, not a colour tween: colour changes repaint the
+ * glyphs every frame at headline size and read as a stutter, while opacity and
+ * transform run on the compositor.
  *
  * Loaded only on pages marked `heroMotion` in site.json, bundled after GSAP
  * (vendor/gsap.min.js) into one file by build.mjs.
  *
- * - Colours are read from the live theme (--text, --brand, the page background),
- *   so the dark and light themes both work with no values copied here.
+ * - No colours are read or set here, so the dark and light themes both work unchanged.
  * - Nothing animates under prefers-reduced-motion: the plain headline just shows.
  * - The headline is split into words only while it animates. When the timeline
  *   ends, the original markup is put back, so the finished page is exactly the
@@ -43,45 +44,17 @@
     show();
   }
 
-  function parseRgb(value) {
-    var m = String(value).match(/-?\d*\.?\d+/g);
-    if (!m || m.length < 3) { return null; }
-    var n = m.slice(0, 3).map(Number);
-    if (/^color\(/.test(value)) { n = n.map(function (v) { return v * 255; }); }
-    return n;
-  }
-
-  function pageBackground() {
-    var els = [document.body, root];
-    for (var i = 0; i < els.length; i++) {
-      var c = window.getComputedStyle(els[i]).backgroundColor;
-      var alpha = (String(c).match(/-?\d*\.?\d+/g) || [])[3];
-      if (c && c !== 'transparent' && alpha !== '0') { return parseRgb(c); }
-    }
-    return null;
-  }
-
-  // A colour 12% of the way from the page background to the word's own colour: barely visible.
-  function mix(from, to, amount) {
-    return 'rgb(' + from.map(function (f, i) { return Math.round(f + (to[i] - f) * amount); }).join(',') + ')';
-  }
-
   function init() {
     var gsap = window.gsap;
     var lines = title ? Array.prototype.slice.call(title.querySelectorAll('.h-line')) : [];
     var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    var bg = pageBackground();
-    if (!gsap || !title || !sub || !lines.length || reduced || !bg) { show(); return; }
+    if (!gsap || !title || !sub || !lines.length || reduced) { show(); return; }
 
     var words = [], bars = [], letters = [];
     var label = lines.map(function (l) { return l.textContent.trim(); }).join(' ');
     title.setAttribute('aria-label', label);
 
     lines.forEach(function (line) {
-      var native = window.getComputedStyle(line).color;
-      var nativeRgb = parseRgb(native);
-      if (!nativeRgb) { throw new Error('unreadable colour'); }
-      var start = mix(bg, nativeRgb, 0.12);
       var text = line.textContent;
       line.textContent = '';
       text.split(/(\s+)/).forEach(function (token) {
@@ -97,8 +70,6 @@
           Array.prototype.forEach.call(token, function (ch) {
             var l = document.createElement('span');
             l.textContent = ch;
-            l.dataset.native = native;
-            l.dataset.start = start;
             inner.appendChild(l);
             letters.push(l);
           });
@@ -116,12 +87,15 @@
     });
 
     // First frame: every word below its line, the subhead waiting, the bars retracted.
-    gsap.set(words, { yPercent: 118 });
-    gsap.set(bars, { scaleX: 0, transformOrigin: '0% 50%' });
-    gsap.set(sub, { opacity: 0, y: 14 });
+    // force3D puts each moving piece on its own compositor layer for the whole run.
+    gsap.set(words, { yPercent: 118, force3D: true });
+    gsap.set(bars, { scaleX: 0, transformOrigin: '0% 50%', force3D: true });
+    gsap.set(sub, { opacity: 0, y: 14, force3D: true });
     show();
 
-    timeline = gsap.timeline({ onComplete: restore });
+    // Paused until the browser has painted the first frame, so the first tween
+    // frame does not land on the same frame as the layout from the split above.
+    timeline = gsap.timeline({ paused: true, onComplete: restore });
     timeline.to(words, { yPercent: 0, duration: 0.85, ease: 'power4.out', stagger: 0.07 });
     timeline.to(sub, { opacity: 1, y: 0, duration: 0.7, ease: 'power2.out' }, 0.55);
 
@@ -132,14 +106,16 @@
     timeline.set(bars, { transformOrigin: '100% 50%' }, at);
     timeline.to(bars, { scaleX: 0, duration: 0.6, ease: 'power3.inOut', stagger: 0.14 }, at);
 
-    // The words come back from the page colour to their own colour.
-    timeline.set(letters, { color: function (i, el) { return el.dataset.start; } }, at);
+    // The hidden words come back from barely-there to full strength (opacity only).
+    timeline.set(letters, { opacity: 0.12 }, at);
     timeline.to(letters, {
-      color: function (i, el) { return el.dataset.native; },
+      opacity: 1,
       duration: SETTLE,
       ease: 'power1.out',
       stagger: SETTLE * 0.05
     }, at + HOLD);
+
+    requestAnimationFrame(function () { requestAnimationFrame(function () { if (timeline) { timeline.play(); } }); });
   }
 
   function boot() {
