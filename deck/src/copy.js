@@ -115,7 +115,7 @@ export const copy = {
 
   s06: {
     title: ['The same structural fixes that enable accessibility', 'raise the rankings too.'],
-    lede: 'Screen readers, search engines and AI agents all read the same thing: the structure of the page. Real headings, labeled controls and a text description for every image make a store usable for the blind, readable for Google, and shoppable by the agents that browse on people\x27s behalf.',
+    lede: 'Screen readers, search engines and AI agents all read the same thing: the structure of the page. Real headings, labeled controls and a text description for every image make a store usable for the blind, readable for Google, and shoppable by the agents that browse on people\x27s behalf. Then we go beyond the accessibility fixes: page titles and descriptions, product facts written in for machines, preview images for sharing, and the labels and page summaries AI shopping agents need to find a product and act on it.',
     tiles: [
       { value: '54.5%', label: 'of ecommerce sites have images with no text description, invisible to screen readers and to search', source: 'WebAIM Million' },
       { value: '73%', label: 'of remediated sites saw organic-traffic growth, +12% on average', source: 'Semrush, 847-site study' },

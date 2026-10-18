@@ -256,7 +256,7 @@ html, body { font-family: var(--display); }
 
 /* ============ S06 · Engine ============ */
 .s06-copy { position: absolute; left: var(--margin); top: var(--pad-y); width: 66%; z-index: 3; display: grid; row-gap: 16px; }
-.s06-lede { font-size: 17px; line-height: 26px; color: var(--soft); max-width: 66ch; }
+.s06-lede { font-size: 17px; line-height: 26px; color: var(--soft); max-width: none; } /* spans the copy column, the same width as the headline */
 .s06-grid { position: absolute; left: var(--margin); top: 46%; width: calc(var(--span) * .55); display: grid; grid-template-columns: 1fr 1fr; gap: 12px; z-index: 3; }
 .s06-grid .tile { padding: 18px 20px; }
 .s06-grid .tile-num { font-size: clamp(28px, 2.6vw, 40px); }

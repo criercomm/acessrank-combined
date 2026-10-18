@@ -22,7 +22,21 @@ export default {
     // La rejilla y la columna derecha arrancan al 46 % o bajo el copy, lo que quede más abajo: en ventanas bajas el lede
     // (4 líneas) llegaba más allá del 46 % y las tiles lo pisaban. En modo compacto van en flujo y no se tocan.
     const grid = root.querySelector('.s06-grid'), right = root.querySelector('.s06-right'), copyEl = root.querySelector('.s06-copy')
+    // The lede's right edge follows the headline's longest rendered line, so copy and title read as one block
+    // on wide viewports instead of the paragraph running past the headline. Compact mode lets it fill the column.
+    const fitLede = () => {
+      if (getComputedStyle(grid).position !== 'absolute') { lede.style.maxWidth = ''; return }
+      // Measure the words, not the line wrappers: .h-line is a block that spans the whole column.
+      const box = title.el.getBoundingClientRect()
+      const words = Array.from(title.el.querySelectorAll('.kt-word'))
+      const rects = words.length ? words.map((w) => w.getBoundingClientRect()) : (() => { const r = document.createRange(); r.selectNodeContents(title.el); return Array.from(r.getClientRects()).filter((x) => x.width < box.width * .98) })()
+      if (!rects.length) return
+      const width = Math.max(...rects.map((r) => r.right)) - box.left
+      if (width > 200) lede.style.maxWidth = Math.round(width) + 'px'
+    }
+    this.fitLede = fitLede
     this.place = () => {
+      fitLede()
       if (getComputedStyle(grid).position !== 'absolute') { grid.style.top = right.style.top = ''; return }
       // Si al 46 % se comerían el pie (tiles estrechas a 1024), suben hacia el copy, nunca por encima de él.
       const floor = root.clientHeight - 88 - Math.max(grid.offsetHeight, right.offsetHeight)
@@ -36,6 +50,8 @@ export default {
   },
   enter(ctx) {
     this.place?.()
+    // The headline's letters animate in; measure again once they have settled so the lede edge is exact.
+    clearTimeout(this._fitTimer); this._fitTimer = setTimeout(() => { this.fitLede?.(); this.place?.() }, 2600)
     const { title, lede, tiles, standards, platforms } = this.els
     this.tl?.kill()
     const tl = gsap.timeline()
