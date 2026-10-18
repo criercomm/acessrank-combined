@@ -224,6 +224,20 @@
 
     // Prefill from the query string so /signup?plan=growth lands on the right plan.
     var params = new URLSearchParams(location.search);
+    // Pages with [data-intent] blocks show the copy for ?intent=lawsuit or ?intent=record
+    // (the claim section and the Compliance Record both send people here), else the default.
+    var intentBlocks = document.querySelectorAll('[data-intent]');
+    if (intentBlocks.length) {
+      var wanted = params.get('intent');
+      var known = Array.prototype.some.call(intentBlocks, function (el) { return el.getAttribute('data-intent') === wanted; });
+      var show = known ? wanted : 'default';
+      Array.prototype.forEach.call(intentBlocks, function (el) { el.hidden = el.getAttribute('data-intent') !== show; });
+      if (known) {
+        var planField = form.querySelector('[name="plan"]');
+        if (planField && planField.type === 'hidden') planField.value = wanted;
+        try { document.title = (show === 'lawsuit' ? 'Served a demand letter? Talk to Accessrank now' : 'Request a sample Accessibility Compliance Record') + ' — Accessrank'; } catch (e) {}
+      }
+    }
     ['plan', 'intent'].forEach(function (key) {
       var value = params.get(key);
       if (!value) return;
@@ -238,7 +252,7 @@
       if (form.dataset.busy === '1') return;
 
       form.dataset.busy = '1';
-      if (submit) { submit.disabled = true; submit.dataset.label = submit.textContent; submit.textContent = 'Sending…'; }
+      if (submit) { submit.disabled = true; submit.dataset.label = (submit.innerText || submit.textContent).trim(); submit.textContent = 'Sending…'; }
       if (status) { status.textContent = ''; status.className = 'form-status'; }
       form.querySelectorAll('.field-error').forEach(function (el) { el.remove(); });
       form.querySelectorAll('[aria-invalid]').forEach(function (el) { el.removeAttribute('aria-invalid'); });

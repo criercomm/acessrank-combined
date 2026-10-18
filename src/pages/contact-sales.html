@@ -5,25 +5,50 @@
         <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true" focusable="false"><path d="M8.5 3 L4 7 L8.5 11" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
         Back to site
       </a>
-      <div class="intro">
+      <div class="intro" data-intent="default">
         <span class="eyebrow-pill">Enterprise</span>
         <h1>Built for <span class="accent">Shopify Plus</span><br>and multi-brand catalogues.</h1>
         <p>Tell us about your stores and we will map a remediation plan, timeline, and pricing. Most teams hear back within one business day.</p>
       </div>
-      <div class="trust-row">
+      <div class="trust-row" data-intent="default">
         <span class="item"><span class="tick"><svg viewBox="0 0 14 14" aria-hidden="true" focusable="false"><path d="M3 7 L6 10 L11 4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Unlimited pages, real-time monitoring</span>
         <span class="item"><span class="tick"><svg viewBox="0 0 14 14" aria-hidden="true" focusable="false"><path d="M3 7 L6 10 L11 4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Dedicated CSM &amp; custom integrations</span>
         <span class="item"><span class="tick"><svg viewBox="0 0 14 14" aria-hidden="true" focusable="false"><path d="M3 7 L6 10 L11 4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>VPAT, reporting &amp; SLA support</span>
       </div>
+      <div class="intro" data-intent="lawsuit" hidden>
+        <span class="eyebrow-pill">Already facing a claim?</span>
+        <h1>Served a demand letter? <span class="accent">Tell us what it cites.</span></h1>
+        <p>Send us the barriers the letter names and we will come back the same business day with a scope for the 7-day engagement. Accessrank is not a law firm; this runs alongside your attorney, not instead of one.</p>
+      </div>
+      <div class="trust-row" data-intent="lawsuit" hidden>
+        <span class="item"><span class="tick"><svg viewBox="0 0 14 14" aria-hidden="true" focusable="false"><path d="M3 7 L6 10 L11 4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Emergency audit of the cited barriers</span>
+        <span class="item"><span class="tick"><svg viewBox="0 0 14 14" aria-hidden="true" focusable="false"><path d="M3 7 L6 10 L11 4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Screen-reader proof video, VPAT and conformance documentation</span>
+        <span class="item"><span class="tick"><svg viewBox="0 0 14 14" aria-hidden="true" focusable="false"><path d="M3 7 L6 10 L11 4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Technical review of settlement terms, for your attorney</span>
+      </div>
+      <div class="intro" data-intent="record" hidden>
+        <span class="eyebrow-pill">Accessibility Compliance Record</span>
+        <h1>Request a <span class="accent">sample Record.</span></h1>
+        <p>Tell us about your store and we will send a sample Accessibility Compliance Record, so you and your counsel can see exactly what you would receive, section by section.</p>
+      </div>
+      <div class="trust-row" data-intent="record" hidden>
+        <span class="item"><span class="tick"><svg viewBox="0 0 14 14" aria-hidden="true" focusable="false"><path d="M3 7 L6 10 L11 4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Dated baseline audit and remediation log</span>
+        <span class="item"><span class="tick"><svg viewBox="0 0 14 14" aria-hidden="true" focusable="false"><path d="M3 7 L6 10 L11 4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>VPAT-format conformance report</span>
+        <span class="item"><span class="tick"><svg viewBox="0 0 14 14" aria-hidden="true" focusable="false"><path d="M3 7 L6 10 L11 4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Monitoring certificates and human testing record</span>
+      </div>
     </div>
 
     <div class="form-card wide">
-      <h2 class="form-title">Talk to sales</h2>
-      <p class="form-sub">Share a few details and we will come back with a tailored plan.</p>
+      <h2 class="form-title" data-intent="default">Talk to sales</h2>
+      <p class="form-sub" data-intent="default">Share a few details and we will come back with a tailored plan.</p>
+      <h2 class="form-title" data-intent="lawsuit" hidden>Talk to us now</h2>
+      <p class="form-sub" data-intent="lawsuit" hidden>A specialist replies the same business day. Use the message field for the barriers or pages the letter names.</p>
+      <h2 class="form-title" data-intent="record" hidden>Request a sample Record</h2>
+      <p class="form-sub" data-intent="record" hidden>We send the sample by email, usually within one business day.</p>
 
       <form id="contactSalesForm" data-lead-form novalidate>
         <input type="hidden" name="source" value="contact_sales">
         <input type="hidden" name="plan" value="enterprise">
+        <input type="hidden" name="intent" value="">
 
         <div class="field-row">
           <div class="field">
@@ -101,12 +126,12 @@
 
         <p class="form-status" data-form-status role="alert" aria-live="assertive"></p>
 
-        <button class="submit-btn" type="submit">Request a plan</button>
+        <button class="submit-btn" type="submit"><span data-intent="default">Request a plan</span><span data-intent="lawsuit" hidden>Send the details</span><span data-intent="record" hidden>Send me the sample</span></button>
       </form>
 
       <div class="form-success" data-form-success hidden>
         <h2>Thanks — we are on it.</h2>
-        <p>A specialist will reach out within one business day with a tailored plan and pricing.</p>
+        <p>A specialist will reach out within one business day.</p>
       </div>
     </div>
   </div>
