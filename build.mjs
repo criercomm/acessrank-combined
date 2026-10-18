@@ -81,16 +81,31 @@ function structuredData(page) {
     blocks.push({
       '@context': 'https://schema.org',
       '@type': 'Organization',
+      '@id': `${SITE_URL}/#organization`,
       name: site.name,
+      legalName: site.legalName,
       url: `${SITE_URL}/`,
       logo: `${SITE_URL}/assets/img/logo.svg`,
       email: site.email,
+      telephone: site.phone,
       description: site.description,
       foundingDate: String(site.foundingYear),
+      address: {
+        '@type': 'PostalAddress',
+        streetAddress: site.address.street,
+        addressLocality: site.address.city,
+        addressRegion: site.address.region,
+        postalCode: site.address.postalCode,
+        addressCountry: 'US',
+      },
+      areaServed: 'US',
+      knowsAbout: ['Web accessibility', 'WCAG 2.2', 'ADA Title III website compliance', 'Shopify theme remediation', 'Ecommerce SEO', 'AI agent readiness'],
       contactPoint: [{
         '@type': 'ContactPoint',
         email: site.email,
+        telephone: site.phone,
         contactType: 'sales',
+        areaServed: 'US',
         availableLanguage: ['English'],
       }],
     });
@@ -100,12 +115,40 @@ function structuredData(page) {
     blocks.push({
       '@context': 'https://schema.org',
       '@type': 'Service',
-      serviceType: 'Web accessibility remediation and SEO',
-      provider: { '@type': 'Organization', name: site.name, url: `${SITE_URL}/` },
-      areaServed: ['US', 'EU'],
+      name: 'Accessrank accessibility remediation',
+      serviceType: 'Web accessibility remediation (WCAG 2.2 AA), monitoring and SEO for ecommerce',
+      provider: { '@id': `${SITE_URL}/#organization` },
+      areaServed: 'US',
       description:
-        'WCAG 2.2 AA source-code remediation for DTC ecommerce storefronts, with ongoing regression monitoring and SEO improvement.',
-      audience: { '@type': 'BusinessAudience', audienceType: 'DTC ecommerce brands' },
+        'Source-code remediation of ecommerce storefronts against WCAG 2.2 Level A and AA, with an Accessibility Compliance Record (dated baseline audit, remediation log, VPAT-format conformance report, human testing record), ongoing regression monitoring, and on-page SEO and AI readiness improvements.',
+      audience: { '@type': 'BusinessAudience', audienceType: 'DTC ecommerce brands on Shopify, WooCommerce, BigCommerce and custom platforms' },
+      url: `${SITE_URL}/#product`,
+      hasOfferCatalog: {
+        '@type': 'OfferCatalog',
+        name: 'Accessrank plans',
+        itemListElement: [
+          { '@type': 'Offer', name: 'Starter', description: 'Single-line stores with up to 10 SKUs. One-time onboarding, then monthly monitoring.', price: '1500', priceCurrency: 'USD', url: `${SITE_URL}/#pricing` },
+          { '@type': 'Offer', name: 'Growth', description: 'Growing brands with 10 to 100 SKUs. One-time onboarding, then monthly monitoring.', price: '3500', priceCurrency: 'USD', url: `${SITE_URL}/#pricing` },
+          { '@type': 'Offer', name: 'Enterprise', description: 'Shopify Plus and multi-brand catalogs, 100+ SKUs. Custom pricing.', url: `${SITE_URL}/contact-sales` },
+          { '@type': 'Offer', name: 'Lawsuit response', description: 'For stores already served a demand letter or lawsuit. About 7-day delivery.', price: '5900', priceCurrency: 'USD', url: `${SITE_URL}/#lawsuit-response` },
+        ],
+      },
+    });
+  }
+
+  if (types.includes('Article')) {
+    blocks.push({
+      '@context': 'https://schema.org',
+      '@type': 'Article',
+      headline: page.title.split(' | ')[0].split(' — ')[0],
+      description: page.description,
+      url: `${SITE_URL}${page.url}`,
+      inLanguage: 'en-US',
+      datePublished: page.datePublished || `${site.foundingYear}-01-01`,
+      dateModified: new Date().toISOString().slice(0, 10),
+      author: { '@id': `${SITE_URL}/#organization` },
+      publisher: { '@id': `${SITE_URL}/#organization` },
+      isPartOf: { '@type': 'WebSite', name: site.name, url: `${SITE_URL}/` },
     });
   }
 
@@ -204,17 +247,11 @@ function build() {
   console.log(`  portal ${portalCssName} (${(portalCss.length / 1024).toFixed(1)} kB), ${portalJsName} (${(portalJs.length / 1024).toFixed(1)} kB)`);
   console.log(`  copy ${copied} static files`);
 
-  // The investor deck is the site root now (accessrank.ai/ opens on it; the
-  // marketing site moved to /home — see site.json). Its own build already
-  // landed at DIST/deck (copied above from src/assets/static/deck), and that
-  // HTML references its assets with absolute /deck/... paths — so copying it
-  // to the root works unmodified, since those files still live right there.
-  const deckIndex = path.join(DIST, 'deck', 'index.html');
-  if (fs.existsSync(deckIndex)) {
-    fs.copyFileSync(deckIndex, path.join(DIST, 'index.html'));
-    console.log('  root / now serves the deck (dist/deck/index.html)');
-  } else {
-    console.warn('  ! dist/deck/index.html not found — root "/" will not serve the deck');
+  // The home page is the site root (accessrank.ai/). The overview deck keeps
+  // its own build at DIST/deck (copied above from src/assets/static/deck) and
+  // is reachable at /deck/; the nav's "Overview" item opens it in an overlay.
+  if (!fs.existsSync(path.join(DIST, 'deck', 'index.html'))) {
+    console.warn('  ! dist/deck/index.html not found — /deck/ will not serve the overview');
   }
 
   // --- pages --------------------------------------------------------------
@@ -307,23 +344,17 @@ function build() {
   </url>`)
     .join('\n');
 
-  // The deck at "/" isn't a templated page (see the copy step above), so it
-  // gets its own hand-written sitemap entry as the actual homepage.
-  const rootUrl = `  <url>
-    <loc>${SITE_URL}/</loc>
-    <lastmod>${today}</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>1.0</priority>
-  </url>`;
-
   fs.writeFileSync(
     path.join(DIST, 'sitemap.xml'),
-    `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${rootUrl}\n${urls}\n</urlset>\n`,
+    `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls}\n</urlset>\n`,
   );
 
   fs.writeFileSync(
     path.join(DIST, 'robots.txt'),
     [
+      // Named first so no one reading the file wonders whether AI crawlers are welcome; the wildcard below already admits them.
+      ...['GPTBot', 'OAI-SearchBot', 'ChatGPT-User', 'ClaudeBot', 'Claude-SearchBot', 'anthropic-ai', 'PerplexityBot', 'Google-Extended', 'Applebot-Extended', 'Bytespider', 'CCBot', 'Amazonbot', 'meta-externalagent']
+        .flatMap((ua) => [`User-agent: ${ua}`, 'Allow: /', '']),
       'User-agent: *',
       'Allow: /',
       // The audit endpoint is a POST API; keep crawlers out of it entirely.

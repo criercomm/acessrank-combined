@@ -7,9 +7,9 @@
 import { el } from '@lib/util/dom.js'
 
 // Exits only: the deck is the introduction, so the nav offers the two things a viewer
-// does next. hrefs are absolute site paths (the marketing site lives at /home; / is the deck).
+// does next. hrefs are absolute site paths (the main site is at /; the deck lives at /deck/).
 const LINKS = [
-  { label: 'Free audit', href: '/home#audit', cta: true },
+  { label: 'Free audit', href: '/#audit', cta: true },
 ]
 
 export function SiteNav({ mainSiteHref = '/' } = {}) {
@@ -19,7 +19,7 @@ export function SiteNav({ mainSiteHref = '/' } = {}) {
 
   const links = LINKS.map((l) => el('a', { class: 'ar-nav-link' + (l.cta ? ' ar-nav-cta' : '') + (l.active ? ' is-active' : ''), href: l.href, target: '_top', text: l.label }))
 
-  const mainSite = el('a', { class: 'ar-nav-link ar-nav-main', href: mainSiteHref, target: '_top', text: 'Main website' })
+  const mainSite = el('a', { class: 'ar-nav-link ar-nav-main', href: mainSiteHref, target: '_top', text: 'Back to site' })
 
   const root = el('nav', { class: 'ar-nav', 'aria-label': 'Accessrank' },
     logo,

@@ -272,6 +272,12 @@ app.use('/assets', express.static(path.join(DIST, 'assets'), {
   fallthrough: true,
 }));
 
+// The home page moved from /home back to the root; keep the old address alive.
+app.get(['/home', '/home/'], (req, res) => {
+  const suffix = req.originalUrl.slice(req.path.length);
+  return res.redirect(301, `/${suffix}`);
+});
+
 app.use(express.static(DIST, {
   extensions: ['html'],
   maxAge: '1h',

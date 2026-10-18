@@ -102,12 +102,13 @@
   --surface: #F7F7F7;          /* tiles and cards: a very light grey against the white page */
   --surface-2: #EDEDEE;        /* a step darker, for things that sit on a tile */
 
-  /* Ratios are against a tile, the darker of the two backgrounds text sits on. */
-  --text: #14142A;             /* 16.8:1 */
-  --text-soft: #2B2B40;        /* 13.0:1 */
-  --text-muted: #48485C;       /* 8.3:1 */
-  --text-faint: #5C5C6E;       /* 6.1:1 */
-  --text-fainter: #5C5C6E;
+  /* Ratios are against a tile, the darker of the two backgrounds text sits on.
+     Off-black rather than the navy ink, by request: headings and body read as dark grey, not black. */
+  --text: #3A3A47;             /* 9.6:1 */
+  --text-soft: #51516A;        /* 6.9:1 */
+  --text-muted: #64647A;       /* 5.2:1 */
+  --text-faint: #6E6E80;       /* 4.6:1 */
+  --text-fainter: #6E6E80;
 
   --hairline: rgba(20, 20, 42, 0.16);
   --hairline-strong: rgba(20, 20, 42, 0.30);

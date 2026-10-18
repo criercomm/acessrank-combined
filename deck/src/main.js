@@ -17,7 +17,6 @@ import s05 from './slides/s05-safe.js'
 import s06 from './slides/s06-engine.js'
 import s07 from './slides/s07-model.js'
 import s08 from './slides/s08-market.js'
-import s11 from './slides/s11-libraries.js'
 import s12 from './slides/s12-contact.js'
 
 // ---------------------------------------------------------------------------
@@ -45,8 +44,8 @@ const withBase = (v) => Array.isArray(v) ? v.map(withBase)
   : typeof v === 'string' && !/^(https?:|data:|\/)/.test(v) ? BASE.replace(/\/+$/, '') + '/' + v.replace(/^\.?\//, '') : v
 const assets = createAssets(manifest, { base: BASE })
 const params = new URLSearchParams(location.search)
-const SHORT = [1, 2, 4, 7, 10] // the 3-minute path: cover → the letter → the fix → model → contact (the ask was removed 2026-09-23)
-const all = [s01, s02, s03, s04, s05, s06, s07, s08, s11, s12]
+const SHORT = [1, 2, 4, 7, 9] // the 3-minute path: cover → the letter → the fix → model → contact (the ask was removed 2026-09-23)
+const all = [s01, s02, s03, s04, s05, s06, s07, s08, s12]
 const short = params.get('short') === '1'
 const slides = short ? all.filter((_, i) => SHORT.includes(i + 1)) : all
 const chapters = short ? copy.chapters.filter((_, i) => SHORT.includes(i + 1)) : copy.chapters
@@ -67,7 +66,7 @@ const nav = Navbar({
   step: (d) => (d > 0 ? deckRef?.next() : deckRef?.prev()),
 })
 root.append(nav.el)
-const siteNav = SiteNav({ mainSiteHref: '/home' })
+const siteNav = SiteNav({ mainSiteHref: '/' })
 root.append(siteNav.el)
 
 // Sound: effects only. No entry gate and no music bed (Carlos, 2026-09-18). Browsers only let audio start after a user gesture,

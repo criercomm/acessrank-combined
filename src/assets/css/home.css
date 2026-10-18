@@ -1,7 +1,7 @@
 /*
  * home.css — homepage-only rules: risk-strip, hero, audit-card, platforms strip,
- * wcag-section, overlay-warning, features, stats-strip, credit, pricing,
- * lawsuit, testimonial, plus the homepage's logo/nav-right/.site wrapper.
+ * features (what we do), process (how it works), stats-strip, wcag-section,
+ * overlay-warning, credit, pricing, lawsuit, faq, closing, plus the homepage's logo/nav-right/.site wrapper.
  * Generated from legacy/index.html's <style> block. Loaded after tokens,
  * base and layout (never together with pages.css).
  */
@@ -273,6 +273,57 @@ html.hero-fx .risk-title { visibility: hidden; animation: hero-failsafe 1ms line
 .risk-label { width: 100%; max-width: 210px; font-size: 15px; color: var(--text-soft); line-height: 1.4; margin: 0 auto 13px; }
 .risk-source { font-size: 10px; color: var(--brand-text); letter-spacing: 0.6px; text-transform: uppercase; } /* 1px made the Arial fallback 242px in a 239px card: it wrapped until Inter loaded, then snapped to one line and shifted the page 12px (CLS 0.10) */
 
+
+/* ---- Risk strip: the two links under the subhead ----
+   "Why stores get sued" opens the overview deck in the overlay (data-open-deck);
+   "Already served?" jumps straight to the 7-day lane, so the most urgent visitor
+   is not made to scroll past pricing to find it. */
+.risk-links { display: flex; justify-content: center; align-items: center; gap: 14px 36px; flex-wrap: wrap; margin: -14px auto 36px; font-size: 15px; }
+.risk-link { color: var(--brand-text); font-weight: 600; text-decoration: none; border-bottom: 1px solid transparent; transition: border-color .15s ease; }
+.risk-link:hover { border-bottom-color: currentColor; }
+.risk-link-urgent { color: var(--text-soft); font-weight: 500; }
+.risk-link-urgent:hover { color: var(--text); }
+
+/* ---- How it works ---- */
+.process { padding: 8px var(--edge) 56px; }
+.process-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; list-style: none; padding: 0; margin: 0 0 28px; counter-reset: none; }
+.process-step { background: var(--surface); border: 1px solid var(--keyline); border-radius: 12px; padding: 22px; display: flex; flex-direction: column; gap: 8px; transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease; }
+.process-step:hover { transform: translateY(-3px); border-color: rgba(var(--brand-rgb), 0.6); box-shadow: 0 18px 34px -18px rgba(var(--brand-rgb), 0.45); }
+.process-num { font-size: 38px; font-weight: 800; color: var(--brand-text); letter-spacing: -1.5px; line-height: 1; font-variant-numeric: tabular-nums; }
+.process-title { font-size: 16px; font-weight: 600; color: var(--text); margin: 4px 0 0; }
+.process-desc { font-size: 14px; line-height: 1.55; color: var(--text-soft); margin: 0; text-wrap: pretty; }
+.process-actions { display: flex; justify-content: center; align-items: center; gap: 22px; flex-wrap: wrap; }
+.process-link { font-size: 14px; color: var(--text-muted); text-decoration: underline; text-underline-offset: 3px; }
+.process-link:hover { color: var(--brand-text); }
+
+/* ---- Closing call to action ---- */
+.closing { padding: 24px var(--edge) 72px; }
+.closing-band { max-width: 1080px; margin: 0 auto; padding: 48px 32px; background: var(--surface); border: 1px solid var(--keyline); border-radius: 16px; text-align: center; }
+.closing-band .section-sub { margin-bottom: 28px; }
+.closing-actions { display: flex; justify-content: center; gap: 14px; flex-wrap: wrap; }
+
+
+/* ---- Accessibility Compliance Record ("Proof your lawyer can use") ---- */
+.record { padding: 56px var(--edge) 8px; }
+.record-intro p { font-size: 17px; line-height: 1.6; color: var(--text-soft); margin: 0 0 28px; text-wrap: pretty; }
+.record-intro strong { color: var(--text); font-weight: 600; }
+.record-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; list-style: none; padding: 0; margin: 0 0 44px; }
+.record-tile { background: var(--surface); border: 1px solid var(--keyline); border-radius: 12px; padding: 20px 22px; display: flex; flex-direction: column; gap: 6px; transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease; }
+.record-tile:hover { transform: translateY(-3px); border-color: rgba(var(--brand-rgb), 0.6); box-shadow: 0 18px 34px -18px rgba(var(--brand-rgb), 0.45); }
+
+.record-title { font-size: 16px; font-weight: 600; color: var(--text); margin: 2px 0 0; }
+.record-desc { font-size: 13.5px; line-height: 1.5; color: var(--text-soft); margin: 0; }
+.record-vpat h3 { font-size: 22px; font-weight: 700; color: var(--text); margin: 0 0 12px; letter-spacing: -.3px; }
+.record-vpat p { font-size: 15px; line-height: 1.6; color: var(--text-soft); margin: 0 0 12px; text-wrap: pretty; }
+.record-compare { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 22px 0 32px; }
+.record-col { background: var(--surface); border: 1px solid var(--keyline); border-radius: 12px; padding: 24px; }
+.record-col-label { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--brand-text); font-weight: 600; margin-bottom: 10px; }
+.record-col h4 { font-size: 18px; font-weight: 600; color: var(--text); margin: 0 0 12px; }
+.record-col ul { margin: 0; padding-left: 18px; }
+.record-col li { font-size: 14px; line-height: 1.5; color: var(--text-soft); margin-bottom: 8px; }
+.record-actions { display: flex; justify-content: center; gap: 14px; flex-wrap: wrap; }
+.record-fine { font-size: 12px; line-height: 1.6; color: var(--text-faint); font-style: italic; margin: 22px auto 0; text-align: center; text-wrap: pretty; }
+
 /* ---- WCAG explainer section ---- */
 .wcag-section { padding: 50px var(--edge) 64px; }
 .section-eyebrow { font-size: 11px; letter-spacing: 3px; color: var(--brand-text); font-weight: 500; margin-bottom: 16px; text-align: center; }
@@ -322,7 +373,9 @@ html.hero-fx .risk-title { visibility: hidden; animation: hero-failsafe 1ms line
 @media (prefers-reduced-motion: reduce) { .overlay-icon svg { animation: none !important; opacity: 1; } }
 .overlay-content h3 { font-size: 22px; font-weight: 700; color: var(--text); margin: 0 0 6px; }
 .overlay-content p { font-size: 15px; color: var(--overlay-body); line-height: 1.55; margin: 0; }
-.overlay-content p strong { color: var(--text); font-weight: 700; background: rgba(var(--brand-rgb), 0.15); padding: 1px 5px; border-radius: 3px; }
+.overlay-content p strong { color: var(--text); font-weight: 600; background: rgba(var(--brand-rgb), 0.15); padding: 1px 5px; border-radius: 3px; }
+/* Dark theme: a solid yellow marker with black text, the way the deck highlights its key figures. Light keeps the soft tint, since a full yellow fill with black text is harsher on white. */
+html:not([data-theme="light"]) .overlay-content p strong { background: var(--brand); color: #0E0E10; }
 
 /* ---- Features ---- */
 .features { padding: 56px var(--edge); }
@@ -359,6 +412,8 @@ html.hero-fx .risk-title { visibility: hidden; animation: hero-failsafe 1ms line
 .pricing { padding: 34px var(--edge) 28px; }
 .pricing .section-sub { margin-bottom: 26px; max-width: 900px; }
 .pricing-note { text-align: center; font-size: 12px; color: var(--text-faint); font-style: italic; margin: 22px auto 0; max-width: 620px; } /* TODO(contrast): verify against WCAG 1.4.3 */
+.pricing-note a { color: var(--text-muted); text-decoration: underline; text-underline-offset: 2px; }
+.pricing-note a:hover { color: var(--brand-text); }
 .pricing-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
 .price-card { background: var(--surface); border-radius: 12px; padding: 24px; border: 1px solid var(--keyline); cursor: pointer; transform-origin: center; transition: border-color .25s ease, box-shadow .25s ease, transform .25s cubic-bezier(.16,1,.3,1); }
 .price-card:hover { border-color: var(--brand); transform: translateY(-4px) scale(1.02); box-shadow: 0 18px 40px -16px rgba(var(--brand-rgb),.5), 0 0 0 1px rgba(var(--brand-rgb),.4); z-index: 2; }
@@ -416,10 +471,12 @@ html.hero-fx .risk-title { visibility: hidden; animation: hero-failsafe 1ms line
 .lawsuit-band { position: relative; background: #0C1026; border: 2px solid rgba(255,210,63,0.65); border-radius: 14px; padding: 32px 34px 30px 52px; overflow: hidden; box-shadow: 0 20px 55px -22px rgba(255, 210, 63, 0.45); }
 .lawsuit-top { position: relative; display: grid; grid-template-columns: 1fr auto; gap: 28px 44px; align-items: start; margin-bottom: 26px; }
 .lawsuit-head { max-width: 810px; }
-.lawsuit-eyebrow { display: inline-flex; align-items: center; gap: 8px; font-size: 11px; letter-spacing: 3px; color: #FFFFFF; font-weight: 700; background: var(--danger); border: 1px solid var(--danger); padding: 7px 14px; border-radius: 100px; margin-bottom: 16px; box-shadow: 0 6px 16px -8px rgba(220,38,38,0.7); }
-.lawsuit-eyebrow .pulse-dot { background: #FFFFFF; }
+/* Plain label, like every other section eyebrow; the pulse dot alone carries the urgency. (Was a red pill, the only
+   decorative use of --danger on the page, and it read as an error state next to the brand-yellow band.) */
+.lawsuit-eyebrow { display: inline-flex; align-items: center; gap: 10px; font-size: 11px; letter-spacing: 3px; color: var(--brand-text); font-weight: 600; margin-bottom: 6px; }
 .lawsuit-title { font-size: 30px; line-height: 1.1; letter-spacing: -1.2px; font-weight: 800; color: var(--text); margin: 12px 0 12px; text-align: left; }
 .lawsuit-sub { font-size: 15px; line-height: 1.55; color: var(--text-soft); margin: 0; text-wrap: pretty; }
+.lawsuit-sub strong { color: var(--text); font-weight: 700; }
 .lawsuit-pricebox { background: var(--bg); border: 1px solid rgba(255,210,63,0.45); border-radius: 12px; padding: 20px 22px; min-width: 0; }
 .lawsuit-price-amt { font-size: 27px; font-weight: 800; color: var(--text); letter-spacing: -1px; line-height: 1; }
 .lawsuit-price-amt .pre { font-size: 13px; color: var(--text-faint); font-weight: 500; letter-spacing: 0; } /* TODO(contrast): verify against WCAG 1.4.3 */
@@ -430,9 +487,9 @@ html.hero-fx .risk-title { visibility: hidden; animation: hero-failsafe 1ms line
 .lawsuit-tile:hover { transform: translateY(-3px); background: #1A2952; border-color: rgba(var(--brand-rgb), 0.6); box-shadow: 0 18px 34px -18px rgba(0,0,0,0.6); }
 .lawsuit-tile-num { font-size: 38px; font-weight: 800; color: var(--brand-text); letter-spacing: -1.5px; line-height: 1; flex-shrink: 0; font-variant-numeric: tabular-nums; }
 .lawsuit-tile-text { font-size: 12.5px; line-height: 1.4; color: var(--text-soft); }
-.lawsuit-foot { position: relative; display: flex; flex-wrap: wrap; align-items: center; gap: 14px 20px; padding-top: 22px; border-top: 1px solid var(--hairline); }
-.lawsuit-cta { display: inline-flex; align-items: center; gap: 8px; background: var(--danger); color: #FFFFFF; padding: 13px 24px; border-radius: 8px; font-weight: 600; font-size: 14px; transition: background 0.15s ease, transform 0.15s ease; }
-.lawsuit-cta:hover { background: #B91C1C; transform: translateY(-1px); }
+.lawsuit-foot { position: relative; display: flex; flex-wrap: wrap; align-items: center; justify-content: center; text-align: center; gap: 14px 20px; padding-top: 22px; border-top: 1px solid var(--hairline); }
+.lawsuit-cta { display: inline-flex; align-items: center; gap: 8px; background: var(--brand); color: var(--brand-ink); padding: 13px 24px; border-radius: 8px; font-weight: 600; font-size: 14px; transition: opacity 0.15s ease, transform 0.15s ease; }
+.lawsuit-cta:hover { opacity: 0.85; transform: translateY(-1px); }
 .lawsuit-disclaimer { font-size: 12.5px; color: var(--text-faint); line-height: 1.5; font-style: italic; white-space: nowrap; } /* TODO(contrast): verify against WCAG 1.4.3 */
 @media (max-width: 900px) { .lawsuit-top { grid-template-columns: 1fr; } .lawsuit-pricebox { justify-self: start; } .lawsuit-grid { grid-template-columns: repeat(2, 1fr); } .lawsuit-disclaimer { white-space: normal; } }
 @media (max-width: 480px) { .lawsuit-grid { grid-template-columns: 1fr; } .lawsuit-title { font-size: 25px; } }
@@ -479,6 +536,9 @@ html.hero-fx .risk-title { visibility: hidden; animation: hero-failsafe 1ms line
   .wcag-grid { grid-template-columns: 1fr; gap: 32px; }
   .credit-grid { grid-template-columns: 1fr; gap: 28px; }
   .feature-grid { grid-template-columns: 1fr; }
+  .process-grid { grid-template-columns: 1fr 1fr; }
+  .record-grid { grid-template-columns: 1fr 1fr; }
+  .record-compare { grid-template-columns: 1fr; }
   .pricing-grid { grid-template-columns: 1fr; max-width: 440px; margin: 0 auto; }
   .risk-grid { grid-template-columns: repeat(3, 1fr); gap: 20px; max-width: 900px; }
 }
@@ -495,6 +555,10 @@ html.hero-fx .risk-title { visibility: hidden; animation: hero-failsafe 1ms line
   .stat { padding: 0; }
   .stat + .stat::before { display: none; }
   .overlay-card { flex-direction: column; gap: 14px; }
+  .process-grid { grid-template-columns: 1fr; }
+  .record-grid { grid-template-columns: 1fr; }
+  .closing-band { padding: 36px 20px; }
+  .risk-links { flex-direction: column; gap: 10px; }
 }
 @media (max-width: 480px) {
   .risk-grid { grid-template-columns: 1fr; max-width: 340px; }

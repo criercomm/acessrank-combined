@@ -1,33 +1,60 @@
 # Accessrank
 
-> Accessrank fixes accessibility in the source code of DTC ecommerce stores — WCAG 2.2 Level AA remediation, documented and re-verified — and the same structural fixes improve SEO and AI/agent readiness. No overlay widgets.
+> Accessrank fixes accessibility in the source code of US ecommerce stores: WCAG 2.2 Level A and AA remediation in the theme code, documented in an Accessibility Compliance Record and kept in place by ongoing monitoring. The same structural fixes improve on-page SEO and how well AI shopping agents can read a store. No overlay or plug-in widgets. US only; Accessrank does not offer European Accessibility Act (EAA) conformance work.
 
-Accessrank scans a store in a real browser with axe-core, fixes the failures directly in the theme or codebase (Shopify fixes go to a draft theme and are approved change by change), re-scans until zero issues remain, and delivers an evidence pack: rule, WCAG criterion and before-and-after screenshots for every fix. A free automated check runs on the homepage.
+Accessrank, Inc. is based in Los Angeles, California (2722 N. Beverly Glen Blvd, Los Angeles, CA 90077; +1 310-408-1881; info@accessrank.ai), founded in 2026, remote-first and US-based. Co-Founder & CEO: JP Lincoln. Accessrank is not a law firm and nothing it publishes is legal advice.
+
+## What Accessrank does
+
+- Free check: loads a store page in a real browser and scores it against the WCAG 2.2 Level A and AA checks that ADA demand letters cite, in about 20 seconds. Automated testing catches roughly a third to a half of real-world barriers; it does not prove compliance.
+- Fixed-scope plan: a specialist reviews the result and returns a remediation plan, timeline and price.
+- Remediation in the theme code: Accessrank fixes the cause in the theme code, most of it within the first remediation cycle. Findings that need a judgment call (alt text, media descriptions, control behavior) are written and reviewed by an Accessrank staff member. Every change is recorded.
+- Accessibility Compliance Record: a dated file for the client's attorney or insurer containing a baseline audit, remediation log, VPAT-format conformance report against WCAG 2.2 AA, published accessibility statement, monitoring certificates, human (screen-reader and keyboard) testing record, and a demand-letter playbook.
+- Monitoring: scheduled re-checks (monthly on Starter, weekly on Growth, daily or real-time on Enterprise) so a new app, product or theme edit does not reintroduce failures.
+- Lawsuit response: for stores already served, an express engagement in about 7 days covering the cited and critical-path barriers, source-code fixes, a screen-reader proof video, VPAT and conformance documentation, and a technical review of settlement remediation terms for the client's attorney.
+
+## The Accessrank score
+
+The Accessrank score is the accessibility score and nothing else: how much of WCAG 2.2 Levels A and AA (55 success criteria) a page meets, weighted by level. Two separate numbers are reported beside it, never blended in: an on-page SEO score (14 checks) and an AI agent readiness score (8 checks on whether AI assistants and shopping agents can read and use the page). Full method: https://accessrank.ai/methodology
 
 ## Main pages
 
-- [Homepage and free accessibility check](https://accessrank.ai/home): what the service does, the WCAG 2.2 principles in plain English, pricing and FAQ; the free check scores a page against WCAG 2.2 AA and on-page SEO.
-- [Methodology](https://accessrank.ai/methodology): how the audit engine works and how the accessibility and SEO scores are calculated.
-- [ADA and EAA guide](https://accessrank.ai/guide/ada-eaa): the ADA, the European Accessibility Act and what they mean for online stores.
+- [Home](https://accessrank.ai/): what the service does, how it works, the Accessibility Compliance Record, WCAG 2.2 in plain English, pricing, lawsuit response and FAQ. The free check runs here.
+- [Overview](https://accessrank.ai/deck/): a nine-screen walkthrough of why online stores get sued over accessibility and how Accessrank fixes the cause.
+- [How we score](https://accessrank.ai/methodology): the scoring model behind every report, what a full audit tests, and what automated scores cannot tell you.
+- [Our approach](https://accessrank.ai/about): why Accessrank fixes source code instead of selling an overlay, and what it will not claim.
+- [ADA guide](https://accessrank.ai/guide/ada-eaa): what the ADA and Section 508 require of a US online store, who is covered, and what a demand letter looks like.
+- [Resources](https://accessrank.ai/resources): the explainers Accessrank maintains.
 - [Citations](https://accessrank.ai/citations): sources for every statistic on the site.
-- [Resources](https://accessrank.ai/resources): further reading.
-- [About](https://accessrank.ai/about): the company.
 
-## Pricing
+## Pricing (USD)
 
-- Starter: $1,500 one-time onboarding, then $79/month — single-line stores with up to 10 SKUs.
-- Growth: $3,500 one-time onboarding, then $249/month — growing brands with 10–100 SKUs.
-- Enterprise: custom — Shopify Plus and multi-brand catalogs, 100+ SKUs.
-- Lawsuit response: from $5,900, delivered in about 7 days — for businesses already served a demand letter or lawsuit.
+- Starter: $1,500 one-time onboarding, then $79/month (or $790/year). Single-line stores with up to 10 SKUs. Live in about 2 weeks.
+- Growth: $3,500 one-time onboarding, then $249/month (or $2,490/year). Growing brands with 10 to 100 SKUs. Live in 2 to 4 weeks. Most popular.
+- Enterprise: custom onboarding and monthly plan. Shopify Plus and multi-brand catalogs, 100+ SKUs. 6 to 12 weeks.
+- Lawsuit response: from $5,900 one-time, about 7-day delivery, then Growth monitoring.
+- Eligible small businesses may offset 50% of qualifying costs through the IRS Disabled Access Credit (Form 8826), up to $5,000 a year. Accessrank is not a tax advisor.
+
+## Platforms
+
+Shopify, WordPress, WooCommerce, BigCommerce and custom builds.
+
+## Key facts Accessrank cites (sources at https://accessrank.ai/citations)
+
+- 5,000+ ADA digital accessibility lawsuits were filed in 2025, up from 4,187 in 2024 (UsableNet).
+- About 77% of ADA website lawsuits target ecommerce sites (UsableNet 2024 Year-End Report).
+- 95.9% of the top one million home pages fail WCAG 2.2 (WebAIM Million 2026).
+- About one in four ADA digital accessibility lawsuits in 2024 targeted a site running an accessibility overlay or plug-in (UsableNet); in 2025 the FTC ordered overlay vendor accessiBe to pay $1 million over its compliance claims.
+- Average cost of a claim: $30,000 or more in settlement and legal fees (Accessibility.build, 2026).
 
 ## Contact
 
 - [Talk to sales](https://accessrank.ai/contact-sales)
-- [Sign up](https://accessrank.ai/signup)
+- [Start a remediation plan](https://accessrank.ai/signup)
 - Email: info@accessrank.ai
 
 ## Legal
 
 - [Privacy policy](https://accessrank.ai/privacy)
 - [Terms](https://accessrank.ai/terms)
-- [Disclosure](https://accessrank.ai/disclosure): Accessrank is not a law firm and does not provide legal advice.
+- [Disclosure](https://accessrank.ai/disclosure): conformance reduces but cannot eliminate legal exposure; no score is a legal guarantee.

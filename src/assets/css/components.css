@@ -507,10 +507,10 @@ body.modal-open { overflow: hidden; }
  * dividers between items, plain borders (no accent edge).
  * ------------------------------------------------------------------------- */
 
-.faq { padding: 8px var(--edge) 64px; }
+.faq { padding: 8px var(--edge) 40px; }
 /* No .section-sub under this heading, so give it the same 36px of air the
  * other sections get from their subhead's bottom margin. */
-.faq h2 { margin-bottom: 36px; }
+.faq h2 { margin-bottom: 24px; }
 
 .faq-list {
   margin: 0 auto;
@@ -525,10 +525,10 @@ body.modal-open { overflow: hidden; }
 .faq-q {
   display: flex; align-items: center; justify-content: space-between; gap: 20px;
   margin: 0;
-  padding: 22px 26px;
+  padding: 13px 20px;
   list-style: none;
   cursor: pointer;
-  font-size: 16px; font-weight: 700; letter-spacing: -0.2px; line-height: 1.4;
+  font-size: 15px; font-weight: 600; letter-spacing: -0.1px; line-height: 1.35;
   color: var(--text);
   transition: color 160ms ease, background-color 160ms ease;
 }
@@ -544,7 +544,7 @@ body.modal-open { overflow: hidden; }
 .faq-icon {
   flex: 0 0 auto;
   display: inline-flex; align-items: center; justify-content: center;
-  width: 28px; height: 28px;
+  width: 22px; height: 22px;
   border: 1px solid var(--hairline);
   border-radius: 50%;
   color: var(--text-soft);
@@ -553,13 +553,13 @@ body.modal-open { overflow: hidden; }
 .faq-q:hover .faq-icon { color: var(--brand-text); border-color: var(--brand-text); }
 .faq-item[open] .faq-icon { transform: rotate(45deg); color: var(--brand-text); border-color: var(--brand-text); }
 
-.faq-a { padding: 0 26px 24px; }
+.faq-a { padding: 0 20px 18px; max-width: none; }
 .faq-a p {
   margin: 0;
-  font-size: 14px; line-height: 1.7;
+  font-size: 14px; line-height: 1.6;
   color: var(--text-soft);
 }
-.faq-a p + p { margin-top: 10px; }
+.faq-a p + p { margin-top: 8px; }
 
 @media (prefers-reduced-motion: reduce) {
   .faq-q, .faq-icon { transition: none; }
@@ -601,7 +601,7 @@ body.modal-open { overflow: hidden; }
 /* Keep the hero's two-line punchline intact rather than orphaning a word. */
 .hero-title, .risk-title { text-wrap: balance; }
 
-/* Investor-deck overlay: "How it works" in the primary nav opens the deck
+/* Overview-deck overlay: "Overview" in the primary nav opens the deck
  * (src/assets/static/deck, built from the accessrank-deck repo) full-screen
  * inside an iframe, on top of whatever page the person was already on. There
  * is no in-overlay close button — the deck's own nav has a "Main website"
@@ -684,9 +684,6 @@ body.deck-open { overflow: hidden; }
    accent token, any accent that passes as text on the white page (the same pair
    of colours, the other way round) also passes here. */
 [data-theme="light"] .lawsuit-band { background: var(--bg); border: 1px solid var(--hairline-strong); box-shadow: var(--shadow-card); }
-[data-theme="light"] .lawsuit-eyebrow { background: var(--brand-text); border-color: var(--brand-text); box-shadow: 0 6px 16px -8px rgba(var(--accent-rgb), 0.7); }
-[data-theme="light"] .lawsuit-cta { background: var(--brand-text); }
-[data-theme="light"] .lawsuit-cta:hover { background: var(--brand-hover); }
 [data-theme="light"] .lawsuit-pricebox { background: var(--surface); border-color: var(--keyline); }
 [data-theme="light"] .lawsuit-tile { background: var(--surface); border-color: var(--hairline); box-shadow: none; }
 [data-theme="light"] .lawsuit-tile:hover {

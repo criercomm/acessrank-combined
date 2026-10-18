@@ -5,8 +5,8 @@
 export const copy = {
   brand: 'Accessrank',
   spine: "The web's biggest blind spot. Accessrank finds it, fixes it, and proves it.",
-  legal: '<b>Accessrank</b> · Investor presentation · Not legal advice · Statistics from cited third-party sources · Confidential',
-  chapters: ['The lawsuit', 'The letter', 'Plug-ins', 'The fix', 'Process', 'Engine', 'Model', 'Market', 'Libraries', 'Contact'],
+  legal: '<b>Accessrank</b> · Overview · Not legal advice · Statistics from cited third-party sources',
+  chapters: ['The lawsuit', 'The letter', 'Plug-ins', 'The fix', 'Process', 'Engine', 'Model', 'Market', 'Contact'],
 
   s01: {
     title: ['THE LAWSUIT', 'HIDING IN', 'YOUR WEBSITE.'],
@@ -209,7 +209,7 @@ export const copy = {
       { name: '', role: 'Co-founder and CEO', email: 'jp@accessrank.ai', phone: '+1 310 408 1881' },
       { name: '', role: 'Co-founder and CTO', email: 'carlos@accessrank.ai', phone: '+51 958 967 616' },
     ],
-    site: 'Main website', siteHref: 'https://accessrank.ai/home',
+    site: 'Main website', siteHref: 'https://accessrank.ai/',
     notes: 'Close with the question on screen and stop. Two ways to reach us: the CEO in the US, the CTO in Peru; both numbers are in international format.',
   },
 }

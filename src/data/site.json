@@ -4,22 +4,22 @@
   "description": "Accessrank raises your ADA/WCAG 2.2 AA score with real source-code remediation, keeps predatory lawyers away, and lifts your SEO and AI rankings.",
   "email": "info@accessrank.ai",
   "reportFrom": "reports@accessrank.ai",
-  "legalName": "Accessrank",
+  "legalName": "Accessrank, Inc.",
+  "phone": "+1-310-408-1881",
+  "address": { "street": "2722 N. Beverly Glen Blvd", "city": "Los Angeles", "region": "CA", "postalCode": "90077" },
   "foundingYear": 2026,
   "locale": "en",
 
   "nav": [
-    { "label": "Introduction", "href": "/home#product", "deck": true },
-    { "label": "How we score", "href": "/methodology" },
-    { "label": "Pricing", "href": "/home#pricing" },
+    { "label": "Overview", "href": "/deck/", "deck": true },
     { "label": "Why Accessrank", "href": "/about", "menu": true, "children": [
       { "label": "Our approach", "href": "/about" },
-      { "label": "Access and rank", "href": "/home#product" },
       { "label": "ADA guide", "href": "/guide/ada-eaa" },
-      { "label": "Resources", "href": "/resources" },
-      { "label": "Disclosure", "href": "/disclosure" }
+      { "label": "How we score", "href": "/methodology" }
     ] },
-    { "label": "Free audit", "href": "/home#audit", "cta": true }
+    { "label": "What we fix", "href": "/#product" },
+    { "label": "Pricing", "href": "/#pricing" },
+    { "label": "Free audit", "href": "/#audit", "cta": true }
   ],
 
   "footer": [
@@ -28,6 +28,7 @@
       "links": [
         { "label": "Our approach", "href": "/about" },
         { "label": "How we score", "href": "/methodology" },
+        { "label": "Overview", "href": "/deck/" },
         { "label": "Careers", "href": "/careers" },
         { "label": "Talk to sales", "href": "/contact-sales" },
         { "label": "Client login", "href": "/client-login" }
@@ -36,8 +37,10 @@
     {
       "heading": "Learn",
       "links": [
-        { "label": "WCAG 2.2 explained", "href": "/home#wcag" },
         { "label": "ADA guide", "href": "/guide/ada-eaa" },
+        { "label": "WCAG 2.2 explained", "href": "/#wcag" },
+        { "label": "How it works", "href": "/#process" },
+        { "label": "FAQ", "href": "/#faq" },
         { "label": "Resources", "href": "/resources" }
       ]
     },
@@ -55,7 +58,7 @@
   "pages": [
     {
       "file": "index.html",
-      "url": "/home",
+      "url": "/",
       "layout": "home",
       "heroMotion": true,
       "title": "Accessrank — ADA accessibility score & SEO for DTC ecommerce",
@@ -120,6 +123,7 @@
       "layout": "page",
       "title": "About Accessrank | accessibility engineers, not overlay vendors",
       "description": "Who we are, why we fix source code instead of installing an overlay widget, and how we think about accessibility, risk and search.",
+      "schema": ["Article"],
       "priority": "0.6",
       "changefreq": "monthly"
     },
@@ -129,6 +133,7 @@
       "layout": "page",
       "title": "How we score your site | Accessrank audit methodology",
       "description": "The exact scoring model behind your Accessrank report: axe-core rules, WCAG conformance weighting, and the on-page SEO checklist. No black box.",
+      "schema": ["Article"],
       "priority": "0.7",
       "changefreq": "monthly"
     },
@@ -138,6 +143,7 @@
       "layout": "page",
       "title": "The ADA and your online store | Accessrank guide",
       "description": "What the ADA and Section 508 actually require of an online store, who is covered, and what happens when a demand letter arrives.",
+      "schema": ["Article"],
       "priority": "0.8",
       "changefreq": "monthly"
     },

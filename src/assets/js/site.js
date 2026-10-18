@@ -144,11 +144,11 @@
     applyMode('standard');
   }
 
-  /* ------------------------------------------- investor deck overlay --- */
-  /* "Introduction" in the primary nav (site.json: nav[].deck) opens the
-   * investor deck (accessrank-deck, built to /deck/) full-screen over
+  /* ------------------------------------------- overview deck overlay --- */
+  /* "Overview" in the primary nav (site.json: nav[].deck) and "Why stores get
+   * sued" under the hero open the overview deck (built to /deck/) full-screen over
    * whatever page the person is on, instead of navigating there. The href
-   * stays a real "/#product" anchor so it still does something reasonable
+   * stays a real "/deck/" link so it still does something reasonable
    * without JS. Registered before the smooth-anchor handler below and stops
    * the event outright, so that handler never also tries to scroll the page
    * underneath to #product while the overlay is opening on top of it. */
