@@ -604,6 +604,15 @@ a.contact-line:hover { color: var(--accent); }
   .s11-plans { grid-template-columns: repeat(3, auto); column-gap: 24px; }
 }
 
+/* S06 on roomy desktop windows: the headline balances onto three lines, so its width (and the lede's, which follows
+   it) is set by the longest of them. Scaling the headline up and widening the copy column lets the block use the
+   viewport instead of leaving the right half empty. Short windows (<= 820px) keep the tighter sizes below. */
+@media (min-width: 1200px) and (min-height: 821px) {
+  .s06-copy { width: 80%; row-gap: 20px; }
+  .s06-title { font-size: clamp(48px, 4.4vw, 76px); }
+  .s06-lede { font-size: 18px; line-height: 28px; }
+}
+
 /* S06 en ventanas de escritorio bajas (1024×768, 1280×720, 1366×768): la rejilla estaba clavada al 46 % y el lede de 4 líneas
    la invadía, y las tiles de 3 líneas bajaban hasta la regla del pie. Ahora s06-engine.js baja rejilla y columna derecha bajo
    el copy (place()), y aquí las tiles se aprietan para que quepa lo que se bajó. */
