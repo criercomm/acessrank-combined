@@ -74,6 +74,16 @@ test('plus-tagging and gmail dots cannot buy a second report', async () => {
   }
 });
 
+test('internal domains can request more than one report', async () => {
+  const store = await freshStore();
+  const scan = await makeScan(store);
+  const { identity, lead } = leadInput('jp@crierpr.com');
+
+  await reserveReport(store, { identity, lead, scan, ipHash: IP_A });
+  const second = await reserveReport(store, { identity, lead, scan, ipHash: IP_B });
+  assert.ok(second.report.id, 'a team address must be able to test the funnel again');
+});
+
 /* ---------------------------------------------------------- rule 2: IP --- */
 
 test('three reports per IP per day, then blocked', async () => {
