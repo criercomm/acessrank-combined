@@ -135,9 +135,10 @@ export const copy = {
   s07: {
     title: ['Pay for results,', 'not promises.'],
     plans: [
-      { id: 'starter', name: 'Starter', once: '$1,500', monthly: '$79', who: 'Stores up to 10 SKUs', items: ['WCAG 2.2 AA source-code remediation', 'Monthly re-audit and VPAT', 'SEO optimization'], time: 'About 2 weeks' },
-      { id: 'growth', name: 'Growth', tag: 'Most popular', once: '$3,500', monthly: '$249', who: 'Brands with 11–50 SKUs', items: ['Everything in Starter', 'Weekly audits, one-click fixes', 'SEO rank tracking, conformance summary'], time: '2–4 weeks' },
-      { id: 'enterprise', name: 'Enterprise', once: 'Custom', monthly: null, who: 'Shopify Plus, 50+ SKUs', items: ['Daily or real-time monitoring', 'Dedicated CSM, SOC 2, DPA, SSO', 'Indemnification'], time: '6–12 weeks' },
+      { id: 'starter', name: 'Starter', once: '$1,500', monthly: '$79', who: 'Stock theme, a handful of apps', items: ['WCAG 2.2 AA source-code remediation', 'Monthly re-audit and Compliance Record', 'SEO optimization'], time: 'About 2 weeks' },
+      { id: 'growth', name: 'Growth', once: '$3,500', monthly: '$249', who: 'Customized theme, up to 15 apps', items: ['Everything in Starter', 'Weekly audits, human testing record', 'Demand-letter playbook, rank tracking'], time: '2–4 weeks' },
+      { id: 'scale', name: 'Scale', once: '$6,500', monthly: '$599', who: 'Heavily customized theme, 15+ apps', items: ['Everything in Growth', 'Daily audits, quarterly human testing', 'Named specialist, AI search readiness'], time: '4–6 weeks' },
+      { id: 'enterprise', name: 'Enterprise', once: 'Custom', monthly: null, who: 'Shopify Plus, multi-storefront, headless', items: ['Everything in Scale', 'Real-time monitoring, SLA', 'SOC 2 report, DPA'], time: '8–12 weeks' },
     ],
     express: { name: 'Lawsuit response', price: '$5,900', line: 'From $5,900, delivered in 7 days: emergency audit, source-code remediation of the cited issues, screen-reader proof video, VPAT and settlement-terms review.' },
     today: 'Today: an operated service with a client portal.',

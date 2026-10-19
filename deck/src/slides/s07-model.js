@@ -1,5 +1,4 @@
-// S07 — Pay for results, not promises. The three plans from accessrank.ai as cards (prices in flap digits, Growth with the
-// yellow keyline), the lawsuit-response lane, and the honest "today / next" line about billing.
+// S07 — Pay for results, not promises. The four plans from accessrank.ai as cards (prices in flap digits), the lawsuit-response lane, and the honest "today / next" line about billing.
 import { gsap, T } from '@lib/motion/ease.js'
 import { Stagger } from '@lib/motion/stagger.js'
 import { FlapDigits } from '@lib/motion/flap-digits.js'

@@ -104,6 +104,30 @@
   });
   paintThemeButtons();
 
+  /* ---------------------------------------- billing period toggle ---- */
+
+  var billToggle = document.getElementById('bill-toggle');
+  var pricingSection = document.querySelector('.pricing');
+
+  if (billToggle && pricingSection) {
+    var billButtons = billToggle.querySelectorAll('[data-bill]');
+    var applyBill = function (bill) {
+      pricingSection.setAttribute('data-bill', bill);
+      billButtons.forEach(function (button) {
+        var active = button.getAttribute('data-bill') === bill;
+        button.classList.toggle('is-active', active);
+        button.setAttribute('aria-pressed', active ? 'true' : 'false');
+      });
+      pricingSection.querySelectorAll('[data-m][data-a]').forEach(function (el) {
+        el.textContent = el.getAttribute(bill === 'annual' ? 'data-a' : 'data-m');
+      });
+    };
+    billButtons.forEach(function (button) {
+      button.addEventListener('click', function () { applyBill(button.getAttribute('data-bill')); });
+    });
+    applyBill('monthly');
+  }
+
   /* ------------------------------------------------- pricing toggle ---- */
 
   var priceToggle = document.getElementById('price-toggle');

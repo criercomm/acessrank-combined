@@ -233,13 +233,19 @@
   <p class="credit-disclaimer">Figures reflect IRS Form 8826 as published. The Disabled Access Credit is non-refundable and subject to eligibility rules &mdash;<br/> Accessrank is not a tax advisor, and this is not tax advice. Confirm your eligibility and treatment with a qualified professional.</p>
 </section>
 
-<section class="pricing" id="pricing">
+<section class="pricing" id="pricing" data-mode="standard" data-bill="monthly">
   <div class="section-eyebrow">PRICING</div>
   <h2>Pay for results, not promises.</h2>
-  <p class="section-sub">Two jobs, priced separately: a one-time project to <strong>raise your accessibility score</strong>, then a monthly plan to <strong>hold it there</strong>. SEO optimization included in every tier.</p>
-  <div class="price-toggle" id="price-toggle">
-    <button type="button" data-mode="standard" aria-pressed="true">Standard pricing</button>
-    <button type="button" data-mode="credit" aria-pressed="false">After Form 8826 credit (illustrative, if you qualify)</button>
+  <p class="section-sub">Two jobs, priced separately: a one-time project to <strong>raise your accessibility score</strong>, then a plan to <strong>hold it there</strong>. SEO optimization and the Accessibility Compliance Record are included in every tier.</p>
+  <div class="price-toggles">
+    <div class="price-toggle" id="price-toggle" role="group" aria-label="Onboarding price">
+      <button type="button" data-mode="standard" aria-pressed="true">Standard pricing</button>
+      <button type="button" data-mode="credit" aria-pressed="false">After Form 8826 credit (illustrative, if you qualify)</button>
+    </div>
+    <div class="price-toggle" id="bill-toggle" role="group" aria-label="Billing period">
+      <button type="button" data-bill="monthly" aria-pressed="true">Monthly</button>
+      <button type="button" data-bill="annual" aria-pressed="false">Annual &middot; save 30%</button>
+    </div>
   </div>
   <ul class="pricing-grid">
     <li class="price-card">
@@ -247,46 +253,65 @@
       <div class="price-onboard"><span class="price-was" data-was hidden>$1,500</span><span class="amt" data-onetime="1500">$1,500</span></div>
       <div class="price-onboard-label">one-time onboarding</div>
       <div class="price-timeline">Live in ~2 weeks</div>
-      <div class="price-monthly">Then <strong>$79/mo</strong> to hold your score <span class="ann">(or $790/yr)</span></div>
-      <div class="price-desc">For single-line stores with up to 10 SKUs.</div>
+      <div class="price-monthly">Then <strong data-m="$79/mo" data-a="$690/yr">$79/mo</strong> to hold your score <span class="ann" data-m="(or $690/yr)" data-a="(or $79/mo)">(or $690/yr)</span></div>
+      <div class="price-desc">For stores on a stock theme with a handful of apps.</div>
       <ul class="price-features">
-        <li>Source-code remediation against WCAG 2.2 AA</li>
-        <li>Monthly re-audit + Accessibility Compliance Record (incl. VPAT)</li>
+        <li>Source-code remediation against WCAG 2.2 AA, with a human review pass at onboarding</li>
+        <li>Monthly re-audit and monitoring certificate</li>
+        <li>Accessibility Compliance Record (baseline, fix log, VPAT-format report, accessibility statement)</li>
         <li>SEO optimization</li>
       </ul>
       <a href="/signup?plan=starter" class="price-cta" aria-label="Raise my score with the Starter plan">Raise my score</a>
     </li>
-    <li class="price-card featured">
-      <h3 class="price-tier featured-tier">GROWTH &middot; MOST POPULAR</h3>
+    <li class="price-card">
+      <h3 class="price-tier">GROWTH</h3>
       <div class="price-onboard"><span class="price-was" data-was hidden>$3,500</span><span class="amt" data-onetime="3500">$3,500</span></div>
       <div class="price-onboard-label">one-time onboarding</div>
       <div class="price-timeline">Live in 2&ndash;4 weeks</div>
-      <div class="price-monthly">Then <strong>$249/mo</strong> to hold your score <span class="ann">(or $2,490/yr)</span></div>
-      <div class="price-desc">For growing brands with 10&ndash;100 SKUs.</div>
+      <div class="price-monthly">Then <strong data-m="$249/mo" data-a="$2,090/yr">$249/mo</strong> to hold your score <span class="ann" data-m="(or $2,090/yr)" data-a="(or $249/mo)">(or $2,090/yr)</span></div>
+      <div class="price-desc">For a customized theme with up to 15 apps and several page templates.</div>
       <ul class="price-features">
-        <li>Everything in Starter, plus:</li>
-        <li>Weekly audits + alerts</li>
-        <li>One-click fixes for many common issues</li>
+        <li class="plus">Everything in Starter, plus:</li>
+        <li>Weekly audits and alerts</li>
+        <li>Signed human testing record, refreshed every six months</li>
+        <li>Demand-letter playbook, prepared within two business days</li>
         <li>SEO rank tracking</li>
       </ul>
       <a href="/signup?plan=growth" class="price-cta" aria-label="Raise my score with the Growth plan">Raise my score</a>
     </li>
     <li class="price-card">
+      <h3 class="price-tier">SCALE</h3>
+      <div class="price-onboard"><span class="price-was" data-was hidden>$6,500</span><span class="amt" data-onetime="6500">$6,500</span></div>
+      <div class="price-onboard-label">one-time onboarding</div>
+      <div class="price-timeline">Live in 4&ndash;6 weeks</div>
+      <div class="price-monthly">Then <strong data-m="$599/mo" data-a="$4,990/yr">$599/mo</strong> to hold your score <span class="ann" data-m="(or $4,990/yr)" data-a="(or $599/mo)">(or $4,990/yr)</span></div>
+      <div class="price-desc">For heavily customized themes with 15 or more apps.</div>
+      <ul class="price-features">
+        <li class="plus">Everything in Growth, plus:</li>
+        <li>Daily audits and alerts</li>
+        <li>Human testing record refreshed quarterly</li>
+        <li>Named accessibility specialist</li>
+        <li>AI search and agent-readiness optimization</li>
+      </ul>
+      <a href="/signup?plan=scale" class="price-cta" aria-label="Raise my score with the Scale plan">Raise my score</a>
+    </li>
+    <li class="price-card">
       <h3 class="price-tier">ENTERPRISE</h3>
       <div class="price-onboard"><span class="amt">Custom</span></div>
       <div class="price-onboard-label">onboarding</div>
-      <div class="price-timeline">6&ndash;12 weeks</div>
-      <div class="price-monthly">Then a <strong>custom monthly plan</strong> to hold your score</div>
-      <div class="price-desc">For Shopify Plus and multi-brand catalogs, 100+ SKUs.</div>
+      <div class="price-timeline">8&ndash;12 weeks</div>
+      <div class="price-monthly">Then a <strong>custom plan</strong> to hold your score</div>
+      <div class="price-desc">For Shopify Plus, multiple storefronts or brands, and headless builds.</div>
       <ul class="price-features">
-        <li>Everything in Growth, plus:</li>
-        <li>Daily / real-time monitoring</li>
-        <li>Dedicated CSM + integrations</li>
+        <li class="plus">Everything in Scale, plus:</li>
+        <li>Real-time monitoring across every storefront</li>
+        <li>Response-time SLA and integrations</li>
+        <li>Procurement documentation (SOC 2 report, DPA)</li>
       </ul>
       <a href="/contact-sales" class="price-cta">Talk to sales</a>
     </li>
   </ul>
-  <p class="pricing-note">Onboarding scope is confirmed after a free site audit. <a href="/methodology">See how we score</a>.</p>
+  <p class="pricing-note">Onboarding scope is confirmed after a free site audit, which is also how we place a store in a tier. <a href="/methodology">See how we score</a>.</p>
 </section>
 
 <section class="lawsuit" id="lawsuit-response">
