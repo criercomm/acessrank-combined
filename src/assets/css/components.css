@@ -304,8 +304,17 @@ body.modal-open { overflow: hidden; }
   text-align: center;
   padding: 32px 24px;
 }
+.form-success { position: relative; }
 .form-success h2 { font-size: 22px; margin: 0 0 10px; color: var(--text); }
 .form-success p { margin: 0 0 8px; color: var(--text-soft); line-height: 1.6; }
+.form-close { position: absolute; top: 6px; right: 6px; display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 8px; color: var(--text-faint); transition: color .15s ease, background .15s ease; }
+.form-close:hover { color: var(--text); background: var(--surface-2); }
+.form-placement { margin: 18px 0 6px; padding: 16px 18px; border-radius: 10px; border: 1px solid var(--hairline); background: var(--surface-2); text-align: left; }
+.form-placement-tier { font-size: 15px; color: var(--text); margin: 0 0 6px; }
+.form-placement-tier strong { color: var(--brand-text); }
+.form-placement-reason { font-size: 13px; color: var(--text-soft); margin: 0 0 6px; }
+.form-placement-note { font-size: 12px; color: var(--text-faint); margin: 0; }
+.form-done { display: inline-block; width: auto; margin-top: 18px; padding: 11px 22px; }
 
 /* ---------------------------------------------------------------------------
  * Scan result panel.
@@ -381,6 +390,8 @@ body.modal-open { overflow: hidden; }
 /* AI agent readiness checklist (audit.js) */
 .result-agent { display: flex; flex-direction: column; gap: 6px; }
 .result-agent-title { margin: 0; font-size: 15px; font-weight: 700; color: var(--text); text-align: left; }
+.result-overlay { margin: 14px 0 0; padding: 12px 14px; border-radius: 10px; border: 1px solid var(--hairline); background: var(--surface-2); font-size: 13px; line-height: 1.5; color: var(--text-soft); }
+.result-overlay strong { color: var(--text); }
 .result-agent-intro { margin: 0 0 4px; font-size: 13px; line-height: 1.5; color: var(--text-soft); }
 .agent-checks { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--hairline); }
 .agent-check { display: flex; align-items: center; gap: 10px; padding: 9px 0; border-bottom: 1px solid var(--hairline); font-size: 13px; }

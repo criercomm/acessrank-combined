@@ -253,6 +253,15 @@
         'Automated testing found nothing to fix. The full report covers the SEO checks and what automated testing cannot see.'));
     }
 
+    /* Overlay notice: the free check names the widget, because a plaintiff's firm will too. */
+    var overlays = data.profile && data.profile.overlays ? data.profile.overlays : [];
+    if (overlays.length) {
+      var ov = el('p', 'result-overlay');
+      ov.appendChild(el('strong', null, 'Accessibility overlay detected: ' + overlays.join(', ') + '. '));
+      ov.appendChild(document.createTextNode('A widget loads on top of the page and leaves the code underneath as it was, so the issues above are what a screen reader still meets. Removing it is part of onboarding.'));
+      results.appendChild(ov);
+    }
+
     /* AI agent readiness — can assistants and browsing agents read and operate the store? */
     if (data.agent && data.agent.total) {
       var agentWrap = el('section', 'result-agent');

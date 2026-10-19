@@ -314,7 +314,10 @@ html.hero-fx .risk-title { visibility: hidden; animation: hero-failsafe 1ms line
 
 .record-title { font-size: 16px; font-weight: 600; color: var(--text); margin: 2px 0 0; }
 .record-desc { font-size: 13.5px; line-height: 1.5; color: var(--text-soft); margin: 0; }
-.record-plans { font-size: 13px; color: var(--text-muted); line-height: 1.5; margin: 18px 0 0; text-align: center; }
+.record-upgrade { text-align: center; margin: 0 0 18px; }
+.record-upgrade .record-eyebrow { margin-bottom: 8px; }
+.record-upgrade p { font-size: 15px; line-height: 1.5; color: var(--text-soft); margin: 0; text-wrap: pretty; }
+.record-grid-upgrade { grid-template-columns: repeat(3, 1fr); max-width: 75%; margin: 0 auto 44px; }
 .record-vpat h3 { font-size: 22px; font-weight: 700; color: var(--text); margin: 0 0 12px; letter-spacing: -.3px; }
 .record-vpat p { font-size: 15px; line-height: 1.6; color: var(--text-soft); margin: 0 0 12px; text-wrap: pretty; }
 .record-compare { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 22px 0 32px; }
@@ -546,6 +549,7 @@ html:not([data-theme="light"]) .overlay-content p strong { background: var(--bra
   .feature-grid { grid-template-columns: 1fr; }
   .process-grid { grid-template-columns: 1fr 1fr; }
   .record-grid { grid-template-columns: 1fr 1fr; }
+  .record-grid-upgrade { grid-template-columns: 1fr 1fr; max-width: none; }
   .record-compare { grid-template-columns: 1fr; }
   .pricing-grid { grid-template-columns: 1fr; max-width: 440px; margin: 0 auto; gap: 12px; }
   .risk-grid { grid-template-columns: repeat(3, 1fr); gap: 20px; max-width: 900px; }
@@ -564,7 +568,7 @@ html:not([data-theme="light"]) .overlay-content p strong { background: var(--bra
   .stat + .stat::before { display: none; }
   .overlay-card { flex-direction: column; gap: 14px; }
   .process-grid { grid-template-columns: 1fr; }
-  .record-grid { grid-template-columns: 1fr; }
+  .record-grid, .record-grid-upgrade { grid-template-columns: 1fr; }
   .closing-band { padding: 36px 20px; }
   .risk-links { flex-direction: column; gap: 10px; }
 }

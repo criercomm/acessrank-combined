@@ -64,6 +64,7 @@ export const leadSchema = z.object({
   platform: trimmed(60).optional().nullable(),
   pages: trimmed(60).optional().nullable(),
   intent: trimmed(60).optional().nullable(),
+  placementNote: trimmed(400).optional().nullable(),
   message: trimmed(4000).optional().nullable(),
   consent: z.union([z.boolean(), z.literal('on'), z.literal('true')]).refine(
     (v) => v === true || v === 'on' || v === 'true',

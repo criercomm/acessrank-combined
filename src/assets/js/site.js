@@ -287,12 +287,37 @@
       payload.marketingOptIn = form.querySelector('[name="marketingOptIn"]')
         ? form.querySelector('[name="marketingOptIn"]').checked : false;
 
+      // "Let the audit decide": run the free check on the store first, so the lead goes out with the
+      // suggested plan attached and the visitor sees the placement on the thanks card. A failed scan
+      // never blocks the enquiry; the lead is sent with plan "audit" and the specialist scopes it.
+      var placement = null;
+      var wantsPlacement = payload.plan === 'audit' && payload.website;
+
       window.Accessrank.waitForToken(form, 45000).then(function (token) {
         if (token) payload.turnstileToken = token;
+        if (!wantsPlacement) return null;
+        if (submit) submit.textContent = 'Scanning your store…';
+        return window.Accessrank.post('/api/scan', { url: payload.website, turnstileToken: token || undefined })
+          .then(function (scan) { return scan && scan.placement ? scan.placement : null; })
+          .catch(function () { return null; });
+      }).then(function (found) {
+        placement = found;
+        if (placement && placement.tier) {
+          payload.plan = placement.tier;
+          payload.intent = 'audit_placed';
+          payload.placementNote = (placement.label || placement.tier) + ' \u2014 ' + (placement.reason || '');
+        }
+        if (submit) submit.textContent = 'Sending…';
         return window.Accessrank.post('/api/lead', payload);
       }).then(function (data) {
         var success = form.parentElement.querySelector('[data-form-success]');
         if (success) {
+          var slot = success.querySelector('[data-placement]');
+          if (slot && placement && placement.tier) {
+            slot.querySelector('[data-placement-label]').textContent = placement.label || placement.tier;
+            slot.querySelector('[data-placement-reason]').textContent = placement.reason || '';
+            slot.hidden = false;
+          }
           form.hidden = true;
           success.hidden = false;
           success.setAttribute('tabindex', '-1');

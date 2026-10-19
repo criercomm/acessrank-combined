@@ -177,8 +177,70 @@ function extractSeo() {
   const favicon = Boolean(document.querySelector('link[rel~="icon" i]'));
   const ogTags = [...document.querySelectorAll('meta[property^="og:" i]')].map((m) => m.getAttribute('property'));
 
+  // Store profile: what the store is built on, whether the theme came from a theme store, and how
+  // many third-party apps and scripts it loads. Feeds the tier placement on the signup page.
+  const profile = (() => {
+    const scripts = [...document.querySelectorAll('script[src]')].map((el) => el.getAttribute('src') || '');
+    const html = document.documentElement.outerHTML || '';
+    const shopify = window.Shopify && typeof window.Shopify === 'object' ? window.Shopify : null;
+    let platform = 'custom';
+    if (shopify || scripts.some((src) => /cdn\.shopify\.com/i.test(src))) platform = 'shopify';
+    else if (document.body && /\bwoocommerce\b/i.test(document.body.className)) platform = 'woocommerce';
+    else if (/bigcommerce\.com|stencil-utils/i.test(html)) platform = 'bigcommerce';
+    else if (/wp-content\//i.test(html)) platform = 'wordpress';
+    const theme = shopify && shopify.theme ? {
+      name: String(shopify.theme.name || '').slice(0, 80),
+      storeId: shopify.theme.theme_store_id || null,
+      stock: Boolean(shopify.theme.theme_store_id),
+    } : null;
+    // Shopify app embeds ship as /extensions/<id>/... on the Shopify CDN; everything else is counted by host.
+    const infra = /^(www\.)?(cdn\.shopify\.com|cdn\.shopifycloud\.com|shopifycloud\.com|monorail-edge\.shopifysvc\.com|fonts\.googleapis\.com|fonts\.gstatic\.com|cdnjs\.cloudflare\.com|static\.cloudflareinsights\.com|challenges\.cloudflare\.com|ajax\.googleapis\.com|cdn\.jsdelivr\.net|unpkg\.com)$/i;
+    const hosts = new Set();
+    const embeds = new Set();
+    for (const src of scripts) {
+      let u;
+      try { u = new URL(src, location.href); } catch { continue; }
+      if (u.origin === location.origin) continue;
+      const m = u.pathname.match(/\/extensions\/([^/]+)\//);
+      if (/cdn\.shopify\.com$/i.test(u.hostname)) { if (m) embeds.add(m[1]); continue; }
+      if (infra.test(u.hostname)) continue;
+      hosts.add(u.hostname.replace(/^www\./, ''));
+    }
+    // Accessibility overlays, by script host or the global each one sets. Vendor names are what the
+    // signup page and the sales email show, so keep them as the vendor writes them.
+    const vendors = [
+      { name: 'accessiBe', host: /acsbapp\.com|acsbap\.com|accessibe\.com/i, global: ['acsbJS', 'acsbWidget'] },
+      { name: 'UserWay', host: /userway\.org/i, global: ['UserWay', '_userway_config'] },
+      { name: 'AudioEye', host: /audioeye\.com/i, global: ['AudioEye'] },
+      { name: 'EqualWeb', host: /nagich\.com|equalweb\.com/i, global: ['interdeal'] },
+      { name: 'Allyable', host: /allyable\.com/i, global: [] },
+      { name: 'accessiBe (accessFlow)', host: /accessflow\.io/i, global: [] },
+      { name: 'Accessibility Spark', host: /accessibilityspark\.com/i, global: [] },
+      { name: 'Accessibly', host: /accessibly\.app|app\.accessibly\.io|accessiblyapp/i, global: [] },
+      { name: 'MaxAccess', host: /maxaccess\.io/i, global: [] },
+      { name: 'TruAbilities', host: /truabilities\.com/i, global: [] },
+      { name: 'Accessibility Enabler', host: /accessibilityenabler\.com|hikeorders\.com/i, global: [] },
+      { name: 'AccessiWay', host: /accessiway\.com/i, global: [] },
+      { name: 'ReciteMe', host: /reciteme\.com/i, global: [] },
+      { name: 'Monsido / Acquia', host: /monsido\.com/i, global: [] },
+      { name: 'Wix accessibility widget', host: /wixaccessibility/i, global: [] },
+      { name: 'CodeMantra accessiBe-style widget', host: /codemantra/i, global: [] },
+    ];
+    const overlays = [];
+    for (const v of vendors) {
+      const byHost = scripts.some((src) => v.host.test(src)) || v.host.test(html);
+      const byGlobal = v.global.some((g) => typeof window[g] !== 'undefined');
+      if (byHost || byGlobal) overlays.push(v.name);
+    }
+    return {
+      platform, theme,
+      apps: { embeds: embeds.size, hosts: hosts.size, count: embeds.size + hosts.size, sample: [...hosts].slice(0, 12) },
+      overlays,
+    };
+  })();
+
   return {
-    title, description, canonical, viewport, lang, robots, favicon,
+    title, description, canonical, viewport, lang, robots, favicon, profile,
     h1Count: h1s.length,
     h1Text: h1s.length ? text(h1s[0]).slice(0, 200) : '',
     headingCount: headings.length,
@@ -461,6 +523,8 @@ export async function runScan(rawUrl, { maxPages = config.scanner.maxPages } = {
     const seo = scoreSeo(seoSignals);
     const overall = scoreOverall(a11y.score, seo.score);
     const agent = agentReadiness(merged, first.seoRaw, seoSignals);
+    const profile = first.seoRaw.profile ?? null;
+    const placement = placeTier(profile);
 
     return {
       ok: true,
@@ -480,6 +544,8 @@ export async function runScan(rawUrl, { maxPages = config.scanner.maxPages } = {
       },
       seo: { ...seo, signals: seoSignals },
       agent,
+      profile,
+      placement,
       meta: {
         title: first.seoRaw.title,
         description: first.seoRaw.description,
@@ -504,6 +570,42 @@ export async function runScan(rawUrl, { maxPages = config.scanner.maxPages } = {
     if (context) await context.close().catch(() => {});
     releaseSlot();
   }
+}
+
+/**
+ * Suggest a plan from the store profile. Mirrors the tier descriptions on the pricing page:
+ * Starter is a stock theme with a handful of apps, Growth a customized theme with up to 15,
+ * Scale a heavily customized theme with 15 or more. A specialist confirms the scope; this is
+ * the first pass the signup page shows when a visitor chooses "Let the audit decide".
+ */
+export function placeTier(profile) {
+  if (!profile) return null;
+  const apps = profile.apps?.count ?? 0;
+  const stock = profile.theme ? profile.theme.stock : null;
+  const themeName = profile.theme?.name || '';
+  const appsLine = apps === 0 ? 'no third-party apps detected' : apps === 1 ? '1 third-party app' : `${apps} third-party apps`;
+  let tier;
+  let themeLine;
+  if (apps >= 15) {
+    tier = 'scale';
+    themeLine = stock ? `a theme-store theme${themeName ? ` (${themeName})` : ''} carrying a heavy app load` : 'a customized theme';
+  } else if (stock === true && apps < 5) {
+    tier = 'starter';
+    themeLine = `a theme-store theme${themeName ? ` (${themeName})` : ''}`;
+  } else {
+    tier = 'growth';
+    themeLine = stock === true ? `a theme-store theme${themeName ? ` (${themeName})` : ''}` : stock === false ? 'a custom theme' : 'a theme we could not identify from the outside';
+  }
+  const platformLine = { shopify: 'Shopify', woocommerce: 'WooCommerce', bigcommerce: 'BigCommerce', wordpress: 'WordPress' }[profile.platform] || 'a custom build';
+  const overlays = Array.isArray(profile.overlays) ? profile.overlays : [];
+  const overlayLine = overlays.length ? ` An accessibility overlay is installed (${overlays.join(', ')}); removing it is part of onboarding.` : '';
+  return {
+    tier,
+    label: tier.charAt(0).toUpperCase() + tier.slice(1),
+    reason: `${platformLine}, ${themeLine}, ${appsLine}.${overlayLine}`,
+    overlays,
+    confidence: profile.platform === 'shopify' && profile.theme ? 'high' : 'low',
+  };
 }
 
 const stripHash = (href) => { try { const u = new URL(href); u.hash = ''; return u.href; } catch { return href; } };

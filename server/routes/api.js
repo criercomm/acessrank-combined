@@ -175,6 +175,8 @@ function publicScan(result) {
     },
     // Absent on results cached before agent readiness existed; the dialog hides the section then.
     agent: result.agent ?? null,
+    profile: result.profile ?? null,
+    placement: result.placement ?? null,
     axeVersion: result.axeVersion,
   };
 }
@@ -315,7 +317,9 @@ router.post('/lead', wrap(async (req, res) => {
     intent: input.intent ? cleanText(input.intent, 60) : null,
     plan: input.plan ?? null,
     platform: input.platform ? cleanText(input.platform, 60) : null,
-    message: input.message ? cleanText(input.message, 4000) : null,
+    // The signup page's first-scan placement rides along in the message so sales sees it without opening the scan.
+    message: [input.message ? cleanText(input.message, 4000) : '', input.placementNote ? `First-scan placement: ${cleanText(input.placementNote, 400)}` : '']
+      .filter(Boolean).join('\n\n') || null,
     ipHash,
     userAgent: context.userAgent,
     referer: context.referer,
