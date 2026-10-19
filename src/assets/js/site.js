@@ -317,8 +317,8 @@
         if (!wantsPlacement) return null;
         startScanProgress();
         return window.Accessrank.post('/api/scan', { url: payload.website, turnstileToken: token || undefined })
-          .then(function (scan) { return scan && scan.placement ? scan.placement : null; })
-          .catch(function () { return null; });
+          .then(function (scan) { return scan && scan.placement ? scan.placement : { failed: true, message: 'The scan returned no result.' }; })
+          .catch(function (err) { return { failed: true, message: err && err.message ? err.message : 'The scan could not be completed.' }; });
       }).then(function (found) {
         placement = found;
         if (placement && placement.tier) {
@@ -326,6 +326,9 @@
           payload.intent = 'audit_placed';
           payload.placementNote = (placement.label || placement.tier) + ' \u2014 ' + (placement.reason || '')
             + (placement.overlayNote ? ' ' + placement.overlayNote : '');
+        } else if (placement && placement.failed) {
+          payload.intent = 'audit_scan_failed';
+          payload.placementNote = 'Scan could not be completed: ' + placement.message;
         }
         clearProgress();
         setProgress('Sending…', null);
@@ -333,6 +336,11 @@
       }).then(function (data) {
         var success = form.parentElement.querySelector('[data-form-success]');
         if (success) {
+          var failedSlot = success.querySelector('[data-placement-failed]');
+          if (failedSlot && placement && placement.failed) {
+            failedSlot.querySelector('[data-placement-failed-message]').textContent = placement.message;
+            failedSlot.hidden = false;
+          }
           var slot = success.querySelector('[data-placement]');
           if (slot && placement && placement.tier) {
             slot.querySelector('[data-placement-label]').textContent = placement.label || placement.tier;
