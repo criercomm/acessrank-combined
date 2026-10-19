@@ -268,7 +268,7 @@
       var field = form.querySelector('[name="' + key + '"]');
       if (field) field.value = value;
       var pill = document.querySelector('[data-plan-pill]');
-      if (key === 'plan' && pill) pill.textContent = value.charAt(0).toUpperCase() + value.slice(1);
+      if (key === 'plan' && pill && value !== 'audit') pill.textContent = value.charAt(0).toUpperCase() + value.slice(1) + ' plan';
     });
 
     form.addEventListener('submit', function (e) {

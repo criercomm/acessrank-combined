@@ -60,7 +60,7 @@ export const leadSchema = z.object({
   phone: trimmed(40).optional().nullable(),
   company: trimmed(160).optional().nullable(),
   website: trimmed(2000).optional().nullable(),
-  plan: z.enum(['starter', 'growth', 'enterprise']).optional().nullable(),
+  plan: z.enum(['audit', 'starter', 'growth', 'scale', 'enterprise']).optional().nullable(),
   platform: trimmed(60).optional().nullable(),
   pages: trimmed(60).optional().nullable(),
   intent: trimmed(60).optional().nullable(),
