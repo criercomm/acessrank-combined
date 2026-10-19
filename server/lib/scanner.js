@@ -376,6 +376,14 @@ async function auditPage(context, url, deadline, { robots = false } = {}) {
     if (status >= 400) {
       const wall = botWallReason({ headers, ...(await readWall(page)) });
       if (wall) throw botWallError(wall);
+      if (status === 403 || status === 406 || status === 429) {
+        throw new ScanError(
+          'http_blocked',
+          `That site answered HTTP ${status} to our scanner, which usually means its firewall blocks automated visitors. `
+            + 'Contact us and we will run the audit from an allowlisted scanner.',
+          { status: 422 },
+        );
+      }
       throw new ScanError(
         'http_error',
         `That page returned HTTP ${status}. Check the address and try again.`,
@@ -481,6 +489,9 @@ export async function runScan(rawUrl, { maxPages = config.scanner.maxPages } = {
     const browser = await getBrowser();
     context = await browser.newContext({
       userAgent: config.scanner.userAgent,
+      // The browser identifies as Chrome (a "Bot" token in the UA is enough for many WordPress
+      // hosts to answer 403); this header is how a site owner can still tell our scans apart.
+      extraHTTPHeaders: { 'X-Accessrank-Scanner': '1.0; +https://accessrank.ai/bot' },
       viewport: config.scanner.viewport,
       // Never carry state between two visitors' scans.
       storageState: undefined,
@@ -598,12 +609,12 @@ export function placeTier(profile) {
   }
   const platformLine = { shopify: 'Shopify', woocommerce: 'WooCommerce', bigcommerce: 'BigCommerce', wordpress: 'WordPress' }[profile.platform] || 'a custom build';
   const overlays = Array.isArray(profile.overlays) ? profile.overlays : [];
-  const overlayLine = overlays.length ? ` An accessibility overlay is installed (${overlays.join(', ')}); removing it is part of onboarding.` : '';
   return {
     tier,
     label: tier.charAt(0).toUpperCase() + tier.slice(1),
-    reason: `${platformLine}, ${themeLine}, ${appsLine}.${overlayLine}`,
+    reason: `${platformLine}, ${themeLine}, ${appsLine}.`,
     overlays,
+    overlayNote: overlays.length ? `${overlays.join(' and ')} accessibility overlay detected.` : null,
     confidence: profile.platform === 'shopify' && profile.theme ? 'high' : 'low',
   };
 }

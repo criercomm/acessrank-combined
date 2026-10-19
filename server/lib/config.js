@@ -77,7 +77,7 @@ const config = Object.freeze({
     viewport: { width: int(env.SCAN_VIEWPORT_W, 1440), height: int(env.SCAN_VIEWPORT_H, 900) },
     userAgent:
       env.SCAN_USER_AGENT ||
-      'Mozilla/5.0 (compatible; AccessrankBot/1.0; +https://accessrank.ai/bot)',
+      'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36',
     /** Reuse a scan result for the same origin for this long. Protects cost and latency. */
     cacheTtlHours: int(env.SCAN_CACHE_TTL_HOURS, 24),
     /** Chromium executable. Empty = use the Playwright-managed download. */

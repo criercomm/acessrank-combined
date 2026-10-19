@@ -257,8 +257,8 @@
     var overlays = data.profile && data.profile.overlays ? data.profile.overlays : [];
     if (overlays.length) {
       var ov = el('p', 'result-overlay');
-      ov.appendChild(el('strong', null, 'Accessibility overlay detected: ' + overlays.join(', ') + '. '));
-      ov.appendChild(document.createTextNode('A widget loads on top of the page and leaves the code underneath as it was, so the issues above are what a screen reader still meets. Removing it is part of onboarding.'));
+      ov.appendChild(el('strong', null, overlays.join(' and ') + ' accessibility overlay detected. '));
+      ov.appendChild(document.createTextNode('A widget loads on top of the page and leaves the code underneath as it was, so the issues above are what a screen reader still meets.'));
       results.appendChild(ov);
     }
 

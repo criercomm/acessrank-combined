@@ -293,10 +293,29 @@
       var placement = null;
       var wantsPlacement = payload.plan === 'audit' && payload.website;
 
+      // Progress while the store is scanned: the button shows a spinner and the status line walks
+      // through the stages on a timer, since the scan itself is a single request of 15–30 seconds.
+      var progressTimers = [];
+      var setProgress = function (label, note) {
+        if (submit) { submit.classList.add('is-busy'); submit.textContent = label; }
+        if (status && note != null) { status.textContent = note; status.className = 'form-status is-progress'; }
+      };
+      var clearProgress = function () {
+        progressTimers.forEach(clearTimeout); progressTimers = [];
+        if (submit) submit.classList.remove('is-busy');
+        if (status && status.classList.contains('is-progress')) { status.textContent = ''; status.className = 'form-status'; }
+      };
+      var startScanProgress = function () {
+        setProgress('Testing your store…', 'Loading your store in a real browser.');
+        progressTimers.push(setTimeout(function () { setProgress('Testing your store…', 'Checking it against the WCAG 2.2 Level A and AA criteria.'); }, 7000));
+        progressTimers.push(setTimeout(function () { setProgress('Testing your store…', 'Placing your store in a plan.'); }, 16000));
+        progressTimers.push(setTimeout(function () { setProgress('Testing your store…', 'Still working. Larger stores take a little longer.'); }, 28000));
+      };
+
       window.Accessrank.waitForToken(form, 45000).then(function (token) {
         if (token) payload.turnstileToken = token;
         if (!wantsPlacement) return null;
-        if (submit) submit.textContent = 'Scanning your store…';
+        startScanProgress();
         return window.Accessrank.post('/api/scan', { url: payload.website, turnstileToken: token || undefined })
           .then(function (scan) { return scan && scan.placement ? scan.placement : null; })
           .catch(function () { return null; });
@@ -305,9 +324,11 @@
         if (placement && placement.tier) {
           payload.plan = placement.tier;
           payload.intent = 'audit_placed';
-          payload.placementNote = (placement.label || placement.tier) + ' \u2014 ' + (placement.reason || '');
+          payload.placementNote = (placement.label || placement.tier) + ' \u2014 ' + (placement.reason || '')
+            + (placement.overlayNote ? ' ' + placement.overlayNote : '');
         }
-        if (submit) submit.textContent = 'Sending…';
+        clearProgress();
+        setProgress('Sending…', null);
         return window.Accessrank.post('/api/lead', payload);
       }).then(function (data) {
         var success = form.parentElement.querySelector('[data-form-success]');
@@ -316,6 +337,8 @@
           if (slot && placement && placement.tier) {
             slot.querySelector('[data-placement-label]').textContent = placement.label || placement.tier;
             slot.querySelector('[data-placement-reason]').textContent = placement.reason || '';
+            var overlayLine = slot.querySelector('[data-placement-overlay]');
+            if (overlayLine) { overlayLine.textContent = placement.overlayNote || ''; overlayLine.hidden = !placement.overlayNote; }
             slot.hidden = false;
           }
           form.hidden = true;
@@ -341,8 +364,9 @@
         }
         if (window.turnstile) window.turnstile.reset();
       }).finally(function () {
+        clearProgress();
         form.dataset.busy = '0';
-        if (submit) { submit.disabled = false; submit.textContent = submit.dataset.label || 'Send'; }
+        if (submit) { submit.disabled = false; submit.classList.remove('is-busy'); submit.textContent = submit.dataset.label || 'Send'; }
       });
     });
   });

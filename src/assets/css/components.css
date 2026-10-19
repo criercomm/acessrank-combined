@@ -313,7 +313,14 @@ body.modal-open { overflow: hidden; }
 .form-placement-tier { font-size: 15px; color: var(--text); margin: 0 0 6px; }
 .form-placement-tier strong { color: var(--brand-text); }
 .form-placement-reason { font-size: 13px; color: var(--text-soft); margin: 0 0 6px; }
+.form-placement-overlay { font-size: 13px; color: var(--text); font-weight: 600; margin: 0 0 6px; }
 .form-placement-note { font-size: 12px; color: var(--text-faint); margin: 0; }
+/* Progress while the signup form scans the store: a spinner in the button and a step line under it. */
+.submit-btn.is-busy { display: inline-flex; align-items: center; justify-content: center; gap: 10px; }
+.submit-btn.is-busy::before { content: ''; width: 16px; height: 16px; border-radius: 50%; border: 2px solid rgba(14, 14, 16, 0.25); border-top-color: var(--brand-ink); animation: submit-spin .8s linear infinite; }
+@keyframes submit-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .submit-btn.is-busy::before { animation: none; border-top-color: rgba(14, 14, 16, 0.25); } }
+.form-status.is-progress { color: var(--text-soft); }
 .form-done { display: inline-block; width: auto; margin-top: 18px; padding: 11px 22px; }
 
 /* ---------------------------------------------------------------------------
