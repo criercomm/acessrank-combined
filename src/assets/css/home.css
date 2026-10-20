@@ -309,27 +309,27 @@ html.hero-fx .risk-title { visibility: hidden; animation: hero-failsafe 1ms line
 .record h2 { margin-bottom: 22px; } /* no .section-sub under this heading now; give the intro a little more air */
 .record-intro p { font-size: 17px; line-height: 1.6; color: var(--text-soft); margin: 0 0 28px; text-wrap: pretty; text-align: center; }
 .record-intro strong { color: var(--text); font-weight: 600; }
-.record-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; list-style: none; padding: 0; margin: 0 0 44px; }
-.record-tile { background: var(--surface); border: 1px solid var(--keyline); border-radius: 12px; padding: 20px 22px; display: flex; flex-direction: column; gap: 6px; transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease; }
+.record-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; list-style: none; padding: 0; margin: 0 0 22px; }
+.record-tile { background: var(--surface); border: 1px solid var(--keyline); border-radius: 12px; padding: 18px 18px; display: flex; flex-direction: column; gap: 6px; transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease; }
 .record-tile:hover { transform: translateY(-3px); border-color: rgba(var(--brand-rgb), 0.6); box-shadow: 0 18px 34px -18px rgba(var(--brand-rgb), 0.45); }
 
-.record-title { font-size: 16px; font-weight: 600; color: var(--text); margin: 2px 0 0; }
-.record-desc { font-size: 13.5px; line-height: 1.5; color: var(--text-soft); margin: 0; }
-.record-upgrade { text-align: center; margin: 0 0 18px; }
-.record-upgrade h2 { margin-bottom: 12px; }
-/* One subhead replaces the old eyebrow + caption: the tier names have not been introduced yet at this point on the page. */
-.record-upgrade .record-subhead { font-size: 20px; line-height: 1.45; font-weight: 400; color: var(--text-soft); max-width: 760px; margin: 0 auto; text-wrap: pretty; } /* same measure and tone as .section-sub */
-.record-grid-upgrade { grid-template-columns: repeat(3, 1fr); max-width: 75%; margin: 0 auto 44px; }
-.record-vpat h3 { font-size: 22px; font-weight: 700; color: var(--text); margin: 0 0 12px; letter-spacing: -.3px; }
-.record-vpat p { font-size: 15px; line-height: 1.6; color: var(--text-soft); margin: 0 0 12px; text-wrap: pretty; }
-.record-compare { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 22px 0 32px; }
-.record-col { background: var(--surface); border: 1px solid var(--keyline); border-radius: 12px; padding: 24px; }
-.record-col-label { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--brand-text); font-weight: 600; margin-bottom: 10px; }
-.record-col h4 { font-size: 18px; font-weight: 600; color: var(--text); margin: 0 0 12px; }
-.record-col ul { margin: 0; padding-left: 18px; }
-.record-col li { font-size: 14px; line-height: 1.5; color: var(--text-soft); margin-bottom: 8px; }
+.record-title { font-size: 15px; font-weight: 600; color: var(--text); margin: 2px 0 0; }
+.record-desc { font-size: 13px; line-height: 1.5; color: var(--text-soft); margin: 0; }
+.record-more { font-size: 14px; line-height: 1.6; color: var(--text-soft); text-align: center; margin: 0 0 28px; text-wrap: pretty; }
+.record-more a { color: var(--brand-text); text-decoration: underline; text-underline-offset: 2px; }
 .record-actions { display: flex; justify-content: center; gap: 14px; flex-wrap: wrap; }
 .record-fine { font-size: 12px; line-height: 1.6; color: var(--text-faint); font-style: italic; margin: 22px auto 0; text-align: center; text-wrap: pretty; }
+
+/* ---- Rank: search and AI readiness (readable / findable / proven) ---- */
+.rank { padding: 48px var(--edge) 8px; }
+.rank h2 { margin-bottom: 22px; }
+.rank-intro p { font-size: 17px; line-height: 1.6; color: var(--text-soft); margin: 0 0 28px; text-wrap: pretty; text-align: center; }
+.rank-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; list-style: none; padding: 0; margin: 0 0 8px; }
+.rank-tile { background: var(--surface); border: 1px solid var(--keyline); border-radius: 12px; padding: 20px 22px; display: flex; flex-direction: column; gap: 6px; transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease; }
+.rank-tile:hover { transform: translateY(-3px); border-color: rgba(var(--brand-rgb), 0.6); box-shadow: 0 18px 34px -18px rgba(var(--brand-rgb), 0.45); }
+.rank-step { font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--brand-text); font-weight: 600; }
+.rank-title { font-size: 20px; font-weight: 700; letter-spacing: -.3px; color: var(--text); margin: 2px 0 2px; }
+.rank-desc { font-size: 13.5px; line-height: 1.55; color: var(--text-soft); margin: 0; }
 
 /* ---- WCAG explainer section ---- */
 .wcag-section { padding: 50px var(--edge) 64px; }
@@ -421,6 +421,12 @@ html:not([data-theme="light"]) .overlay-content p strong { background: var(--bra
 .pricing-note { text-align: center; font-size: 12px; color: var(--text-faint); font-style: italic; margin: 22px auto 0; max-width: 620px; } /* TODO(contrast): verify against WCAG 1.4.3 */
 .pricing-note a { color: var(--text-muted); text-decoration: underline; text-underline-offset: 2px; }
 .pricing-note a:hover { color: var(--brand-text); }
+/* What every tier shares sits once above the cards, so each card lists only what it adds. */
+.price-every { margin: 0 0 18px; padding: 16px 20px; border: 1px solid var(--keyline); border-radius: 12px; background: var(--surface); display: grid; grid-template-columns: auto 1fr; gap: 6px 22px; align-items: baseline; }
+.price-every-label { font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--brand-text); font-weight: 600; white-space: nowrap; }
+.price-every ul { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px 22px; }
+.price-every li { font-size: 12.5px; color: var(--text-soft); position: relative; padding-left: 16px; }
+.price-every li::before { content: '\2713'; position: absolute; left: 0; color: var(--brand-text); }
 .pricing-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
 .price-card { background: var(--surface); border-radius: 12px; padding: 20px; display: flex; flex-direction: column; min-width: 0; border: 1px solid var(--keyline); cursor: pointer; transform-origin: center; transition: border-color .25s ease, box-shadow .25s ease, transform .25s cubic-bezier(.16,1,.3,1); }
 .price-card:hover { border-color: var(--brand); transform: translateY(-4px) scale(1.02); box-shadow: 0 18px 40px -16px rgba(var(--brand-rgb),.5), 0 0 0 1px rgba(var(--brand-rgb),.4); z-index: 2; }
@@ -437,6 +443,8 @@ html:not([data-theme="light"]) .overlay-content p strong { background: var(--bra
 .price-features li.plus::before { content: none; }
 .price-features li { font-size: 12px; color: var(--text-soft); padding: 5px 0 5px 18px; position: relative; line-height: 1.4; }
 .price-features li::before { content: '\2713'; position: absolute; left: 0; color: var(--brand-text); font-weight: 500; }
+.price-features li.addon { color: var(--text-faint); }
+.price-features li.addon::before { content: '+'; }
 /* margin-top: the list reset in components.css zeroes .price-features' bottom margin, which left the button touching the last feature. */
 .price-cta { display: block; margin-top: auto; text-align: center; text-decoration: none; background: transparent; color: var(--text); padding: 11px; border-radius: 8px; font-weight: 500; font-size: 13px; border: 1px solid var(--text); width: 100%; font-family: inherit; cursor: pointer; transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease; }
 .price-cta:hover, .price-card:hover .price-cta { background: var(--brand); color: var(--brand-ink); border-color: var(--brand); }
@@ -497,11 +505,17 @@ html:not([data-theme="light"]) .overlay-content p strong { background: var(--bra
 .lawsuit-tile:hover { transform: translateY(-3px); background: #1A2952; border-color: rgba(var(--brand-rgb), 0.6); box-shadow: 0 18px 34px -18px rgba(0,0,0,0.6); }
 .lawsuit-tile-num { font-size: 38px; font-weight: 800; color: var(--brand-text); letter-spacing: -1.5px; line-height: 1; flex-shrink: 0; font-variant-numeric: tabular-nums; }
 .lawsuit-tile-text { font-size: 12.5px; line-height: 1.4; color: var(--text-soft); }
+/* Two paths under the 7-day engagement: existing clients, and the human-testing add-on. */
+.lawsuit-paths { position: relative; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 26px; }
+.lawsuit-path { background: #131E42; border: 1px solid rgba(var(--brand-rgb), 0.18); border-radius: 10px; padding: 18px 20px; box-shadow: 0 12px 26px -16px rgba(0,0,0,0.7); }
+.lawsuit-path-label { font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--brand-text); font-weight: 600; margin-bottom: 8px; }
+.lawsuit-path p { font-size: 13.5px; line-height: 1.55; color: var(--text-soft); margin: 0; text-wrap: pretty; }
+.lawsuit-path strong { color: var(--text); font-weight: 600; }
 .lawsuit-foot { position: relative; display: flex; flex-wrap: wrap; align-items: center; justify-content: center; text-align: center; gap: 14px 20px; padding-top: 22px; border-top: 1px solid var(--hairline); }
 .lawsuit-cta { display: inline-flex; align-items: center; gap: 8px; background: var(--brand); color: var(--brand-ink); padding: 13px 24px; border-radius: 8px; font-weight: 600; font-size: 14px; transition: opacity 0.15s ease, transform 0.15s ease; }
 .lawsuit-cta:hover { opacity: 0.85; transform: translateY(-1px); }
 .lawsuit-disclaimer { font-size: 12.5px; color: var(--text-faint); line-height: 1.5; font-style: italic; white-space: nowrap; } /* TODO(contrast): verify against WCAG 1.4.3 */
-@media (max-width: 900px) { .lawsuit-top { grid-template-columns: 1fr; } .lawsuit-pricebox { justify-self: start; } .lawsuit-grid { grid-template-columns: repeat(2, 1fr); } .lawsuit-disclaimer { white-space: normal; } }
+@media (max-width: 900px) { .lawsuit-top { grid-template-columns: 1fr; } .lawsuit-pricebox { justify-self: start; } .lawsuit-grid { grid-template-columns: repeat(2, 1fr); } .lawsuit-paths { grid-template-columns: 1fr; } .lawsuit-disclaimer { white-space: normal; } }
 @media (max-width: 480px) { .lawsuit-grid { grid-template-columns: 1fr; } .lawsuit-title { font-size: 25px; } }
 
 /* ---- Disabled Access Credit ---- */
@@ -543,17 +557,15 @@ html:not([data-theme="light"]) .overlay-content p strong { background: var(--bra
    so the homepage and the investor-deck overlay switch to their mobile
    layouts at the same viewport width. --edge itself lives in layout.css. */
 @media (max-width: 1000px) {
-  .pricing-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+  .pricing-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; } .price-every { grid-template-columns: 1fr; }
 }
 @media (max-width: 767px) {
   .wcag-grid { grid-template-columns: 1fr; gap: 32px; }
   .credit-grid { grid-template-columns: 1fr; gap: 28px; }
   .feature-grid { grid-template-columns: 1fr; }
   .process-grid { grid-template-columns: 1fr 1fr; }
-  .record-grid { grid-template-columns: 1fr 1fr; }
-  .record-grid-upgrade { grid-template-columns: 1fr 1fr; max-width: none; }
-  .record-compare { grid-template-columns: 1fr; }
-  .pricing-grid { grid-template-columns: 1fr; max-width: 440px; margin: 0 auto; gap: 12px; }
+  .record-grid { grid-template-columns: 1fr 1fr; } .rank-grid { grid-template-columns: 1fr; }
+      .pricing-grid { grid-template-columns: 1fr; max-width: 440px; margin: 0 auto; gap: 12px; }
   .risk-grid { grid-template-columns: repeat(3, 1fr); gap: 20px; max-width: 900px; }
 }
 @media (max-width: 720px) {
@@ -570,8 +582,7 @@ html:not([data-theme="light"]) .overlay-content p strong { background: var(--bra
   .stat + .stat::before { display: none; }
   .overlay-card { flex-direction: column; gap: 14px; }
   .process-grid { grid-template-columns: 1fr; }
-  .record-grid, .record-grid-upgrade { grid-template-columns: 1fr; }
-  .closing-band { padding: 36px 20px; }
+  .record-grid,   .closing-band { padding: 36px 20px; }
   .risk-links { flex-direction: column; gap: 10px; }
 }
 @media (max-width: 480px) {

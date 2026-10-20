@@ -10,7 +10,7 @@ export const copy = {
 
   s01: {
     title: ['THE LAWSUIT', 'HIDING IN', 'YOUR WEBSITE.'],
-    sub: "Nearly 96% of websites fail accessibility standards, shutting out shoppers with blindness, low vision or mobility issues. Most brands don't find out until a demand letter arrives. We open your store to every shopper and optimize agentic visibility, search rankings and speed.",
+    sub: "Nearly 96% of websites fail accessibility standards, shutting out shoppers with blindness, low vision or mobility issues. Most brands don't find out until a demand letter arrives. We open your store to every shopper, then make sure Google and AI assistants recommend it.",
     stats: [
       { value: '95.9%', label: 'of the top 1M sites fail WCAG' },
       { value: '70M+', label: 'U.S. adults live with a disability' },
@@ -114,8 +114,8 @@ export const copy = {
   },
 
   s06: {
-    title: ['The same structural fixes that enable accessibility', 'raise the rankings too.'],
-    lede: 'Screen readers, search engines and AI agents all read the same thing: the structure of the page. Real headings, labeled controls and a text description for every image make a store usable for the blind, readable for Google, and shoppable by the agents that browse on people\x27s behalf. Then we go beyond the accessibility fixes: page titles and descriptions, product facts written in for machines, preview images for sharing, and the labels and page summaries AI shopping agents need to find a product and act on it.',
+    title: ['Accessibility fixes lift SEO and AI readiness.', 'Product data decides who gets recommended. We do both.'],
+    lede: 'Screen readers, search engines and AI agents all read the same thing: the structure of the page. Real headings, labeled controls and a text description for every image make a store usable for the blind, readable for Google and shoppable by the agents that browse on people\x27s behalf. Whether an assistant names the brand depends on titles, ratings, brand facts and shopping feeds that no accessibility rule covers. We rebuild those across the catalog and check at 30 and 60 days whether the assistants have noticed.',
     tiles: [
       { value: '54.5%', label: 'of ecommerce sites have images with no text description, invisible to screen readers and to search', source: 'WebAIM Million' },
       { value: '73%', label: 'of remediated sites saw organic-traffic growth, +12% on average', source: 'Semrush, 847-site study' },
@@ -135,12 +135,12 @@ export const copy = {
   s07: {
     title: ['Pay for results,', 'not promises.'],
     plans: [
-      { id: 'starter', name: 'Starter', once: '$1,500', monthly: '$79', who: 'Stock theme, a handful of apps', items: ['WCAG 2.2 AA source-code remediation', 'Continuous monitoring, fixes each monthly cycle', 'Compliance Record, SEO optimization'], time: 'About 2 weeks' },
-      { id: 'growth', name: 'Growth', once: '$3,500', monthly: '$249', who: 'Customized theme, up to 15 apps', items: ['Everything in Starter', 'Regressions fixed within 5 business days', 'Monitoring certificates, human testing, playbook'], time: '2–4 weeks' },
-      { id: 'scale', name: 'Scale', once: '$6,500', monthly: '$599', who: 'Heavily customized theme, 15+ apps', items: ['Everything in Growth', 'Regressions fixed within 2 business days', 'Quarterly human testing, named specialist'], time: '4–6 weeks' },
+      { id: 'starter', name: 'Starter', once: '$1,500', monthly: '$79', who: 'Stock theme, a handful of apps', items: ['WCAG 2.2 AA source-code remediation, human-reviewed alt text', 'Monitoring with dated certificates, fixes each monthly cycle', 'Compliance Record, demand-letter response, SEO and AI readiness fixes'], time: 'About 2 weeks' },
+      { id: 'growth', name: 'Growth', once: '$3,500', monthly: '$249', who: 'Customized theme, up to 15 apps', items: ['Everything in Starter', 'Regressions fixed within 5 business days', 'Annual human testing, store data rebuild, AI visibility'], time: '2–4 weeks' },
+      { id: 'scale', name: 'Scale', once: '$6,500', monthly: '$599', who: 'Heavily customized theme, 15+ apps', items: ['Everything in Growth', 'Regressions fixed within 2 business days', 'Twice-yearly human testing, quarterly AI visibility, named specialist'], time: '4–6 weeks' },
       { id: 'enterprise', name: 'Enterprise', once: 'Custom', monthly: null, who: 'Shopify Plus, multi-storefront, headless', items: ['Everything in Scale', 'Every storefront, contracted fix window', 'Security review, data agreement'], time: '8–12 weeks' },
     ],
-    express: { name: 'Lawsuit response', price: '$5,900', line: 'From $5,900, delivered in 7 days: emergency audit, source-code remediation of the cited issues, screen-reader proof video, VPAT and settlement-terms review.' },
+    express: { name: 'Lawsuit response', price: '$5,900', line: 'From $5,900, delivered in 7 days: emergency audit, source-code remediation of the cited issues, barrier-by-barrier response to the letter, signed human testing and settlement-terms review.' },
     today: 'Today: an operated service with a client portal.',
     next: 'Next: self-serve billing and an agency tier.',
     notes: '"A one-time project to raise the score, then a monthly plan to hold it there. The lawsuit-response lane is the fastest path to a first check: brands that were served this week." Be transparent: today the service is operated by our team; billing automation is on the roadmap.',

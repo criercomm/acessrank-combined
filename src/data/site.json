@@ -89,11 +89,11 @@
         },
         {
           "q": "How long does remediation take?",
-          "a": "Most stores are live with a raised score in 2 to 4 weeks, depending on catalog size and how much custom code your theme carries. If you have already been served a demand letter or lawsuit, our express lane targets the cited and critical-path issues in about 7 days."
+          "a": "Most stores are live with a raised score in 2 to 4 weeks, depending on catalog size and how much custom code your theme carries. If you have already been served a demand letter or lawsuit, we target the cited and critical-path issues in about 7 days."
         },
         {
           "q": "Will this actually help my SEO?",
-          "a": "The same fixes that raise your accessibility score, such as alt text, heading structure, semantic HTML and ARIA labeling, are structural signals search engines read too. In a Semrush study of 847 sites, 73% saw organic-traffic growth after remediation (avg. +12%), and a larger 2025 Semrush study of 10,000 sites found higher-accessibility-score sites averaged 23% more organic traffic and 27% more ranking keywords. These results are correlational, not causal, and individual results vary."
+          "a": "The same fixes that raise your accessibility score, such as alt text, heading structure, semantic HTML and ARIA labeling, are structural signals search engines read too. In a Semrush study of 847 sites, 73% saw organic-traffic growth after remediation (avg. +12%), and a larger 2025 Semrush study of 10,000 sites found higher-accessibility-score sites averaged 23% more organic traffic and 27% more ranking keywords. Those gains come with every plan. Whether AI assistants recommend your products depends on product data an accessibility audit never looks at: titles, ratings and brand facts, and your Merchant Center feed. On Growth plans and above, we rebuild that product data across your catalog, then ask the AI assistants again at 30 and 60 days to see whether they now name your brand. These results are correlational, not causal, and individual results vary."
         },
         {
           "q": "What is WCAG 2.2 Level AA?",
@@ -114,7 +114,8 @@
         {
           "q": "What if I have already received a demand letter?",
           "a": "Talk to us right away. Our lawsuit-response engagement starts at $5,900 and moves in about 7 days: an emergency audit of the cited and critical-path barriers, source-code remediation of the complaint items, a screen-reader proof video, VPAT and conformance documentation, and a technical review of the remediation requirements in any proposed settlement terms, prepared for your attorney. The details are in the “Already facing a claim” section above. Accessrank is not a law firm and does not provide legal representation or advice. This runs alongside your attorney, not instead of one."
-        }
+        },
+        { "q": "Isn't the Compliance Record just a VPAT?", "a": "No, and the difference matters. A VPAT (Voluntary Product Accessibility Template) is a standard form that software vendors fill in to tell buyers how their product performs against WCAG today. It was designed for universities and government agencies comparing software, and it answers one question: where does this product stand right now? That is useful, which is why the Record includes one. But a VPAT is a single form on a single date, self-reported and usually from automated scans. It says nothing about when you started, what you fixed, or whether you kept going. The Record is built to answer that argument: a dated baseline from before any fixes, a fix-by-fix log with re-test results, signed monitoring certificates after every scan, and a published accessibility statement with a contact path." }
       ]
     },
     {
