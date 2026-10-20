@@ -32,7 +32,7 @@ export default {
     const steps = hotspots.map((h, i) => el('div', { class: 's05-step' }, h, lines[i]))
     const rail = el('div', { class: 'hotspots s05-rail' }, ...steps)
     const railwrap = el('div', { class: 's05-railwrap' }, rail)
-    root.append(el('div', { class: 's05-copy' }, title.el), el('div', { class: 's05-flow' }, flow, railwrap))
+    root.append(el('div', { class: 's05-body' }, el('div', { class: 's05-copy' }, title.el), el('div', { class: 's05-flow' }, flow, railwrap)))
     this.els = { title, flow, line, nodes, hotspots, rail, lines }
     this.C = C
     gsap.set([...hotspots, ...lines], { opacity: 0 })

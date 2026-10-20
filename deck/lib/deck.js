@@ -38,8 +38,6 @@ export async function createDeck({ root, slides, copy, assets, chapters, audio =
   const chapterBtns = chromeMode === 'minimal' ? [] : names.map((name, i) => el('button', { class: 'chapter mono', type: 'button', 'aria-label': `${L.chapterGoTo} ${name}`, onclick: (e) => { e.stopPropagation(); sound.start(); go(i) } }, el('i'), el('span', { text: name })))
   const counterN = el('span', { class: 'counter-n' })
   const counter = el('div', { class: 'counter mono', 'aria-live': 'polite' }, counterN, el('span', { class: 'counter-sep', text: '/' }), el('span', { class: 'counter-total', text: L.counterTotal }))
-  const muteBtn = el('button', { class: 'mute mono', type: 'button', 'aria-pressed': String(sound.muted), text: sound.muted ? L.soundOff : L.soundOn, onclick: (e) => { e.stopPropagation(); sound.start(); sound.mute() } })
-  sound.onMute((m) => { muteBtn.textContent = m ? L.soundOff : L.soundOn; muteBtn.setAttribute('aria-pressed', String(m)) })
   // Chrome minimal: una flecha de filete junto al contador es el único control visible para avanzar. Existe porque una escena
   // puede ocupar toda su superficie con un control propio (S03 del Deck M) y "click en cualquier sitio" deja de ser cierto ahí.
   const nextBtn = chromeMode === 'minimal' ? el('button', { class: 'next', type: 'button', 'aria-label': L.next, title: L.nextTitle, onclick: (e) => { e.stopPropagation(); next() }, html: "<svg viewBox=\"0 0 28 12\" width=\"28\" height=\"12\" aria-hidden=\"true\"><path d=\"M0 6h26M21 1l5 5-5 5\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1\"/></svg>" }) : null
@@ -47,7 +45,7 @@ export async function createDeck({ root, slides, copy, assets, chapters, audio =
   const hint = el('p', { class: 'hint', text: isCoarse() ? L.hintTouch : L.hint })
   const footer = el('footer', { class: 'footer mono' }, legal, hint)
   const notes = el('aside', { class: 'notes mono', hidden: !presenter })
-  const chrome = el('div', { class: 'chrome' }, el('nav', { class: 'chapters', 'aria-label': 'Chapters' }, ...chapterBtns), el('div', { class: 'topright' }, muteBtn, counter, ...(nextBtn ? [nextBtn] : [])), footer, notes)
+  const chrome = el('div', { class: 'chrome' }, el('nav', { class: 'chapters', 'aria-label': 'Chapters' }, ...chapterBtns), el('div', { class: 'topright' }, counter, ...(nextBtn ? [nextBtn] : [])), footer, notes)
   root.append(stage, chrome)
   const counterFlap = FlapDigits(counterN, { value: pad2(1), digits: 2, clack: false, dur: T[3], flip: 90, cascade: 50 })
 
@@ -142,7 +140,6 @@ export async function createDeck({ root, slides, copy, assets, chapters, audio =
       case 'ArrowLeft': case 'Backspace': e.preventDefault(); prev(); break
       case 'Home': sound.start(); go(0); break
       case 'End': sound.start(); go(total - 1); break
-      case 'm': case 'M': sound.start(); sound.mute(); break
     }
   })
   const INTERACTIVE = 'button, a, input, [data-hotspot], [data-no-advance], canvas[data-scrub]'
@@ -188,7 +185,7 @@ export async function createDeck({ root, slides, copy, assets, chapters, audio =
   await ensureBuilt(start)
   await ensurePreloaded(start)
   document.documentElement.classList.add('is-ready')
-  Stagger([...chapterBtns, muteBtn, counter, ...(nextBtn ? [nextBtn] : []), legal, hint], { delay: 40, dur: T[4], from: 'start' })
+  Stagger([...chapterBtns, counter, ...(nextBtn ? [nextBtn] : []), legal, hint], { delay: 40, dur: T[4], from: 'start' })
   await go(start, 1)
   return ctx.deck
 }

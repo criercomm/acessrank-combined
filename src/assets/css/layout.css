@@ -49,7 +49,7 @@
    auth.css: ".site-footer" (padding-bottom 28px, margin-top: 8px). Unified
    under .site-footer; index.html's values kept canonical per migration spec.
    All other sub-rules below were byte-identical between the two sources. */
-.site-footer, .footer { position: relative; padding: 32px var(--edge) 32px; background: #0A1130; margin-top: 8px; } /* padding was: 32px var(--edge) 28px in auth.css (.site-footer); margin-top is auth.css (.site-footer) only, index.html's .footer had none */
+.site-footer, .footer { position: relative; padding: 48px var(--edge) 48px; background: #0A1130; margin-top: 40px; } /* padding was: 32px var(--edge) 28px in auth.css (.site-footer); margin-top is auth.css (.site-footer) only, index.html's .footer had none */
 .footer-top { display: grid; grid-template-columns: minmax(0, 2fr) auto; gap: 48px 56px; align-items: start; margin-bottom: 4px; }
 /* .footer-inner: the markup's actual top-level row (brand + nav columns).
    Unstyled until now, so the two blocks just stacked as plain divs instead of

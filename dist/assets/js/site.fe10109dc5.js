@@ -38,6 +38,33 @@
     else if (mq.addListener) mq.addListener(onChange);
   }
 
+  /* --------------------------------------------------- nav dropdown --- */
+
+  document.querySelectorAll('[data-nav-menu]').forEach(function (item) {
+    var btn = item.querySelector('.nav-menu-toggle');
+    if (!btn) return;
+    var setOpen = function (open) {
+      item.classList.toggle('is-open', open);
+      btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    };
+    btn.addEventListener('click', function (e) {
+      e.stopPropagation();
+      setOpen(!item.classList.contains('is-open'));
+    });
+    document.addEventListener('click', function (e) {
+      if (!item.contains(e.target)) setOpen(false);
+    });
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && item.classList.contains('is-open')) { setOpen(false); btn.focus(); }
+    });
+    // Mark the page we are on.
+    var here = location.pathname.replace(/\/$/, '') || '/';
+    item.querySelectorAll('.nav-submenu a').forEach(function (a) {
+      var target = a.getAttribute('href').replace(/\/$/, '');
+      if (target === here) a.setAttribute('aria-current', 'page');
+    });
+  });
+
   /* ----------------------------------------------------- theme switch --- */
   /* /theme.js has already applied a saved choice before first paint; this
    * wires the button in the nav. Dark is the default, so "light" is the only
@@ -77,6 +104,30 @@
     });
   });
   paintThemeButtons();
+
+  /* ---------------------------------------- billing period toggle ---- */
+
+  var billToggle = document.getElementById('bill-toggle');
+  var pricingSection = document.querySelector('.pricing');
+
+  if (billToggle && pricingSection) {
+    var billButtons = billToggle.querySelectorAll('[data-bill]');
+    var applyBill = function (bill) {
+      pricingSection.setAttribute('data-bill', bill);
+      billButtons.forEach(function (button) {
+        var active = button.getAttribute('data-bill') === bill;
+        button.classList.toggle('is-active', active);
+        button.setAttribute('aria-pressed', active ? 'true' : 'false');
+      });
+      pricingSection.querySelectorAll('[data-m][data-a]').forEach(function (el) {
+        el.textContent = el.getAttribute(bill === 'annual' ? 'data-a' : 'data-m');
+      });
+    };
+    billButtons.forEach(function (button) {
+      button.addEventListener('click', function () { applyBill(button.getAttribute('data-bill')); });
+    });
+    applyBill('monthly');
+  }
 
   /* ------------------------------------------------- pricing toggle ---- */
 
@@ -118,11 +169,11 @@
     applyMode('standard');
   }
 
-  /* ------------------------------------------- investor deck overlay --- */
-  /* "How it works" in the primary nav (site.json: nav[].deck) opens the
-   * investor deck (accessrank-deck, built to /deck/) full-screen over
+  /* ------------------------------------------- overview deck overlay --- */
+  /* "Overview" in the primary nav (site.json: nav[].deck) and "Why stores get
+   * sued" under the hero open the overview deck (built to /deck/) full-screen over
    * whatever page the person is on, instead of navigating there. The href
-   * stays a real "/#product" anchor so it still does something reasonable
+   * stays a real "/deck/" link so it still does something reasonable
    * without JS. Registered before the smooth-anchor handler below and stops
    * the event outright, so that handler never also tries to scroll the page
    * underneath to #product while the overlay is opening on top of it. */
@@ -198,13 +249,27 @@
 
     // Prefill from the query string so /signup?plan=growth lands on the right plan.
     var params = new URLSearchParams(location.search);
+    // Pages with [data-intent] blocks show the copy for ?intent=lawsuit or ?intent=record
+    // (the claim section and the Compliance Record both send people here), else the default.
+    var intentBlocks = document.querySelectorAll('[data-intent]');
+    if (intentBlocks.length) {
+      var wanted = params.get('intent');
+      var known = Array.prototype.some.call(intentBlocks, function (el) { return el.getAttribute('data-intent') === wanted; });
+      var show = known ? wanted : 'default';
+      Array.prototype.forEach.call(intentBlocks, function (el) { el.hidden = el.getAttribute('data-intent') !== show; });
+      if (known) {
+        var planField = form.querySelector('[name="plan"]');
+        if (planField && planField.type === 'hidden') planField.value = wanted;
+        try { document.title = (show === 'lawsuit' ? 'Served a demand letter? Talk to Accessrank now' : 'Request a sample Accessibility Compliance Record') + ' — Accessrank'; } catch (e) {}
+      }
+    }
     ['plan', 'intent'].forEach(function (key) {
       var value = params.get(key);
       if (!value) return;
       var field = form.querySelector('[name="' + key + '"]');
       if (field) field.value = value;
       var pill = document.querySelector('[data-plan-pill]');
-      if (key === 'plan' && pill) pill.textContent = value.charAt(0).toUpperCase() + value.slice(1);
+      if (key === 'plan' && pill && value !== 'audit') pill.textContent = value.charAt(0).toUpperCase() + value.slice(1) + ' plan';
     });
 
     form.addEventListener('submit', function (e) {
@@ -212,7 +277,7 @@
       if (form.dataset.busy === '1') return;
 
       form.dataset.busy = '1';
-      if (submit) { submit.disabled = true; submit.dataset.label = submit.textContent; submit.textContent = 'Sending…'; }
+      if (submit) { submit.disabled = true; submit.dataset.label = (submit.innerText || submit.textContent).trim(); submit.textContent = 'Sending…'; }
       if (status) { status.textContent = ''; status.className = 'form-status'; }
       form.querySelectorAll('.field-error').forEach(function (el) { el.remove(); });
       form.querySelectorAll('[aria-invalid]').forEach(function (el) { el.removeAttribute('aria-invalid'); });
@@ -223,12 +288,74 @@
       payload.marketingOptIn = form.querySelector('[name="marketingOptIn"]')
         ? form.querySelector('[name="marketingOptIn"]').checked : false;
 
+      // "Let the audit decide": run the free check on the store first, so the lead goes out with the
+      // suggested plan attached and the visitor sees the placement on the thanks card. A failed scan
+      // never blocks the enquiry; the lead is sent with plan "audit" and the specialist scopes it.
+      var placement = null;
+      var wantsPlacement = payload.plan === 'audit' && payload.website;
+
+      // Progress while the store is scanned: the button shows a spinner and the status line walks
+      // through the stages on a timer, since the scan itself is a single request of 15–30 seconds.
+      var progressTimers = [];
+      var setProgress = function (label, note) {
+        if (submit) { submit.classList.add('is-busy'); submit.textContent = label; }
+        if (status && note != null) { status.textContent = note; status.className = 'form-status is-progress'; }
+      };
+      var clearProgress = function () {
+        progressTimers.forEach(clearTimeout); progressTimers = [];
+        if (submit) submit.classList.remove('is-busy');
+        if (status && status.classList.contains('is-progress')) { status.textContent = ''; status.className = 'form-status'; }
+      };
+      var startScanProgress = function () {
+        setProgress('Testing your store…', 'Loading your store in a real browser.');
+        progressTimers.push(setTimeout(function () { setProgress('Testing your store…', 'Checking it against the WCAG 2.2 Level A and AA criteria.'); }, 7000));
+        progressTimers.push(setTimeout(function () { setProgress('Testing your store…', 'Placing your store in a plan.'); }, 16000));
+        progressTimers.push(setTimeout(function () { setProgress('Testing your store…', 'Still working. Larger stores take a little longer.'); }, 28000));
+      };
+
       window.Accessrank.waitForToken(form, 45000).then(function (token) {
         if (token) payload.turnstileToken = token;
-        return window.Accessrank.post('/api/lead', payload);
+        if (!wantsPlacement) return null;
+        startScanProgress();
+        return window.Accessrank.post('/api/scan', { url: payload.website, turnstileToken: token || undefined })
+          .then(function (scan) { return scan && scan.placement ? scan.placement : { failed: true, message: 'The scan returned no result.' }; })
+          .catch(function (err) { return { failed: true, message: err && err.message ? err.message : 'The scan could not be completed.' }; });
+      }).then(function (found) {
+        placement = found;
+        if (placement && placement.tier) {
+          payload.plan = placement.tier;
+          payload.intent = 'audit_placed';
+          payload.placementNote = (placement.label || placement.tier) + ' \u2014 ' + (placement.reason || '')
+            + (placement.overlayNote ? ' ' + placement.overlayNote : '');
+        } else if (placement && placement.failed) {
+          payload.intent = 'audit_scan_failed';
+          payload.placementNote = 'Scan could not be completed: ' + placement.message;
+        }
+        clearProgress();
+        setProgress('Sending…', null);
+        // A Turnstile token is single-use and the scan just spent it, so the lead needs a fresh one;
+        // re-sending the same token made Cloudflare reject every "Let the audit decide" enquiry.
+        if (!wantsPlacement) return window.Accessrank.post('/api/lead', payload);
+        return window.Accessrank.freshToken(form, 45000).then(function (token) {
+          if (token) payload.turnstileToken = token;
+          return window.Accessrank.post('/api/lead', payload);
+        });
       }).then(function (data) {
         var success = form.parentElement.querySelector('[data-form-success]');
         if (success) {
+          var failedSlot = success.querySelector('[data-placement-failed]');
+          if (failedSlot && placement && placement.failed) {
+            failedSlot.querySelector('[data-placement-failed-message]').textContent = placement.message;
+            failedSlot.hidden = false;
+          }
+          var slot = success.querySelector('[data-placement]');
+          if (slot && placement && placement.tier) {
+            slot.querySelector('[data-placement-label]').textContent = placement.label || placement.tier;
+            slot.querySelector('[data-placement-reason]').textContent = placement.reason || '';
+            var overlayLine = slot.querySelector('[data-placement-overlay]');
+            if (overlayLine) { overlayLine.textContent = placement.overlayNote || ''; overlayLine.hidden = !placement.overlayNote; }
+            slot.hidden = false;
+          }
           form.hidden = true;
           success.hidden = false;
           success.setAttribute('tabindex', '-1');
@@ -252,8 +379,9 @@
         }
         if (window.turnstile) window.turnstile.reset();
       }).finally(function () {
+        clearProgress();
         form.dataset.busy = '0';
-        if (submit) { submit.disabled = false; submit.textContent = submit.dataset.label || 'Send'; }
+        if (submit) { submit.disabled = false; submit.classList.remove('is-busy'); submit.textContent = submit.dataset.label || 'Send'; }
       });
     });
   });
@@ -326,6 +454,19 @@
         setTimeout(poll, 150);
       })();
     });
+  };
+
+  /**
+   * Throw away the token already spent in `container` and wait for the widget to issue a new one.
+   * For flows that verify twice from one form (the signup scan, then the lead).
+   */
+  window.Accessrank.freshToken = function (container, ms) {
+    var widget = container && container.querySelector('.cf-turnstile');
+    if (!window.turnstile || !widget) return window.Accessrank.waitForToken(container, ms);
+    var field = container.querySelector('[name="cf-turnstile-response"]');
+    if (field) field.value = '';
+    try { window.turnstile.reset(widget); } catch (e) { /* not rendered; the poll gives up after ms */ }
+    return window.Accessrank.waitForToken(container, ms);
   };
 
   function wantsTurnstile(target) {
@@ -461,7 +602,7 @@
   /* Honest progress: these are the phases the server actually works through. */
   var PHASES = [
     'Loading the page in a real browser',
-    'Running axe-core against WCAG 2.2 AA',
+    'Running axe-core against WCAG 2.2 A/AA',
     'Checking colour contrast and focus order',
     'Reading SEO and AI agent signals',
     'Scoring'
@@ -512,13 +653,15 @@
     head.appendChild(ring);
 
     var headText = el('div', 'result-head-text');
-    headText.appendChild(el('p', 'result-band', (scores.band && scores.band.label) || 'Scored'));
+    // No "Fair"/"Strong" band: an automated check is a best case, and a word like "Fair" undersells the risk
+    // to a store the full audit will score lower. The ring keeps the band's colour.
+    headText.appendChild(el('p', 'result-band', 'Automated accessibility score · best case'));
     headText.appendChild(el('p', 'result-host', host));
     headText.appendChild(el(
       'p',
       'result-sub',
       data.pagesScanned + (data.pagesScanned === 1 ? ' page' : ' pages') +
-      ' checked against WCAG 2.2 AA with axe-core ' + (data.axeVersion || '') +
+      ' checked against WCAG 2.2 A/AA with axe-core ' + (data.axeVersion || '') +
       (a11y.violationsTotal ? ' · ' + a11y.violationsTotal + (a11y.violationsTotal === 1 ? ' element' : ' elements') + ' affected' : '')
     ));
     head.appendChild(headText);
@@ -526,13 +669,12 @@
 
     /* Two sub-scores */
     var subs = el('div', 'score-split');
+    // The ring is the accessibility score (the Accessrank score). SEO and AI agent
+    // readiness are reported beside it and never blended in.
     var subScores = [
-      { label: 'Accessibility', value: scores.accessibility },
       { label: 'SEO', value: scores.seo }
     ];
-    // Results cached before agent readiness existed carry no `agent`; they keep the two-score layout.
     if (data.agent && data.agent.total) subScores.push({ label: 'AI agent readiness', value: data.agent.score });
-    if (subScores.length === 3) subs.classList.add('score-split--3');
     subScores.forEach(function (item) {
       var box = el('div', 'score-split-item');
       box.appendChild(el('span', 'split-label', item.label));
@@ -596,6 +738,15 @@
     } else {
       results.appendChild(el('p', 'result-clean',
         'Automated testing found nothing to fix. The full report covers the SEO checks and what automated testing cannot see.'));
+    }
+
+    /* Overlay notice: the free check names the widget, because a plaintiff's firm will too. */
+    var overlays = data.profile && data.profile.overlays ? data.profile.overlays : [];
+    if (overlays.length) {
+      var ov = el('p', 'result-overlay');
+      ov.appendChild(el('strong', null, overlays.join(' and ') + ' accessibility overlay detected. '));
+      ov.appendChild(document.createTextNode('A widget loads on top of the page and leaves the code underneath as it was, so the issues above are what a screen reader still meets.'));
+      results.appendChild(ov);
     }
 
     /* AI agent readiness — can assistants and browsing agents read and operate the store? */
@@ -939,8 +1090,8 @@
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email.value.trim())) {
       problems.push({ field: 'email', message: 'Enter a valid email address.' });
     }
-    if (phone.value.replace(/[^\d]/g, '').length < 7) {
-      problems.push({ field: 'phone', message: 'Enter a phone number we can reach you on.' });
+    if (phone.value.trim() && phone.value.replace(/[^\d]/g, '').length < 7) {
+      problems.push({ field: 'phone', message: 'Enter a valid phone number, or leave it blank.' });
     }
     if (!consent.checked) {
       problems.push({ field: 'consent', message: 'Please agree to the privacy policy so we can send your report.' });

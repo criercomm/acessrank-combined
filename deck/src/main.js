@@ -69,14 +69,13 @@ root.append(nav.el)
 const siteNav = SiteNav({ mainSiteHref: '/' })
 root.append(siteNav.el)
 
-// Sound: effects only. No entry gate and no music bed (Carlos, 2026-09-18). Browsers only let audio start after a user gesture,
-// so the effects wake up on the first click, key or swipe; the Sound on/off label (or M) still mutes them in the room.
-// An old "Enter in silence" choice left a mute cookie behind: clear it once so every viewer starts with the effects on.
-try { if (!localStorage.getItem('ar-sfx-only')) { SoundBus.mute(false); localStorage.setItem('ar-sfx-only', '1') } } catch { SoundBus.mute(false) /* storage blocked: effects on */ }
+// Sound removed deck-wide (JP, 2026-10-19): force-mute regardless of any mute cookie a returning visitor may already
+// carry from before, so nothing ever plays and the audio context never has a reason to start.
+try { SoundBus.mute(true) } catch { /* no-op */ }
 createDeck({
   root, slides, copy, assets, chapters, params,
   audio: { bed: false, ...Object.fromEntries(Object.entries(manifest.audio?.sfx || {}).map(([k, v]) => [k, withBase(v)])) },
-  chrome: 'full', cursor: { lag: .4 }, muted: false, grain: .05,
+  chrome: 'full', cursor: { lag: .4 }, muted: true, grain: .05,
   fonts: ['800 1em "Inter"', '500 1em "JetBrains Mono"'],
   onChange: (i) => { presenter?.update(i); nav.update(i) },
 }).then((deck) => {
@@ -90,5 +89,3 @@ createDeck({
   const s = assets.stats()
   console.info(`[deck R] ${deck.total} scenes${short ? ' (short path)' : ''} · assets ${s.final} final / ${s.placeholder} placeholder`)
 })
-const wake = () => SoundBus.start()
-for (const type of ['pointerdown', 'keydown', 'touchstart']) addEventListener(type, wake, { once: true, capture: true, passive: true })

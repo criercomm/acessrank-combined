@@ -51,7 +51,7 @@ export default {
     const card = el('div', { class: 'card' }, evidence, fix)
     const storeWrap = el('div', { class: 's04-storewrap' }, store.el)
     const stage = el('div', { class: 's04-stage' }, storeWrap, card)
-    root.append(el('div', { class: 's04-copy' }, title.el), stage, panel)
+    root.append(el('div', { class: 's04-copy' }, title.el), el('div', { class: 's04-body' }, stage, panel))
     this.els = { title, store, storeWrap, beam, markers, pills, flap, countLabel, ring, rollback, panel, card, evidence, diff, approve, fix, stage }
     this.C = C
     this.stage = 0

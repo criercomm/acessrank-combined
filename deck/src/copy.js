@@ -135,10 +135,10 @@ export const copy = {
   s07: {
     title: ['Pay for results,', 'not promises.'],
     plans: [
-      { id: 'starter', name: 'Starter', once: '$1,500', monthly: '$79', who: 'Stock theme, a handful of apps', items: ['WCAG 2.2 AA source-code remediation, human-reviewed alt text', 'Monitoring with dated certificates, fixes each monthly cycle', 'Compliance Record, demand-letter response, SEO and AI readiness fixes'], time: 'About 2 weeks' },
+      { id: 'starter', name: 'Starter', once: '$1,500', monthly: '$79', who: 'Stock theme, a handful of apps', items: ['WCAG 2.2 AA source-code remediation, human-reviewed alt text up to 20/mo', 'Monitoring with dated certificates, regressions fixed next cycle', 'Compliance Record, demand-letter response; human testing quoted as an add-on'], time: 'About 2 weeks' },
       { id: 'growth', name: 'Growth', once: '$3,500', monthly: '$249', who: 'Customized theme, up to 15 apps', items: ['Everything in Starter', 'Regressions fixed within 5 business days, app checks before install', 'Annual human testing, store data rebuild, AI visibility at 30 and 60 days'], time: '2–4 weeks' },
-      { id: 'scale', name: 'Scale', once: '$6,500', monthly: '$599', who: 'Heavily customized theme, 15+ apps', items: ['Everything in Growth', 'Regressions fixed within 2 business days', 'Twice-yearly human testing, quarterly AI visibility, named specialist'], time: '4–6 weeks' },
-      { id: 'enterprise', name: 'Enterprise', once: 'Custom', monthly: null, who: 'Shopify Plus, multi-storefront, headless', items: ['Everything in Scale', 'Every storefront, contracted fix window', 'Security review, data agreement'], time: '8–12 weeks' },
+      { id: 'scale', name: 'Scale', once: '$6,500', monthly: '$599', who: 'Heavily customized theme, 15+ apps', items: ['Everything in Growth', 'Regressions fixed within 2 business days, core path re-tested within 10 days of a theme change', 'Twice-yearly human testing (16 flows), alt text up to 150/mo, named specialist'], time: '4–6 weeks' },
+      { id: 'enterprise', name: 'Enterprise', once: 'Custom', monthly: null, who: 'Shopify Plus, multi-storefront, headless', items: ['Everything in Scale', 'Contracted fix window, unlimited alt text', 'Quarterly human testing, security review, cross-storefront monitoring'], time: '8–12 weeks' },
     ],
     express: { name: 'Lawsuit response', price: '$5,900', line: 'From $5,900, delivered in 7 days: emergency audit, source-code remediation of the cited issues, barrier-by-barrier response to the letter, signed human testing and settlement-terms review.' },
     today: 'Today: an operated service with a client portal.',
@@ -153,7 +153,7 @@ export const copy = {
       { name: 'New York', n: 1108 }, { name: 'Florida', n: 950 }, { name: 'California', n: 787 }, { name: 'Illinois', n: 576 },
       { name: 'Minnesota', n: 160 }, { name: 'Pennsylvania', n: 101 }, { name: 'Missouri', n: 85 }, { name: 'All other states', n: 181 },
     ],
-    statesSource: 'EcomBack 2025 annual report · 3,948 suits in state and federal courts',
+    statesSource: 'EcomBack 2025 annual report · 3,948 total suits',
     industriesLabel: 'Most active lawsuits by industry, 2025',
     industries: [
       { name: 'Restaurants, food & drink', n: 1368 }, { name: 'Fashion & apparel', n: 1025 }, { name: 'Beauty & personal care', n: 317 },

@@ -4,6 +4,10 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="theme-color" content="#14142A" />
+    <!-- The deck is always-dark, no light variant (unlike the main site). Without this, a browser/OS forced-dark or
+         auto-contrast heuristic can repaint unstyled bold text (e.g. .contact-name) against its own guess at a light
+         background, leaving it unreadable on the deck's actual dark background. -->
+    <meta name="color-scheme" content="dark" />
     <title>Accessrank overview — why stores get sued, and how we fix it</title>
     <meta name="description" content="A short overview of Accessrank: why online stores get sued over accessibility, what a demand letter looks like, and how we fix the cause in your theme code." />
     <!-- The deck is accessrank.ai's front page (/), so it is indexable and carries the same SEO basics as the site
