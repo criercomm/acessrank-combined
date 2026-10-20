@@ -418,7 +418,7 @@ html:not([data-theme="light"]) .overlay-content p strong { background: var(--bra
 /* ---- Pricing ---- */
 .pricing { padding: 34px var(--edge) 28px; }
 .pricing .section-sub { margin-bottom: 26px; max-width: 900px; }
-.pricing-note { text-align: center; font-size: 12px; color: var(--text-faint); font-style: italic; margin: 22px auto 0; max-width: 620px; } /* TODO(contrast): verify against WCAG 1.4.3 */
+.pricing-note { text-align: center; font-size: 12px; color: var(--text-faint); font-style: normal; margin: 22px auto 0; max-width: 960px; } /* TODO(contrast): verify against WCAG 1.4.3 */
 .pricing-note a { color: var(--text-muted); text-decoration: underline; text-underline-offset: 2px; }
 .pricing-note a:hover { color: var(--brand-text); }
 /* What every tier shares sits once above the cards, so each card lists only what it adds. */
