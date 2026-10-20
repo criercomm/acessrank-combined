@@ -136,7 +136,7 @@ export const copy = {
     title: ['Pay for results,', 'not promises.'],
     plans: [
       { id: 'starter', name: 'Starter', once: '$1,500', monthly: '$79', who: 'Stock theme, a handful of apps', items: ['WCAG 2.2 AA source-code remediation, human-reviewed alt text', 'Monitoring with dated certificates, fixes each monthly cycle', 'Compliance Record, demand-letter response, SEO and AI readiness fixes'], time: 'About 2 weeks' },
-      { id: 'growth', name: 'Growth', once: '$3,500', monthly: '$249', who: 'Customized theme, up to 15 apps', items: ['Everything in Starter', 'Regressions fixed within 5 business days', 'Annual human testing, store data rebuild, AI visibility'], time: '2–4 weeks' },
+      { id: 'growth', name: 'Growth', once: '$3,500', monthly: '$249', who: 'Customized theme, up to 15 apps', items: ['Everything in Starter', 'Regressions fixed within 5 business days, app checks before install', 'Annual human testing, store data rebuild, AI visibility at 30 and 60 days'], time: '2–4 weeks' },
       { id: 'scale', name: 'Scale', once: '$6,500', monthly: '$599', who: 'Heavily customized theme, 15+ apps', items: ['Everything in Growth', 'Regressions fixed within 2 business days', 'Twice-yearly human testing, quarterly AI visibility, named specialist'], time: '4–6 weeks' },
       { id: 'enterprise', name: 'Enterprise', once: 'Custom', monthly: null, who: 'Shopify Plus, multi-storefront, headless', items: ['Everything in Scale', 'Every storefront, contracted fix window', 'Security review, data agreement'], time: '8–12 weeks' },
     ],
