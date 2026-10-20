@@ -306,7 +306,8 @@ html.hero-fx .risk-title { visibility: hidden; animation: hero-failsafe 1ms line
 
 /* ---- Accessibility Compliance Record ("Proof your lawyer can use") ---- */
 .record { padding: 56px var(--edge) 8px; }
-.record-intro p { font-size: 17px; line-height: 1.6; color: var(--text-soft); margin: 0 0 28px; text-wrap: pretty; }
+.record h2 { margin-bottom: 22px; } /* no .section-sub under this heading now; give the intro a little more air */
+.record-intro p { font-size: 17px; line-height: 1.6; color: var(--text-soft); margin: 0 0 28px; text-wrap: pretty; text-align: center; }
 .record-intro strong { color: var(--text); font-weight: 600; }
 .record-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; list-style: none; padding: 0; margin: 0 0 44px; }
 .record-tile { background: var(--surface); border: 1px solid var(--keyline); border-radius: 12px; padding: 20px 22px; display: flex; flex-direction: column; gap: 6px; transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease; }
@@ -315,8 +316,9 @@ html.hero-fx .risk-title { visibility: hidden; animation: hero-failsafe 1ms line
 .record-title { font-size: 16px; font-weight: 600; color: var(--text); margin: 2px 0 0; }
 .record-desc { font-size: 13.5px; line-height: 1.5; color: var(--text-soft); margin: 0; }
 .record-upgrade { text-align: center; margin: 0 0 18px; }
-.record-upgrade .record-eyebrow { margin-bottom: 8px; }
-.record-upgrade p { font-size: 15px; line-height: 1.5; color: var(--text-soft); margin: 0; text-wrap: pretty; }
+.record-upgrade h2 { margin-bottom: 12px; }
+/* One subhead replaces the old eyebrow + caption: the tier names have not been introduced yet at this point on the page. */
+.record-upgrade .record-subhead { font-size: 20px; line-height: 1.45; font-weight: 400; color: var(--text-soft); max-width: 760px; margin: 0 auto; text-wrap: pretty; } /* same measure and tone as .section-sub */
 .record-grid-upgrade { grid-template-columns: repeat(3, 1fr); max-width: 75%; margin: 0 auto 44px; }
 .record-vpat h3 { font-size: 22px; font-weight: 700; color: var(--text); margin: 0 0 12px; letter-spacing: -.3px; }
 .record-vpat p { font-size: 15px; line-height: 1.6; color: var(--text-soft); margin: 0 0 12px; text-wrap: pretty; }
