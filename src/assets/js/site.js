@@ -332,7 +332,13 @@
         }
         clearProgress();
         setProgress('Sending…', null);
-        return window.Accessrank.post('/api/lead', payload);
+        // A Turnstile token is single-use and the scan just spent it, so the lead needs a fresh one;
+        // re-sending the same token made Cloudflare reject every "Let the audit decide" enquiry.
+        if (!wantsPlacement) return window.Accessrank.post('/api/lead', payload);
+        return window.Accessrank.freshToken(form, 45000).then(function (token) {
+          if (token) payload.turnstileToken = token;
+          return window.Accessrank.post('/api/lead', payload);
+        });
       }).then(function (data) {
         var success = form.parentElement.querySelector('[data-form-success]');
         if (success) {
@@ -447,6 +453,19 @@
         setTimeout(poll, 150);
       })();
     });
+  };
+
+  /**
+   * Throw away the token already spent in `container` and wait for the widget to issue a new one.
+   * For flows that verify twice from one form (the signup scan, then the lead).
+   */
+  window.Accessrank.freshToken = function (container, ms) {
+    var widget = container && container.querySelector('.cf-turnstile');
+    if (!window.turnstile || !widget) return window.Accessrank.waitForToken(container, ms);
+    var field = container.querySelector('[name="cf-turnstile-response"]');
+    if (field) field.value = '';
+    try { window.turnstile.reset(widget); } catch (e) { /* not rendered; the poll gives up after ms */ }
+    return window.Accessrank.waitForToken(container, ms);
   };
 
   function wantsTurnstile(target) {

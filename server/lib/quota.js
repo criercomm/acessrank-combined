@@ -72,11 +72,12 @@ export async function reserveReport(store, { identity, lead: leadInput, scan, ip
   if (ipHash) locks.push(`${SCOPE.REPORT_IP}:${ipHash}`);
 
   return store.txWithLocks(locks, async (client) => {
-    // --- Rule 1: one report per email, ever -------------------------------
+    // --- Rule 1: one report per email, ever (not for our own domains) ------
     const lead = await store.upsertLead(client, leadInput);
     const alreadySent = await store.countReportsForLead(client, lead.id);
+    const internal = config.limits.internalEmailDomains.includes(identity.domain);
 
-    if (alreadySent >= config.limits.reportsPerEmail) {
+    if (!internal && alreadySent >= config.limits.reportsPerEmail) {
       throw new QuotaError(
         'email_limit',
         config.limits.reportsPerEmail === 1

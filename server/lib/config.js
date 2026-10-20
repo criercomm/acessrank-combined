@@ -87,6 +87,12 @@ const config = Object.freeze({
   limits: {
     /** Lifetime cap on emailed reports per normalized email address. */
     reportsPerEmail: int(env.LIMIT_REPORTS_PER_EMAIL, 1),
+    /**
+     * Our own domains skip the per-email cap so the team can test the funnel repeatedly. Safe to
+     * leave open: the report still only goes to that inbox, and the per-IP cap still applies.
+     */
+    internalEmailDomains: list(env.INTERNAL_EMAIL_DOMAINS, ['accessrank.ai', 'crierpr.com', 'reasonedweb.com'])
+      .map((d) => d.toLowerCase()),
     /** Rolling-24h cap on report requests per client IP. */
     reportsPerIpPerDay: int(env.LIMIT_REPORTS_PER_IP_PER_DAY, 3),
     /** Rolling-24h cap on scans per client IP. Scans are free to the user but not to us. */

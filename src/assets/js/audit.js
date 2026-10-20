@@ -168,7 +168,9 @@
     head.appendChild(ring);
 
     var headText = el('div', 'result-head-text');
-    headText.appendChild(el('p', 'result-band', ((scores.band && scores.band.label) || 'Scored') + ' · accessibility score'));
+    // No "Fair"/"Strong" band: an automated check is a best case, and a word like "Fair" undersells the risk
+    // to a store the full audit will score lower. The ring keeps the band's colour.
+    headText.appendChild(el('p', 'result-band', 'Automated accessibility score · best case'));
     headText.appendChild(el('p', 'result-host', host));
     headText.appendChild(el(
       'p',
