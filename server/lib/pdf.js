@@ -189,6 +189,27 @@ const SEO_STATUS = {
   fail: { label: 'Fail', tone: 'bad' },
 };
 
+/**
+ * AI readiness checks that the accessibility fixes themselves close: the ones built on axe rules (named buttons,
+ * labeled fields, link text, structure, language). Crawler access and the page title and description are SEO work,
+ * so the "Readable is step one" box never claims them.
+ */
+const ACCESSIBILITY_BACKED = new Set(['buttons', 'links', 'forms', 'structure', 'language']);
+const NUMBER_WORDS = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight'];
+
+export function closableChecks(agent) {
+  const failing = (agent?.checks ?? []).filter((c) => !c.pass);
+  const closable = failing.filter((c) => ACCESSIBILITY_BACKED.has(c.id)).length;
+  if (!closable) return { closable: 0, closableLabel: '' };
+  const word = NUMBER_WORDS[closable] ?? String(closable);
+  const noun = closable === 1 ? 'failing check' : 'failing checks';
+  // "the three failing checks" when they are all of them; "two of the four failing checks" when some are SEO work.
+  const closableLabel = closable === failing.length
+    ? `the ${word} ${noun}`
+    : `${word} of the ${NUMBER_WORDS[failing.length] ?? failing.length} failing checks`;
+  return { closable, closableLabel };
+}
+
 /** Score colour only — the free check deliberately prints no "Fair"/"Strong" label. */
 const scoreTone = (score) => (score == null ? 'neutral' : score >= 90 ? 'good' : score >= 75 ? 'warn' : 'bad');
 
@@ -276,6 +297,7 @@ export function buildReportContext({ scan, result, lead, reportId }) {
         status: c.pass ? 'Pass' : 'Fail',
         tone: c.pass ? 'good' : 'bad',
       })),
+      ...closableChecks(agent),
       crawlersKnown: Boolean(crawlers),
       crawlersOpen: Boolean(crawlers?.pass),
       crawlersDetail: crawlers?.detail || '',
@@ -355,4 +377,4 @@ export async function renderReportHtml(context) {
   return render(fs.readFileSync(TEMPLATE, 'utf8'), context);
 }
 
-export default { generateReportPdf, buildReportContext, renderReportHtml, describeCriteria, complaintPatterns, criteriaTable };
+export default { generateReportPdf, buildReportContext, renderReportHtml, describeCriteria, complaintPatterns, criteriaTable, closableChecks };
