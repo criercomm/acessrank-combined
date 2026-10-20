@@ -126,7 +126,7 @@
 .hero-eyebrow { display: inline-flex; align-items: center; gap: 8px; font-size: 11px; letter-spacing: 3px; color: var(--brand-text); font-weight: 600; margin-bottom: 16px; }
 .hero-title { font-size: 40px; line-height: 1.08; letter-spacing: -1.4px; font-weight: 800; color: var(--text); margin: 0 0 16px; text-align: left; }
 .hero-title .accent { color: var(--brand-text); }
-.hero-sub { font-size: 15px; line-height: 1.6; color: var(--text-soft); margin: 0; max-width: 37ch; }
+.hero-sub { font-size: 15px; line-height: 1.6; color: var(--text-soft); margin: 0; max-width: 34ch; } /* 34ch wraps the four sentences into four even lines; at 37ch "do both." was left alone on the last line */
 .hero-sub strong { color: var(--text); font-weight: 600; }
 @media (max-width: 900px) {
   .hero-split { flex-direction: column; align-items: stretch; gap: 32px; }
@@ -500,7 +500,7 @@ html:not([data-theme="light"]) .overlay-content p strong { background: var(--bra
 .lawsuit-price-amt .pre { font-size: 13px; color: var(--text-faint); font-weight: 500; letter-spacing: 0; } /* TODO(contrast): verify against WCAG 1.4.3 */
 .lawsuit-price-label { font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--brand-text); font-weight: 600; margin: 8px 0 13px; }
 .lawsuit-price-meta { font-size: 16px; font-weight: 600; color: var(--text); line-height: 1.45; padding-top: 12px; border-top: 1px solid var(--hairline); }
-.lawsuit-grid { position: relative; display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-bottom: 26px; }
+.lawsuit-grid { position: relative; display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin: 0 0 26px; padding: 0; list-style: none; } /* an <ol>: drop the default list padding so the tiles align with the copy and the two boxes below */
 .lawsuit-tile { background: #131E42; border: 1px solid rgba(var(--brand-rgb), 0.18); border-radius: 10px; padding: 16px 16px; display: flex; flex-direction: row; align-items: center; gap: 16px; box-shadow: 0 12px 26px -16px rgba(0,0,0,0.7); transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease; }
 .lawsuit-tile:hover { transform: translateY(-3px); background: #1A2952; border-color: rgba(var(--brand-rgb), 0.6); box-shadow: 0 18px 34px -18px rgba(0,0,0,0.6); }
 .lawsuit-tile-num { font-size: 38px; font-weight: 800; color: var(--brand-text); letter-spacing: -1.5px; line-height: 1; flex-shrink: 0; font-variant-numeric: tabular-nums; }
