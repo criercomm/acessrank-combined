@@ -18,7 +18,7 @@
   @font-face { font-family: 'Inter'; font-weight: 100 900; src: url('{{ fonts.sans }}') format('woff2'); }
   @font-face { font-family: 'JetBrains Mono'; font-weight: 100 900; src: url('{{ fonts.mono }}') format('woff2'); }
 
-  @page { size: Letter; margin: 0.5in 0.6in 0.7in; }
+  @page { size: Letter; margin: 0.45in 0.55in 0.65in; }
 
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   /* Print engines can rasterise a mid-transition frame; rule it out entirely. */
@@ -45,13 +45,13 @@
   }
 
   html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-  body { font-family: var(--sans); color: var(--ink); font-size: 9.6pt; line-height: 1.45; background: #fff; }
+  body { font-family: var(--sans); color: var(--ink); font-size: 8.9pt; line-height: 1.42; background: #fff; }
 
   .part { break-before: page; }
   .part:first-of-type { break-before: auto; }
 
   /* --- page header --------------------------------------------------- */
-  .masthead { display: flex; justify-content: space-between; align-items: flex-end; padding-bottom: 10px; border-bottom: 1px solid var(--line); margin-bottom: 16px; }
+  .masthead { display: flex; justify-content: space-between; align-items: flex-end; padding-bottom: 10px; border-bottom: 1px solid var(--line); margin-bottom: 12px; }
   .brand { display: flex; flex-direction: column; gap: 3px; }
   .brand-row { display: flex; align-items: center; gap: 8px; }
   .brand-word { font-weight: 700; font-size: 14.5pt; letter-spacing: -0.01em; }
@@ -61,18 +61,18 @@
 
   /* --- section heads ------------------------------------------------- */
   .kicker { font-family: var(--mono); font-size: 7.8pt; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); margin-bottom: 6px; }
-  h1 { font-size: 17pt; line-height: 1.22; letter-spacing: -0.015em; font-weight: 700; margin-bottom: 8px; }
-  .lede { color: var(--muted); font-size: 9.8pt; margin-bottom: 14px; }
-  h2 { font-size: 11pt; font-weight: 700; margin: 16px 0 3px; }
+  h1 { font-size: 15.5pt; line-height: 1.2; letter-spacing: -0.015em; font-weight: 700; margin-bottom: 8px; }
+  .lede { color: var(--muted); font-size: 9pt; margin-bottom: 11px; }
+  h2 { font-size: 10.5pt; font-weight: 700; margin: 12px 0 3px; }
   .h2-note { color: var(--muted); font-size: 8.6pt; margin-bottom: 8px; }
 
   /* --- stat cards ---------------------------------------------------- */
-  .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 12px; }
-  .card { border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; break-inside: avoid; }
+  .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 10px; }
+  .card { border: 1px solid var(--line); border-radius: 8px; padding: 8px 11px; break-inside: avoid; }
   .card-label { font-family: var(--mono); font-size: 7.4pt; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
-  .card-num { font-family: var(--mono); font-size: 25pt; line-height: 1.15; margin: 4px 0 4px; }
+  .card-num { font-family: var(--mono); font-size: 22pt; line-height: 1.1; margin: 3px 0 3px; }
   .card-num small { font-size: 11pt; color: var(--faint); margin-left: 2px; }
-  .card-num.word { font-family: var(--sans); font-size: 17pt; font-weight: 700; line-height: 1.5; }
+  .card-num.word { font-family: var(--sans); font-size: 16pt; font-weight: 700; line-height: 1.4; }
   .card-note { color: var(--muted); font-size: 7.9pt; line-height: 1.4; }
   .tone-bad { color: var(--bad); }
   .tone-warn { color: var(--warn); }
@@ -80,28 +80,28 @@
   .tone-neutral { color: var(--ink); }
 
   /* --- boxes --------------------------------------------------------- */
-  .alert { background: var(--bad-soft); border: 1px solid var(--bad-line); border-radius: 8px; padding: 10px 13px; margin-bottom: 12px; break-inside: avoid; }
+  .alert { background: var(--bad-soft); border: 1px solid var(--bad-line); border-radius: 8px; padding: 8px 12px; margin-bottom: 10px; break-inside: avoid; }
   .alert strong { color: var(--bad); }
-  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 10px 13px; break-inside: avoid; }
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 8px 12px; break-inside: avoid; }
   .panel p + p { margin-top: 6px; }
-  .accent-box { background: var(--accent-soft); border: 1px solid #d9ddf3; border-radius: 8px; padding: 11px 13px; break-inside: avoid; }
+  .accent-box { background: var(--accent-soft); border: 1px solid #d9ddf3; border-radius: 8px; padding: 8px 12px; break-inside: avoid; }
   .accent-box .card-label { color: var(--accent); }
   .two { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
   .two-wide { display: grid; grid-template-columns: 1.05fr 0.95fr; gap: 18px; align-items: start; }
   .two-wide.seo { grid-template-columns: 1.3fr 0.9fr; }
-  .seo td { padding: 3.5px 6px 3.5px 0; }
+  .seo td { padding: 2.5px 6px 2.5px 0; }
   table.seo-table td:first-child { width: 38%; }
 
   /* --- complaint pattern bars ---------------------------------------- */
-  .bars { display: grid; grid-template-columns: 2.6fr 3fr 0.8fr; gap: 5px 10px; align-items: center; margin-bottom: 12px; }
+  .bars { display: grid; grid-template-columns: 2.6fr 3fr 0.8fr; gap: 4px 10px; align-items: center; margin-bottom: 10px; }
   .bar-track { height: 6px; border-radius: 3px; background: #ecebf3; overflow: hidden; }
   .bar-fill { height: 100%; border-radius: 3px; background: var(--accent); }
   .bar-count { font-family: var(--mono); font-size: 7.9pt; color: var(--muted); text-align: right; white-space: nowrap; }
 
   /* --- tables -------------------------------------------------------- */
-  table { width: 100%; border-collapse: collapse; font-size: 8.4pt; }
+  table { width: 100%; border-collapse: collapse; font-size: 8pt; }
   th { font-family: var(--mono); font-weight: 400; font-size: 7.2pt; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); text-align: left; padding: 4px 6px 4px 0; border-bottom: 1.5px solid var(--ink); }
-  td { padding: 5px 6px 5px 0; border-bottom: 1px solid var(--line); vertical-align: top; }
+  td { padding: 4px 6px 4px 0; border-bottom: 1px solid var(--line); vertical-align: top; }
   tr { break-inside: avoid; }
   td.mono { font-family: var(--mono); font-size: 8pt; white-space: nowrap; }
   td.num { text-align: right; padding-right: 0; }
@@ -113,15 +113,21 @@
 
   /* --- lists --------------------------------------------------------- */
   ul.ticks, ol.steps { padding-left: 15px; }
-  ul.ticks li, ol.steps li { margin-bottom: 5px; }
+  ul.ticks li, ol.steps li { margin-bottom: 3px; }
   ul.ticks li::marker { color: var(--accent); }
 
-  .cta { background: var(--ink); color: #fff; border-radius: 10px; padding: 14px 16px; margin-top: 12px; break-inside: avoid; }
-  .cta-title { font-size: 12pt; font-weight: 700; margin-bottom: 4px; }
-  .cta p { color: #d6d7de; font-size: 9pt; }
+  .strip { border: 1px solid var(--line); border-radius: 8px; padding: 6px 11px 4px; margin-top: 8px; break-inside: avoid; }
+  .strip .card-label { color: var(--accent); margin-bottom: 4px; }
+  ul.checks { list-style: none; display: grid; grid-template-columns: 1fr 1fr; gap: 1px 14px; font-size: 7.9pt; line-height: 1.3; }
+  ul.checks li { position: relative; padding-left: 12px; margin-bottom: 2px; }
+  ul.checks li::before { content: '\2713'; position: absolute; left: 0; color: var(--accent); }
+  .panel .card-label { color: var(--accent); }
+  .cta { background: var(--ink); color: #fff; border-radius: 10px; padding: 10px 14px; margin-top: 10px; break-inside: avoid; }
+  .cta-title { font-size: 11pt; font-weight: 700; margin-bottom: 4px; }
+  .cta p { color: #d6d7de; font-size: 8.6pt; }
   .cta a { color: var(--amber); font-weight: 600; text-decoration: none; }
 
-  .fineprint { margin-top: 14px; border: 1px solid var(--line); border-radius: 8px; padding: 9px 12px; color: var(--muted); font-size: 7.4pt; line-height: 1.5; break-inside: avoid; }
+  .fineprint { margin-top: 10px; border: 1px solid var(--line); border-radius: 8px; padding: 7px 11px; color: var(--muted); font-size: 7pt; line-height: 1.5; break-inside: avoid; }
   .fineprint strong { color: var(--ink); }
   .fineprint p + p { margin-top: 5px; }
   a { color: var(--accent); }
@@ -157,7 +163,8 @@
     We loaded {{ site.pagesLabel }} of {{ site.host }} in a real browser and checked {{ site.pagesPronoun }} against
     the WCAG 2.2 Level A and AA success criteria that automated testing can measure. Automation reliably catches about a third
     to a half of real barriers, so read these numbers as the floor of the problem. Page 1 is the risk picture,
-    page 2 how search engines and AI assistants see the store, page 3 what the full audit adds.
+    page 2 how search engines and AI assistants see the store, page 3 what the full audit adds
+    and what every plan includes.
   </p>
 
   <div class="cards">
@@ -203,7 +210,8 @@
     <div class="panel">
       <p><strong>How Accessrank fixes it.</strong> We correct the cause in the store's own code, not with a widget on
       top. Our remediation tooling handles most fixes; the ones that need judgement, such as describing an image or
-      a video, are written and reviewed by an Accessrank specialist for you to sign off.</p>
+      a video, are written and reviewed by an Accessrank specialist for you to sign off. Then we keep scanning, fix
+      what a new product, app or theme edit breaks, and sign a dated certificate after every scan.</p>
     </div>
     <div class="panel">
       <p><strong>What it means for shoppers.</strong> These barriers stop customers who use screen readers or
@@ -218,11 +226,12 @@
      ====================================================================== -->
 <section class="part">
   <p class="kicker">Part 2 · Rank · Search and AI readiness</p>
-  <h1>The same fixes make {{ site.host }} easier for Google and AI assistants to read.</h1>
+  <h1>Accessibility fixes lift your SEO and AI readiness. Product data decides whether assistants recommend you. We do both.</h1>
   <p class="lede">
-    Search engines and AI shopping assistants read a store much the way a screen reader does: through its labels,
-    headings, image descriptions and the product facts written into the page code. This is what they found on the
-    pages we loaded.
+    Screen readers and AI assistants read the same labels, headings and descriptions, so the page 1 fixes raise the
+    scores on this page. Whether an assistant names your brand depends on titles, ratings, brand facts and shopping
+    feeds that no accessibility rule covers. We rebuild them across the catalog and check at 30 and 60 days whether
+    the assistants have noticed. This is what our check found on the pages we loaded.
   </p>
 
   <div class="cards">
@@ -282,15 +291,25 @@
         </tbody>
       </table>
       {{/if}}
+
+      {{#if rank.closable}}
+      <div class="panel" style="margin-top: 12px;">
+        <p class="card-label">Readable is step one</p>
+        <p style="margin-top: 5px;">The fixes on page 1 also close {{ rank.closableLabel }} here, and every
+        Accessrank plan includes them. Your SEO and AI readiness scores are then reported beside your accessibility
+        score at every scan.</p>
+      </div>
+      {{/if}}
     </div>
   </div>
 
   <div class="accent-box" style="margin-top: 14px;">
-    <p class="card-label">Not in this free check · AI visibility</p>
+    <p class="card-label">Not in this free check · Findable and proven</p>
     <p style="margin-top: 5px;">Do ChatGPT, Claude, Gemini, Perplexity and Grok name your brand when a shopper asks
     for what you sell? The full audit asks them, ranks you against the competitors they name, and checks the
     product data they rely on across the whole catalog: titles, image descriptions, ratings and brand in the
-    product facts, and your Google Merchant Center feed.</p>
+    product facts, and your Google Merchant Center feed. On Growth plans and above, Accessrank rebuilds that data and
+    asks the assistants again at 30 and 60 days, so movement is attributable to the work.</p>
   </div>
 </section>
 
@@ -314,14 +333,36 @@
         <li><strong>The Lighthouse score</strong> automated legal scanners see, beside the Accessrank score.</li>
         <li><strong>AI visibility</strong> across five assistants, ranked against your competitors.</li>
         <li><strong>A store data audit</strong> of the catalog search engines and AI assistants read.</li>
-        <li><strong>A fixed-scope remediation plan,</strong> with timeline and price.</li>
+        <li><strong>Your plan,</strong> placed by the audit from your theme, apps and page templates, with the
+          human-testing scope sized to your store, a timeline and a price.</li>
       </ul>
+
+      <div class="strip">
+        <p class="card-label">Every plan then includes</p>
+        <ul class="checks">
+          <li>Source-code remediation against WCAG 2.2 AA</li>
+          <li>Accessibility Compliance Record</li>
+          <li>Human-reviewed alt text</li>
+          <li>Demand-letter response within two business days</li>
+          <li>Continuous monitoring, with a dated certificate after every scan</li>
+          <li>On-page SEO and AI agent readiness fixes</li>
+        </ul>
+      </div>
+      <div class="strip">
+        <p class="card-label">From Growth</p>
+        <ul class="checks">
+          <li>Signed human testing of your shopping path</li>
+          <li>AI visibility tracked at 30 and 60 days</li>
+          <li>Store data rebuild for search and AI assistants</li>
+          <li>Faster regression fixes and app checks before install</li>
+        </ul>
+      </div>
 
       <div class="cta">
         <p class="cta-title">For full results, contact us.</p>
-        <p>Reply to the email this report came with, or start your remediation plan at
-        <a href="{{ site_url }}/signup?plan=audit">{{ site_host }}/signup</a>. A specialist follows up with
-        scope and pricing.</p>
+        <p>Reply to the email this report came with, or start at
+        <a href="{{ site_url }}/signup?plan=audit">{{ site_host }}/signup</a> and let the audit decide your plan.
+        Already been served? Say so in the reply and we move in about 7 days.</p>
       </div>
     </div>
 
@@ -343,6 +384,15 @@
       only what automation can test; a conformance claim also needs the manual and assistive-technology testing in
       the full audit.</p>
       {{/if}}
+
+      <div class="panel" style="margin-top: 12px;">
+        <p class="card-label">If a letter arrives</p>
+        <p style="margin-top: 5px;">Every plan comes with an Accessibility Compliance Record: a dated baseline, a
+        fix-by-fix log, a VPAT-format conformance report, a published accessibility statement and a signed certificate
+        after every scan. It answers the three questions that decide whether a demand letter goes away or becomes a
+        lawsuit: what you fixed, when, and whether you are still at it. If a letter arrives while you are on a plan,
+        we prepare a barrier-by-barrier response and a checklist for your counsel within two business days.</p>
+      </div>
     </div>
   </div>
 

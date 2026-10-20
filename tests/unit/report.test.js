@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { buildReportContext, renderReportHtml, complaintPatterns, criteriaTable } from '../../server/lib/pdf.js';
+import { buildReportContext, renderReportHtml, complaintPatterns, criteriaTable, closableChecks } from '../../server/lib/pdf.js';
 
 const issues = [
   { id: 'label', impact: 'critical', nodes: 12, criteria: ['4.1.2'], level: 'A',
@@ -81,4 +81,25 @@ test('long raw SEO details are shortened for the table', () => {
   const ctx = buildReportContext({ result, lead: {} });
   assert.ok(ctx.rank.seoChecks[0].detail.length <= 44);
   assert.ok(ctx.rank.seoChecks[0].detail.endsWith('…'));
+});
+
+test('"Readable is step one" counts only the checks accessibility fixes close', () => {
+  const check = (id, pass) => ({ id, pass });
+  const all = closableChecks({ checks: [check('links', false), check('forms', false), check('structure', false), check('buttons', true)] });
+  assert.equal(all.closable, 3);
+  assert.equal(all.closableLabel, 'the three failing checks');
+
+  // Crawler access and the page summary are SEO work, so they are counted as failing but never claimed.
+  const some = closableChecks({ checks: [check('forms', false), check('crawlersAllowed', false), check('summary', false)] });
+  assert.equal(some.closableLabel, 'one of the three failing checks');
+
+  assert.equal(closableChecks({ checks: [check('crawlersAllowed', false)] }).closable, 0);
+  assert.equal(closableChecks(null).closable, 0);
+});
+
+test('the box is left out when no accessibility-backed check fails', async () => {
+  const html = await renderReportHtml(buildReportContext({ result, lead: {} }));
+  assert.doesNotMatch(html, /Readable is step one/);
+  const failing = { ...result, agent: { ...result.agent, checks: [{ id: 'forms', pass: false, label: 'Form fields are labeled' }] } };
+  assert.match(await renderReportHtml(buildReportContext({ result: failing, lead: {} })), /also close the one failing check here/);
 });
