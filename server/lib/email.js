@@ -106,49 +106,52 @@ export function reportEmail({ lead, result }) {
 
   const html = brandShell(`Your accessibility report for ${origin}`, `
     <p style="margin:0 0 16px;">Hi ${escapeHtml(firstName)},</p>
-    <p style="margin:0 0 20px;">Your accessibility and SEO report for
+    <p style="margin:0 0 20px;">Your free accessibility check for
       <strong>${escapeHtml(origin)}</strong> is attached as a PDF.</p>
 
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0"
            style="border:1px solid #e3e5ea;border-radius:10px;padding:6px 16px;margin:0 0 20px;">
-      ${scoreRow('Accessibility score', scores.accessibility)}
-      ${scoreRow('SEO', scores.seo)}
+      ${scoreRow('Automated accessibility score (best case)', scores.accessibility)}
+      ${scoreRow('WCAG criteria failing', failed.length)}
+      ${scoreRow('On-page SEO', scores.seo)}
     </table>
 
     ${failed.length ? `<p style="margin:0 0 8px;font-weight:600;">WCAG success criteria not met</p>
     <p style="margin:0 0 20px;color:#4a4f5c;">${escapeHtml(failed.join(', '))}</p>` : ''}
 
-    <p style="margin:0 0 20px;">We scanned ${escapeHtml(String(result.pagesScanned ?? 1))} page(s) with
-      axe-core ${escapeHtml(result.axeVersion ?? '')} against WCAG 2.2 Level AA. The PDF lists every
-      finding, the elements affected, and how to fix each one.</p>
+    <p style="margin:0 0 20px;">We checked ${escapeHtml(String(result.pagesScanned ?? 1))} page(s) against
+      WCAG 2.2 Level A and AA. The PDF summarises where the risk concentrates, how search engines and AI
+      assistants read the store, and which success criteria fail.</p>
 
     <p style="margin:0 0 26px;">Automated testing reliably catches somewhere between a third and a half of
-      real accessibility barriers. A full conformance claim also needs manual and
-      assistive-technology testing — that is what our paid audit covers.</p>
+      real accessibility barriers, so the score is a best case. The full audit covers the rest: every
+      WCAG 2.2 A and AA criterion, manual and assistive-technology testing, AI visibility, and a
+      fixed-scope remediation plan.</p>
 
     <p style="margin:0 0 26px;">
-      <a href="${config.siteUrl}/contact-sales"
-         style="display:inline-block;background:#FFD23F;color:#14142A;text-decoration:none;font-weight:600;padding:12px 22px;border-radius:8px;">Talk to us about fixing this</a>
+      <a href="${config.siteUrl}/signup?plan=audit"
+         style="display:inline-block;background:#FFD23F;color:#14142A;text-decoration:none;font-weight:600;padding:12px 22px;border-radius:8px;">Get the full results</a>
     </p>
 
-    <p style="margin:0;color:#4a4f5c;">Reply to this email if you want us to walk you through the findings.</p>
+    <p style="margin:0;color:#4a4f5c;">Or reply to this email and we will walk you through the findings.</p>
   `);
 
   const text = [
     `Hi ${firstName},`,
     '',
-    `Your accessibility and SEO report for ${origin} is attached as a PDF.`,
+    `Your free accessibility check for ${origin} is attached as a PDF.`,
     '',
-    `Accessibility:  ${scores.accessibility ?? '—'}`,
-    `SEO:            ${scores.seo ?? '—'}`,
+    `Automated accessibility score (best case):  ${scores.accessibility ?? '—'}`,
+    `WCAG criteria failing:                      ${failed.length}`,
+    `On-page SEO:                                ${scores.seo ?? '—'}`,
     '',
     failed.length ? `WCAG criteria not met: ${failed.join(', ')}` : '',
     '',
-    `We scanned ${result.pagesScanned ?? 1} page(s) with axe-core ${result.axeVersion ?? ''} against WCAG 2.2 Level AA.`,
-    'Automated testing catches roughly a third to a half of real accessibility barriers;',
-    'a full conformance claim also needs manual and assistive-technology testing.',
+    `We checked ${result.pagesScanned ?? 1} page(s) against WCAG 2.2 Level A and AA.`,
+    'Automated testing catches roughly a third to a half of real accessibility barriers,',
+    'so the score is a best case. The full audit covers the rest.',
     '',
-    `Talk to us: ${config.siteUrl}/contact-sales`,
+    `Get the full results: ${config.siteUrl}/signup?plan=audit`,
     '',
     'Accessrank',
     config.siteUrl,
