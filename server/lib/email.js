@@ -180,7 +180,7 @@ export function leadNotificationEmail({ lead, result = null, kind = 'audit_repor
   ].filter(([, value]) => value != null && value !== '');
 
   const html = brandShell('New lead', `
-    <p style="margin:0 0 16px;font-weight:600;">New ${escapeHtml(kind.replace('_', ' '))} lead</p>
+    <p style="margin:0 0 16px;font-weight:600;">${kind === 'beta' ? 'New beta application' : `New ${escapeHtml(kind.replace('_', ' '))} lead`}</p>
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="font:400 14px/1.5 -apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
       ${rows.map(([k, v]) => `<tr>
         <td style="padding:6px 12px 6px 0;color:#6a6f7d;white-space:nowrap;vertical-align:top;">${escapeHtml(k)}</td>
@@ -190,7 +190,7 @@ export function leadNotificationEmail({ lead, result = null, kind = 'audit_repor
   `);
 
   const text = rows.map(([k, v]) => `${k}: ${v}`).join('\n');
-  return { subject: `New lead — ${lead.email}${result?.scores?.overall != null ? ` (score ${result.scores.overall})` : ''}`, html, text };
+  return { subject: `${kind === 'beta' ? 'New beta application' : 'New lead'} — ${lead.email}${result?.scores?.overall != null ? ` (score ${result.scores.overall})` : ''}`, html, text };
 }
 
 /* ------------------------------------------------------------- sending --- */

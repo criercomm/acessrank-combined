@@ -30,6 +30,7 @@
         { "label": "How we score", "href": "/methodology" },
         { "label": "Overview", "href": "/deck/" },
         { "label": "Careers", "href": "/careers" },
+        { "label": "Apply for the beta", "href": "/beta" },
         { "label": "Talk to sales", "href": "/contact-sales" },
         { "label": "Client login", "href": "/client-login" }
       ]
@@ -118,6 +119,15 @@
         },
         { "q": "Isn't the Compliance Record just a VPAT?", "a": "No, and the difference matters. A VPAT (Voluntary Product Accessibility Template) is a standard form that software vendors fill in to tell buyers how their product performs against WCAG today. It was designed for universities and government agencies comparing software, and it answers one question: where does this product stand right now? That is useful, which is why the Record includes one. But a VPAT is a single form on a single date, self-reported and usually from automated scans. It says nothing about when you started, what you fixed, or whether you kept going. The Record is built to answer that argument: a dated baseline from before any fixes, a fix-by-fix log with re-test results, signed monitoring certificates after every scan, and a published accessibility statement with a contact path." }
       ]
+    },
+    {
+      "file": "beta.html",
+      "url": "/beta",
+      "layout": "page",
+      "title": "Apply to be an Accessrank beta client",
+      "description": "Accessrank is in private beta and launching in Q1 2027. Apply to be one of the first stores we fix the code for.",
+      "priority": "0.7",
+      "changefreq": "monthly"
     },
     {
       "file": "overlays.html",

@@ -352,6 +352,37 @@ test('POST /api/lead captures a sales enquiry', async () => {
   assert.equal(leads[0].source, 'contact_sales');
 });
 
+test('POST /api/lead captures a beta application with the widget and demand-letter answers', async () => {
+  const { status, body } = await post('/api/lead', {
+    source: 'beta',
+    firstName: 'Bea',
+    lastName: 'Tester',
+    email: 'bea@brand.example',
+    company: 'Brand Co',
+    website: 'https://brand.example',
+    platform: 'Shopify',
+    widget: 'Yes, not sure which',
+    demandLetter: 'No',
+    message: 'Dawn theme, six apps.',
+    consent: true,
+  });
+
+  assert.equal(status, 200);
+  assert.equal(body.status, 'received');
+
+  const store = await getStore();
+  const leads = await store.listLeads({});
+  assert.ok(leads.find((l) => l.source === 'beta'), 'the beta lead was stored');
+  // The in-memory store used by tests keeps the raw rows, including the folded message.
+  const raw = store.leads ? [...store.leads.values()].find((l) => l.source === 'beta') : null;
+  assert.ok(raw, 'raw lead row available');
+  if (raw) {
+    assert.match(raw.message, /Accessibility widget: Yes, not sure which/);
+    assert.match(raw.message, /Received a demand letter: No/);
+    assert.match(raw.message, /Dawn theme, six apps\./);
+  }
+});
+
 test('a signup lead never carries a password', async () => {
   await post('/api/lead', {
     source: 'signup',

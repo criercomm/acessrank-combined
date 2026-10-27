@@ -269,3 +269,29 @@ select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmln
 
 /* Intent variants on the contact page (site.js shows one set per ?intent=); the display rules above must not defeat [hidden]. */
 [data-intent][hidden] { display: none !important; }
+
+/* ---- Beta signals (nav badge, home eyebrow, corner prompt) ---- */
+.nav-brand { display: flex; align-items: center; gap: 14px; min-width: 0; }
+.beta-badge {
+  position: relative; top: 2px; display: inline-block; padding: 4px 10px; border-radius: 6px;
+  background: color-mix(in oklab, var(--text) 10%, transparent); color: var(--text);
+  font-size: 13px; font-weight: 600; line-height: 1.3; text-decoration: none; white-space: nowrap;
+}
+.beta-badge:hover { background: color-mix(in oklab, var(--text) 16%, transparent); }
+.beta-badge-when { font-weight: 400; color: var(--text-soft); }
+@media (max-width: 520px) { .beta-badge-when { display: none; } }
+.risk-eyebrow-beta { display: flex; justify-content: center; align-items: center; gap: 10px; color: var(--brand-text); letter-spacing: 2px; text-transform: uppercase; }
+.beta-prompt {
+  position: fixed; right: 24px; bottom: 24px; z-index: 40; width: min(360px, calc(100vw - 32px));
+  box-sizing: border-box; padding: 18px 20px; background: var(--surface); color: var(--text);
+  border: 1px solid var(--hairline-strong); border-radius: 12px; box-shadow: var(--shadow-card);
+}
+.beta-prompt-title { margin: 0 36px 6px 0; font-size: 16px; font-weight: 700; }
+.beta-prompt-text { margin: 0 0 14px; font-size: 14px; line-height: 1.5; color: var(--text-soft); }
+.beta-prompt-cta { display: inline-block; padding: 9px 16px; border-radius: 8px; background: var(--brand); color: var(--brand-ink); font-size: 14px; font-weight: 600; text-decoration: none; }
+.beta-prompt-close {
+  position: absolute; top: 8px; right: 8px; width: 36px; height: 36px; display: inline-flex; align-items: center; justify-content: center;
+  background: transparent; border: 0; border-radius: 8px; color: var(--text-soft); cursor: pointer;
+}
+.beta-prompt-close:hover { color: var(--text); }
+.beta-note { margin: 18px 0 0; font-size: 13px; line-height: 1.5; color: var(--text-muted); }

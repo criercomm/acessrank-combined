@@ -1,0 +1,118 @@
+<section class="auth-main">
+  <div class="auth-grid wide">
+    <div class="auth-copy">
+      <a class="back-link" href="/">
+        <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true" focusable="false"><path d="M8.5 3 L4 7 L8.5 11" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Back to site
+      </a>
+      <div class="intro">
+        <span class="eyebrow-pill">Private beta &middot; Launching Q1 2027</span>
+        <h1>Apply to be an <span class="accent">Accessrank</span> beta client.</h1>
+        <p>We fix the code under an online store's accessibility problems, and we are taking on a small group of stores before our official launch. Tell us about your store and we will be in touch. Applying is not an agreement; terms are confirmed in conversation.</p>
+      </div>
+      <div class="trust-row">
+        <span class="item"><span class="tick"><svg viewBox="0 0 14 14" aria-hidden="true" focusable="false"><path d="M3 7 L6 10 L11 4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Hands-on onboarding: we run your free check with you and walk through the first fixes</span>
+        <span class="item"><span class="tick"><svg viewBox="0 0 14 14" aria-hidden="true" focusable="false"><path d="M3 7 L6 10 L11 4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Direct access to the founders and the people who write the code fixes</span>
+        <span class="item"><span class="tick"><svg viewBox="0 0 14 14" aria-hidden="true" focusable="false"><path d="M3 7 L6 10 L11 4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>A say in the product: your feedback shapes the reports and the Compliance Record</span>
+        <span class="item"><span class="tick"><svg viewBox="0 0 14 14" aria-hidden="true" focusable="false"><path d="M3 7 L6 10 L11 4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Honest limits: a small number of stores while we finish the full service</span>
+      </div>
+      <p class="beta-note">Accessrank is not a law firm and nothing here is legal advice. Remediation reduces legal exposure; it cannot eliminate it. US stores only.</p>
+    </div>
+
+    <div class="form-card wide">
+      <h2 class="form-title">Tell us about your store</h2>
+      <p class="form-sub">We read every application and reply by email.</p>
+
+      <form id="betaForm" data-lead-form novalidate>
+        <input type="hidden" name="source" value="beta">
+
+        <div class="field-row">
+          <div class="field">
+            <label for="beta-firstName">First name</label>
+            <input type="text" id="beta-firstName" name="firstName" autocomplete="given-name" placeholder="Jordan" required>
+          </div>
+          <div class="field">
+            <label for="beta-lastName">Last name</label>
+            <input type="text" id="beta-lastName" name="lastName" autocomplete="family-name" placeholder="Rivera" required>
+          </div>
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label for="beta-email">Work email</label>
+            <input type="email" id="beta-email" name="email" autocomplete="email" placeholder="jordan@yourstore.com" required>
+          </div>
+          <div class="field">
+            <label for="beta-company">Company</label>
+            <input type="text" id="beta-company" name="company" autocomplete="organization" placeholder="Your brand" required>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="beta-website">Store web address</label>
+          <input type="url" id="beta-website" name="website" autocomplete="url" placeholder="https://yourstore.com" required>
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label for="beta-platform">Store platform</label>
+            <select id="beta-platform" name="platform" required>
+              <option value="" disabled selected>Select&hellip;</option>
+              <option>Shopify Plus</option>
+              <option>Shopify</option>
+              <option>WooCommerce</option>
+              <option>BigCommerce</option>
+              <option>Custom build</option>
+              <option>Other</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="beta-widget">Accessibility widget on your store</label>
+            <select id="beta-widget" name="widget" required>
+              <option value="" disabled selected>Select&hellip;</option>
+              <option>None that I know of</option>
+              <option>Yes, not sure which</option>
+              <option>Yes, I will name it below</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="beta-letter">Have you received a demand letter?</label>
+          <select id="beta-letter" name="demandLetter" required>
+            <option value="" disabled selected>Select&hellip;</option>
+            <option>No</option>
+            <option>Yes</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="beta-message">Anything we should know? <span class="opt">(optional)</span></label>
+          <textarea id="beta-message" name="message" placeholder="Your theme, apps, deadlines, what you need most"></textarea>
+        </div>
+
+        <div class="hp-field" aria-hidden="true">
+          <label for="beta-company-website">Company website</label>
+          <input id="beta-company-website" name="company_website" type="text" tabindex="-1" autocomplete="off">
+        </div>
+        <input type="hidden" name="formLoadedAt" value="">
+
+        <div class="field field-check">
+          <input id="beta-consent" name="consent" type="checkbox" required>
+          <label for="beta-consent">I agree to Accessrank contacting me and accept the <a href="/privacy">privacy policy</a>.</label>
+        </div>
+
+        {{#if turnstileSiteKey}}<div class="cf-turnstile" data-sitekey="{{ turnstileSiteKey }}" data-theme="dark" data-appearance="interaction-only"></div>{{/if}}
+
+        <p class="form-status" data-form-status role="alert" aria-live="assertive"></p>
+
+        <button class="submit-btn" type="submit">Apply for the beta</button>
+      </form>
+
+      <div class="form-success" data-form-success hidden>
+        <h2>Thanks, your application is in.</h2>
+        <p>We read every application and will reply by email. Applying is not an agreement; we confirm terms in conversation.</p>
+      </div>
+    </div>
+  </div>
+</section>

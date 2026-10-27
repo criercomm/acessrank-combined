@@ -318,7 +318,10 @@ router.post('/lead', wrap(async (req, res) => {
     plan: input.plan ?? null,
     platform: input.platform ? cleanText(input.platform, 60) : null,
     // The signup page's first-scan placement rides along in the message so sales sees it without opening the scan.
-    message: [input.message ? cleanText(input.message, 4000) : '', input.placementNote ? `First-scan placement: ${cleanText(input.placementNote, 400)}` : '']
+    message: [
+      input.source === 'beta' && input.widget ? `Accessibility widget: ${cleanText(input.widget, 80)}` : '',
+      input.source === 'beta' && input.demandLetter ? `Received a demand letter: ${cleanText(input.demandLetter, 10)}` : '',
+      input.message ? cleanText(input.message, 4000) : '', input.placementNote ? `First-scan placement: ${cleanText(input.placementNote, 400)}` : '']
       .filter(Boolean).join('\n\n') || null,
     ipHash,
     userAgent: context.userAgent,

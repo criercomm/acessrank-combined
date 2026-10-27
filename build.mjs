@@ -198,7 +198,7 @@ function build() {
   const css = minifyCss(cssSource);
   const cssName = `site.${hashOf(css)}.css`;
 
-  const jsSource = bundle(['site.js', 'audit.js', 'overlays.js'], jsDir);
+  const jsSource = bundle(['site.js', 'audit.js', 'overlays.js', 'beta-prompt.js'], jsDir);
   const jsName = `site.${hashOf(jsSource)}.js`;
 
   // The client portal (/client-login, /portal, /portal/admin) ships its own

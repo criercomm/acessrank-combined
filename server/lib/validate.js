@@ -53,7 +53,7 @@ export const reportSchema = z.object({
 });
 
 export const leadSchema = z.object({
-  source: z.enum(['signup', 'contact_sales']),
+  source: z.enum(['signup', 'contact_sales', 'beta']),
   firstName: trimmed(80).min(1, 'Enter your first name.'),
   lastName: trimmed(80).optional().nullable(),
   email: trimmed(254).min(3, 'Enter your email address.'),
@@ -64,6 +64,9 @@ export const leadSchema = z.object({
   platform: trimmed(60).optional().nullable(),
   pages: trimmed(60).optional().nullable(),
   intent: trimmed(60).optional().nullable(),
+  // Beta application answers; folded into the message so the sales inbox sees them without a schema change.
+  widget: trimmed(80).optional().nullable(),
+  demandLetter: trimmed(10).optional().nullable(),
   placementNote: trimmed(400).optional().nullable(),
   message: trimmed(4000).optional().nullable(),
   consent: z.union([z.boolean(), z.literal('on'), z.literal('true')]).refine(
