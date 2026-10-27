@@ -80,6 +80,9 @@
   .tone-neutral { color: var(--ink); }
 
   /* --- boxes --------------------------------------------------------- */
+  .overlay-row { display: flex; gap: 10px; align-items: baseline; border: 1px solid var(--line); border-radius: 8px; padding: 9px 12px; margin-bottom: 12px; break-inside: avoid; font-size: 9pt; }
+  .overlay-row .card-label { flex: none; }
+  .overlay-row strong { font-size: 10pt; }
   .alert { background: var(--bad-soft); border: 1px solid var(--bad-line); border-radius: 8px; padding: 10px 13px; margin-bottom: 12px; break-inside: avoid; }
   .alert strong { color: var(--bad); }
   .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 10px 13px; break-inside: avoid; }
@@ -147,7 +150,8 @@
     <div class="masthead-meta">
       <strong>{{ site.host }}</strong><br>
       Free accessibility check · {{ report.generatedAt }}<br>
-      Prepared for {{ lead.name }} · Ref. {{ report.id }}
+      Prepared for {{ lead.name }} · Ref. {{ report.id }}<br>
+      Overlay detected: {{ access.overlayStatus }}
     </div>
   </header>
 
@@ -176,6 +180,11 @@
       <p class="card-num">{{ access.elements }}</p>
       <p class="card-note">{{ access.high }} high · {{ access.medium }} medium · {{ access.low }} low priority</p>
     </div>
+  </div>
+
+  <div class="overlay-row">
+    <span class="card-label">Accessibility overlay detected</span>
+    <strong class="tone-{{ access.overlayTone }}">{{ access.overlayStatus }}</strong>
   </div>
 
   {{#if access.overlays}}
