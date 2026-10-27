@@ -295,3 +295,4 @@ select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmln
 }
 .beta-prompt-close:hover { color: var(--text); }
 .beta-note { margin: 18px 0 0; font-size: 13px; line-height: 1.5; color: var(--text-muted); }
+.form-sub-beta { text-align: center; margin: 4px 0 28px; }
