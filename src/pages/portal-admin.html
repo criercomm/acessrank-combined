@@ -116,34 +116,27 @@
               <p class="portal-count" data-file-count></p>
             </div>
 
-            <div class="field upload-area">
-              <label for="upload-area">Add uploads to</label>
-              <select id="upload-area" data-upload-area>
-                <option value="compliance">Compliance files</option>
-                <option value="files">Other files</option>
-              </select>
-              <p class="field-hint">Compliance files are the Accessibility Compliance Record, accessibility statement, VPAT and similar documents. The client sees them in their own &ldquo;Compliance files&rdquo; list.</p>
-            </div>
-
-            <div class="dropzone" data-dropzone>
-              <input class="visually-hidden" type="file" id="upload-input" multiple data-upload-input aria-describedby="upload-hint">
-              <svg class="dropzone-icon" width="28" height="28" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 16V5m0 0-4 4m4-4 4 4M5 15v3a1.5 1.5 0 0 0 1.5 1.5h11A1.5 1.5 0 0 0 19 18v-3" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
-              <p class="dropzone-title">Drop files here to add them to <span data-dropzone-client>this client</span></p>
-              <p class="dropzone-hint" id="upload-hint">Or <label class="dropzone-choose" for="upload-input">choose files</label>. Up to <span data-max-file>{{ maxFileMb }} MB</span> each; they appear in the client&rsquo;s portal straight away.</p>
-            </div>
-
+            <p class="file-area-note field-hint">Each file lives in one list, and the client sees both lists in their portal. Add files with the buttons, or drag them onto a list. <strong>Move</strong> puts a file in the other list; <strong>Delete</strong> removes it.</p>
             <ul class="upload-queue" data-upload-queue aria-label="Uploads in progress"></ul>
 
-            <p class="file-area-note field-hint">Each file is in one place. Use <strong>Move</strong> to put it in the other list, <strong>Delete</strong> to remove it. Clients see these two lists in their own portal.</p>
-            <h4 class="files-subhead" id="admin-compliance-heading" tabindex="-1">Compliance files <span class="portal-count" data-compliance-count></span></h4>
-            <div class="portal-card">
-              <p class="portal-empty" data-compliance-empty>No compliance files yet.</p>
+            <div class="files-head">
+              <h4 class="files-subhead" id="admin-compliance-heading" tabindex="-1">Compliance files <span class="portal-count" data-compliance-count></span></h4>
+              <label class="btn-small upload-button" for="upload-compliance">Add files</label>
+              <input class="visually-hidden" type="file" id="upload-compliance" multiple data-upload-input="compliance">
+            </div>
+            <p class="field-hint files-hint">Accessibility Compliance Record, accessibility statement, VPAT and similar. Up to <span data-max-file>{{ maxFileMb }} MB</span> each.</p>
+            <div class="portal-card drop-card" data-drop-area="compliance">
+              <p class="portal-empty" data-compliance-empty>No compliance files yet. Drag files here or use Add files.</p>
               <ul class="file-list" data-compliance-list hidden></ul>
             </div>
 
-            <h4 class="files-subhead">Other files</h4>
-            <div class="portal-card">
-              <p class="portal-empty" data-files-empty>No files yet.</p>
+            <div class="files-head">
+              <h4 class="files-subhead">Other files</h4>
+              <label class="btn-small upload-button" for="upload-files">Add files</label>
+              <input class="visually-hidden" type="file" id="upload-files" multiple data-upload-input="files">
+            </div>
+            <div class="portal-card drop-card" data-drop-area="files">
+              <p class="portal-empty" data-files-empty>No files yet. Drag files here or use Add files.</p>
               <ul class="file-list" data-file-list hidden></ul>
             </div>
           </section>

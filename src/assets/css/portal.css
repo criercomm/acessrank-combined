@@ -270,3 +270,11 @@ select#new-op-role { min-height: 44px; }
 .approval-entry > details { flex: 1 1 360px; min-width: 0; }
 .approval-actions { flex: 0 0 auto; padding-top: 4px; }
 .file-area-note { margin: 0 0 10px; font-size: 14px; }
+
+.files-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 26px 0 4px; }
+.files-head .files-subhead { margin: 0; }
+.files-hint { margin: 0 0 10px; }
+.upload-button { cursor: pointer; }
+.drop-card.is-ready { border-style: dashed; }
+.drop-card.is-over { border-color: var(--brand); background: var(--brand-soft); }
+.files-head:has(input:focus-visible) .upload-button { outline: 3px solid var(--brand); outline-offset: 2px; }

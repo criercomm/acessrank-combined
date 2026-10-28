@@ -376,8 +376,8 @@
     var loginsEmpty = root.querySelector('[data-logins-empty]');
     var loginCount = root.querySelector('[data-login-count]');
     var queue = root.querySelector('[data-upload-queue]');
-    var dropzone = root.querySelector('[data-dropzone]');
-    var input = root.querySelector('[data-upload-input]');
+    var inputs = root.querySelectorAll('[data-upload-input]');
+    var dropCards = root.querySelectorAll('[data-drop-area]');
     var credential = root.querySelector('[data-credential]');
     var reportList = root.querySelector('[data-report-list]');
     var reportsEmpty = root.querySelector('[data-reports-empty]');
@@ -388,7 +388,6 @@
     var complianceList = root.querySelector('[data-compliance-list]');
     var complianceEmpty = root.querySelector('[data-compliance-empty]');
     var complianceCount = root.querySelector('[data-compliance-count]');
-    var uploadArea = root.querySelector('[data-upload-area]');
     var pastApprovalList = root.querySelector('[data-past-approval-list]');
     var pastApprovalsHead = root.querySelector('[data-past-approvals-head]');
     var pastApprovalsCard = root.querySelector('[data-past-approvals-card]');
@@ -661,7 +660,6 @@
       if (!client) return;
 
       detailName.textContent = client.name;
-      root.querySelector('[data-dropzone-client]').textContent = client.name;
       renameForm.hidden = true;
       renderReports(client);
       renderFiles(client);
@@ -804,7 +802,7 @@
 
     /* ---- uploads ---- */
 
-    function uploadOne(client, file) {
+    function uploadOne(client, file, area) {
       var state_ = h('span', { class: 'upload-state', text: 'Uploading\u2026' });
       var row = h('li', {}, [h('span', { class: 'upload-name', text: file.name }), state_]);
       queue.appendChild(row);
@@ -820,7 +818,7 @@
         return Promise.resolve(reject('Over the ' + formatBytes(state.maxFileBytes) + ' limit \u2014 skipped'));
       }
 
-      var url = '/api/portal/admin/clients/' + encodeURIComponent(client.id) + '/files?name=' + encodeURIComponent(file.name) + '&area=' + encodeURIComponent(uploadArea.value);
+      var url = '/api/portal/admin/clients/' + encodeURIComponent(client.id) + '/files?name=' + encodeURIComponent(file.name) + '&area=' + encodeURIComponent(area);
       return api('POST', url, null, file).then(function (data) {
         client.files.unshift(data.file);
         row.className = 'is-done';
@@ -835,7 +833,7 @@
 
     var uploading = false;
 
-    function uploadFiles(files) {
+    function uploadFiles(files, area) {
       var client = selected();
       var batch = Array.prototype.slice.call(files || []);
       if (!client || !batch.length) return;
@@ -852,14 +850,14 @@
       // a slow connection is not asked to carry several large uploads at once.
       var added = 0;
       batch.reduce(function (chain, file) {
-        return chain.then(function () { return uploadOne(client, file); }).then(function (ok) { if (ok) added += 1; });
+        return chain.then(function () { return uploadOne(client, file, area); }).then(function (ok) { if (ok) added += 1; });
       }, Promise.resolve()).then(function () {
         uploading = false;
-        input.value = '';
+        Array.prototype.forEach.call(inputs, function (el) { el.value = ''; });
         var skipped = batch.length - added;
         setStatus(
           status,
-          'Added ' + plural(added, 'file') + ' to ' + client.name + (skipped ? '. ' + plural(skipped, 'file') + ' could not be added \u2014 see the list below.' : '.'),
+          'Added ' + plural(added, 'file') + ' to ' + (area === 'compliance' ? 'Compliance files' : 'Other files') + (skipped ? '. ' + plural(skipped, 'file') + ' could not be added \u2014 see the list below.' : '.'),
           skipped ? 'error' : 'success'
         );
         // Successful rows have done their job; problems stay until the next batch.
@@ -867,7 +865,9 @@
       });
     }
 
-    input.addEventListener('change', function () { uploadFiles(input.files); });
+    Array.prototype.forEach.call(inputs, function (el) {
+      el.addEventListener('change', function () { uploadFiles(el.files, el.getAttribute('data-upload-input')); });
+    });
 
     // The whole window accepts a drop while a client is open, so a file let go a
     // little outside the box still lands — and never makes the browser navigate
@@ -876,7 +876,8 @@
       return !!e.dataTransfer && Array.prototype.indexOf.call(e.dataTransfer.types || [], 'Files') !== -1;
     };
     var depth = 0;
-    var setOver = function (over) { dropzone.classList.toggle('is-over', over); };
+    var setOver = function (over) { Array.prototype.forEach.call(dropCards, function (c) { c.classList.toggle('is-ready', over); if (!over) c.classList.remove('is-over'); }); };
+    var cardAt = function (e) { return e.target && e.target.closest ? e.target.closest('[data-drop-area]') : null; };
     var active = function () { return !!selected() && root.getClientRects().length > 0; };
 
     window.addEventListener('dragenter', function (e) {
@@ -890,14 +891,19 @@
       if (!depth) setOver(false);
     });
     window.addEventListener('dragover', function (e) {
-      if (hasFiles(e) && active()) e.preventDefault();
+      if (!hasFiles(e) || !active()) return;
+      e.preventDefault();
+      var over = cardAt(e);
+      Array.prototype.forEach.call(dropCards, function (c) { c.classList.toggle('is-over', c === over); });
     });
     window.addEventListener('drop', function (e) {
       if (!hasFiles(e) || !active()) return;
       e.preventDefault();
       depth = 0;
       setOver(false);
-      uploadFiles(e.dataTransfer.files);
+      var card = cardAt(e);
+      if (!card) { setStatus(status, 'Drop files onto Compliance files or Other files.', 'error'); return; }
+      uploadFiles(e.dataTransfer.files, card.getAttribute('data-drop-area'));
     });
 
     /* ---- load ---- */
