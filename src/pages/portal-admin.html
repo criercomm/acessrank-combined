@@ -4,12 +4,30 @@
       <div class="portal-head-text">
         <p class="portal-kicker">Accessrank team</p>
         <h1>Client portals</h1>
-        <p class="portal-meta">Create a client area, give people a login, and drop in their files.</p>
+        <p class="portal-meta" data-admin-meta>Create a client area, give people a login, and drop in their files.</p>
       </div>
-      <button class="btn-ghost" type="button" data-portal-logout>Sign out</button>
+      <div class="row-actions">
+        <a class="btn-ghost" href="/portal/operators" data-master-control>Operators</a>
+        <button class="btn-ghost" type="button" data-portal-logout>Sign out</button>
+      </div>
     </header>
 
     <p class="form-status portal-status" data-portal-status role="status" aria-live="polite"></p>
+
+    <section class="portal-section" aria-labelledby="approvals-heading">
+      <div class="portal-section-head">
+        <h2 id="approvals-heading" tabindex="-1">Approvals</h2>
+        <p class="portal-count" data-approvals-count></p>
+      </div>
+      <div class="portal-card">
+        <p class="portal-empty" data-approvals-empty>No reports published yet. Publish one from a client below and the answers will appear here as soon as the client submits them.</p>
+        <ul class="approval-list" data-approval-list hidden></ul>
+      </div>
+      <h3 class="approval-subhead" data-past-approvals-head hidden>Past approvals</h3>
+      <div class="portal-card" data-past-approvals-card hidden>
+        <ul class="approval-list" data-past-approval-list></ul>
+      </div>
+    </section>
 
     <div class="admin-grid">
       <section class="admin-rail" aria-labelledby="clients-heading">
@@ -17,7 +35,7 @@
         <p class="portal-empty portal-empty--rail" data-clients-loading>Loading&hellip;</p>
         <ul class="client-list" data-client-list></ul>
 
-        <form class="rail-form" data-add-client novalidate>
+        <form class="rail-form" data-add-client data-master-control novalidate>
           <label for="new-client-name">Add a client</label>
           <input type="text" id="new-client-name" name="name" placeholder="Company name" autocomplete="off" maxlength="120" required>
           <p class="form-status" data-form-status role="alert" aria-live="assertive"></p>
@@ -33,7 +51,7 @@
         <div data-detail hidden>
           <div class="detail-head">
             <h2 data-detail-name tabindex="-1"></h2>
-            <div class="detail-actions">
+            <div class="detail-actions" data-master-control>
               <button class="btn-small" type="button" data-rename-open>Rename</button>
               <button class="btn-small btn-small--danger" type="button" data-delete-client>Delete client</button>
             </div>
@@ -49,11 +67,62 @@
             <p class="form-status" data-form-status role="alert" aria-live="assertive"></p>
           </form>
 
+          <!-- ------------------------------------------- approvals --- -->
+          <section class="portal-section" aria-labelledby="admin-reports-heading">
+            <div class="portal-section-head">
+              <h3 id="admin-reports-heading" tabindex="-1">Approvals</h3>
+              <p class="portal-count" data-report-count></p>
+            </div>
+
+            <div class="portal-card">
+              <p class="portal-empty" data-reports-empty>No reports waiting for approval.</p>
+              <ul class="file-list" data-report-list hidden></ul>
+            </div>
+
+            <form class="login-form" data-add-report novalidate>
+              <h4>Publish a report for approval</h4>
+              <p class="field-hint">Upload the finished HTML report. The client opens it inside their portal, signed in, and their answers appear in the Approvals list above. When you are done with it, close it to move it to Past approvals.</p>
+              <div class="login-form-row">
+                <div class="field">
+                  <label for="new-report-title">Title</label>
+                  <input type="text" id="new-report-title" name="title" autocomplete="off" maxlength="160" required>
+                </div>
+                <div class="field">
+                  <label for="new-report-file">HTML file</label>
+                  <input type="file" id="new-report-file" name="file" accept=".html,.htm,text/html" required>
+                </div>
+                <button class="btn-small btn-small--brand" type="submit">Publish report</button>
+              </div>
+              <p class="form-status" data-form-status role="alert" aria-live="assertive"></p>
+            </form>
+          </section>
+
+          <section class="portal-section" aria-labelledby="admin-past-heading">
+            <div class="portal-section-head">
+              <h3 id="admin-past-heading" tabindex="-1">Past approvals</h3>
+              <p class="portal-count" data-past-count></p>
+            </div>
+            <div class="portal-card">
+              <p class="portal-empty" data-past-empty>Closed reports and their recorded answers are kept here.</p>
+              <ul class="file-list" data-past-list hidden></ul>
+            </div>
+          </section>
+
+          <!-- ------------------------------------------------ files --- -->
           <!-- ------------------------------------------------ files --- -->
           <section class="portal-section" aria-labelledby="admin-files-heading">
             <div class="portal-section-head">
               <h3 id="admin-files-heading" tabindex="-1">Files</h3>
               <p class="portal-count" data-file-count></p>
+            </div>
+
+            <div class="field upload-area">
+              <label for="upload-area">Add uploads to</label>
+              <select id="upload-area" data-upload-area>
+                <option value="compliance">Compliance files</option>
+                <option value="files">Other files</option>
+              </select>
+              <p class="field-hint">Compliance files are the Accessibility Compliance Record, accessibility statement, VPAT and similar documents. The client sees them in their own &ldquo;Compliance files&rdquo; list.</p>
             </div>
 
             <div class="dropzone" data-dropzone>
@@ -65,6 +134,13 @@
 
             <ul class="upload-queue" data-upload-queue aria-label="Uploads in progress"></ul>
 
+            <h4 class="files-subhead" id="admin-compliance-heading" tabindex="-1">Compliance files <span class="portal-count" data-compliance-count></span></h4>
+            <div class="portal-card">
+              <p class="portal-empty" data-compliance-empty>No compliance files yet.</p>
+              <ul class="file-list" data-compliance-list hidden></ul>
+            </div>
+
+            <h4 class="files-subhead">Other files</h4>
             <div class="portal-card">
               <p class="portal-empty" data-files-empty>No files yet.</p>
               <ul class="file-list" data-file-list hidden></ul>

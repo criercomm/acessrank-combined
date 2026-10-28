@@ -14,7 +14,7 @@ import rateLimit from 'express-rate-limit';
 import config, { readiness } from './lib/config.js';
 import { log, requestId } from './lib/logger.js';
 import api from './routes/api.js';
-import portal, { portalPageGate, loginPageGate } from './routes/portal.js';
+import portal, { portalPageGate, loginPageGate, reportPage } from './routes/portal.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const DIST = path.join(__dirname, '..', 'dist');
@@ -253,6 +253,10 @@ app.use('/api/portal', portal);
 app.use('/api', api);
 
 /* -------------------------------------------------------- portal pages --- */
+
+// A report page is served from the database with its own policy and its own
+// session check, so it is mounted ahead of the generic page gate.
+app.get('/portal/report/:id', reportPage);
 
 // Before the static handlers, so a signed-out visitor is redirected to the
 // sign-in page rather than served the portal's empty shell.

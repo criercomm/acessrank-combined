@@ -272,6 +272,16 @@
       "excludeFromSitemap": true
     },
     {
+      "file": "portal-operators.html",
+      "url": "/portal/operators",
+      "layout": "page",
+      "title": "Operators — Accessrank admin",
+      "description": "Accessrank team access only.",
+      "portal": true,
+      "noindex": true,
+      "excludeFromSitemap": true
+    },
+    {
       "file": "404.html",
       "url": "/404",
       "layout": "page",

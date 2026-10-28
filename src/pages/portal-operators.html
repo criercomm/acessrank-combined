@@ -1,0 +1,96 @@
+<section class="portal-main" data-portal-operators>
+  <div class="portal-wrap portal-wrap--wide">
+    <header class="portal-head">
+      <div class="portal-head-text">
+        <p class="portal-kicker">Accessrank team</p>
+        <h1>Operators</h1>
+        <p class="portal-meta" data-operators-meta>Who can sign in to the team console, and which clients each person works on.</p>
+      </div>
+      <div class="row-actions">
+        <a class="btn-ghost" href="/portal/admin">Client portals</a>
+        <button class="btn-ghost" type="button" data-portal-logout>Sign out</button>
+      </div>
+    </header>
+
+    <p class="form-status portal-status" data-portal-status role="status" aria-live="polite"></p>
+
+    <div data-master-only hidden>
+      <div class="credential" data-credential hidden tabindex="-1">
+        <p class="credential-title" data-credential-title></p>
+        <p class="credential-line">
+          <span class="credential-label">Email</span>
+          <code data-credential-email></code>
+        </p>
+        <p class="credential-line">
+          <span class="credential-label">Password</span>
+          <code data-credential-password></code>
+        </p>
+        <div class="credential-actions">
+          <button class="btn-small btn-small--brand" type="button" data-credential-copy>Copy sign-in details</button>
+          <button class="btn-small" type="button" data-credential-dismiss>Done</button>
+          <span class="credential-copied" data-credential-copied role="status" aria-live="polite"></span>
+        </div>
+        <p class="credential-note">This password is shown once and can&rsquo;t be looked up later. Send it to the operator now; they can replace it with their own after signing in.</p>
+      </div>
+
+      <section class="portal-section" aria-labelledby="operators-heading">
+        <div class="portal-section-head">
+          <h2 id="operators-heading" tabindex="-1">Operators</h2>
+          <p class="portal-count" data-operator-count></p>
+        </div>
+        <div class="portal-card">
+          <p class="portal-empty" data-operators-loading>Loading&hellip;</p>
+          <p class="portal-empty" data-operators-empty hidden>No operators yet. Add the first one below.</p>
+          <ul class="operator-list" data-operator-list hidden></ul>
+        </div>
+      </section>
+
+      <section class="portal-section" aria-labelledby="add-operator-heading">
+        <h2 id="add-operator-heading">Add an operator</h2>
+        <div class="portal-card portal-card--form">
+          <form class="login-form" data-add-operator novalidate>
+            <p class="field-hint"><strong>Masters</strong> can add and remove operators, assign clients, and see every client. <strong>Operators</strong> see only the clients assigned to them.</p>
+            <div class="login-form-row">
+              <div class="field">
+                <label for="new-op-name">Name</label>
+                <input type="text" id="new-op-name" name="name" autocomplete="off" maxlength="120" required>
+              </div>
+              <div class="field">
+                <label for="new-op-email">Email</label>
+                <input type="email" id="new-op-email" name="email" autocomplete="off" autocapitalize="none" spellcheck="false" required>
+              </div>
+              <div class="field">
+                <label for="new-op-role">Role</label>
+                <select id="new-op-role" name="role">
+                  <option value="operator">Operator</option>
+                  <option value="master">Master operator</option>
+                </select>
+              </div>
+              <button class="btn-small btn-small--brand" type="submit">Add operator</button>
+            </div>
+            <p class="form-status" data-form-status role="alert" aria-live="assertive"></p>
+          </form>
+        </div>
+      </section>
+    </div>
+
+    <section class="portal-section" aria-labelledby="account-heading" data-account-section hidden>
+      <h2 id="account-heading">Your password</h2>
+      <div class="portal-card portal-card--form">
+        <form class="password-form" data-operator-password-form novalidate>
+          <div class="field">
+            <label for="op-pw-current">Current password</label>
+            <input type="password" id="op-pw-current" name="current" autocomplete="current-password" required>
+          </div>
+          <div class="field">
+            <label for="op-pw-next">New password</label>
+            <input type="password" id="op-pw-next" name="next" autocomplete="new-password" minlength="10" aria-describedby="op-pw-hint" required>
+            <p class="field-hint" id="op-pw-hint">At least 10 characters. Changing it signs you out on your other devices.</p>
+          </div>
+          <p class="form-status" data-form-status role="alert" aria-live="assertive"></p>
+          <button class="btn-small btn-small--brand" type="submit">Change password</button>
+        </form>
+      </div>
+    </section>
+  </div>
+</section>

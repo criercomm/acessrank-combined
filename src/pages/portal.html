@@ -16,16 +16,48 @@
       <a href="#change-password">Choose your own</a> when you have a minute.
     </p>
 
+    <section class="portal-section" aria-labelledby="reports-heading">
+      <div class="portal-section-head">
+        <h2 id="reports-heading">Awaiting your approval</h2>
+        <p class="portal-count" data-report-count></p>
+      </div>
+      <div class="portal-card">
+        <p class="portal-empty" data-reports-empty hidden>Nothing needs your approval right now. When your Accessrank team has something for you to review, it will appear here.</p>
+        <ul class="file-list" data-report-list></ul>
+      </div>
+    </section>
+
+    <section class="portal-section" aria-labelledby="compliance-heading">
+      <div class="portal-section-head">
+        <h2 id="compliance-heading">Compliance files</h2>
+        <p class="portal-count" data-compliance-count></p>
+      </div>
+      <div class="portal-card">
+        <p class="portal-empty" data-compliance-empty>Your Accessibility Compliance Record, accessibility statement and other compliance documents will be kept here.</p>
+        <ul class="file-list" data-compliance-list hidden></ul>
+      </div>
+    </section>
+
+    <section class="portal-section" aria-labelledby="past-heading" data-past-section hidden>
+      <div class="portal-section-head">
+        <h2 id="past-heading">Past approvals</h2>
+        <p class="portal-count" data-past-count></p>
+      </div>
+      <div class="portal-card">
+        <ul class="file-list" data-past-list></ul>
+      </div>
+    </section>
+
     <section class="portal-section" aria-labelledby="files-heading">
       <div class="portal-section-head">
-        <h2 id="files-heading">Files</h2>
+        <h2 id="files-heading">Other files</h2>
         <p class="portal-count" data-file-count></p>
       </div>
 
       <div class="portal-card">
         <p class="portal-empty" data-files-loading>Loading your files&hellip;</p>
         <p class="portal-empty" data-files-empty hidden>
-          Nothing here yet. Your Accessrank team will add reports and documents as your project moves along.
+          Nothing here yet. Your Accessrank team will add documents as your project moves along.
         </p>
         <ul class="file-list" data-file-list hidden></ul>
       </div>

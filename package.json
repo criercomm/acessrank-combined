@@ -14,6 +14,7 @@
     "fonts": "node scripts/fetch-fonts.mjs",
     "images": "node scripts/make-images.mjs",
     "migrate": "node scripts/migrate.mjs",
+    "seed:operators": "node scripts/seed-operators.mjs",
     "scan": "node scripts/demo-scan.mjs",
     "preview:pdf": "node scripts/preview-pdf.mjs",
     "setup": "npx playwright install chromium && npm run fonts && npm run images && npm run build",

@@ -55,6 +55,8 @@ const config = Object.freeze({
     replyTo: env.EMAIL_REPLY_TO || 'info@accessrank.ai',
     /** Internal address that receives a copy of every new lead. */
     salesInbox: env.SALES_INBOX || 'info@accessrank.ai',
+    /** Internal address told whenever a client submits answers on a portal report. */
+    portalNotify: env.PORTAL_NOTIFY_EMAIL || 'info@accessrank.ai',
   },
 
   turnstile: {

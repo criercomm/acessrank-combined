@@ -87,6 +87,12 @@
     return isNaN(date.getTime()) ? '' : dateFormat.format(date);
   }
 
+  var dateTimeFormat = new Intl.DateTimeFormat('en-US', { year: 'numeric', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', timeZoneName: 'short' });
+  function formatDateTime(iso) {
+    var date = new Date(iso);
+    return isNaN(date.getTime()) ? '' : dateTimeFormat.format(date);
+  }
+
   function fileKind(name) {
     var match = /\.([A-Za-z0-9]{1,5})$/.exec(name || '');
     return match ? match[1].toUpperCase() : 'FILE';
@@ -172,6 +178,49 @@
       if (e.key === 'Escape' && armed) { e.stopPropagation(); disarm(); }
     });
   }
+
+  /** "3 approved, 1 changes requested" — or a plain "Not reviewed yet". */
+  function progressText(progress) {
+    if (!progress) return 'Not reviewed yet';
+    var parts = [];
+    if (progress.approved) parts.push(progress.approved + ' approved');
+    if (progress.changes) parts.push(progress.changes + ' with changes requested');
+    if (progress.comments) parts.push(plural(progress.comments, 'comment'));
+    return parts.length ? parts.join(', ') : 'Not reviewed yet';
+  }
+
+  function reportRow(report, extraActions, opts) {
+    opts = opts || {};
+    var closed = report.status === 'closed';
+    var open = h('a', {
+      class: closed || opts.openLabel ? 'btn-small' : 'btn-small btn-small--brand',
+      href: '/portal/report/' + encodeURIComponent(report.id),
+      'aria-label': (opts.openLabel || (closed ? 'View' : 'Open report')) + ': ' + report.title,
+      text: opts.openLabel || (closed ? 'View' : 'Open report')
+    });
+    var actions = [open];
+    if (closed || opts.record) {
+      actions.push(h('a', {
+        class: 'btn-small',
+        href: '/api/portal/reports/' + encodeURIComponent(report.id) + '/record',
+        'aria-label': 'Download the approvals record for ' + report.title,
+        text: 'Download record'
+      }));
+    }
+    var reviewed = report.progress && report.progress.lastAt;
+    var metaParts = [h('span', { text: closed && report.closedAt ? 'Closed ' + formatDate(report.closedAt) : 'Added ' + formatDate(report.createdAt) })];
+    metaParts.push(h('span', { text: progressText(report.progress) + (reviewed ? ' \u00b7 last answered ' + formatDateTime(report.progress.lastAt) : '') }));
+    return h('li', { 'data-report-id': report.id }, [
+      h('span', { class: 'file-badge', 'aria-hidden': 'true', text: 'HTML' }),
+      h('div', { class: 'file-text' }, [
+        h('p', { class: 'file-name', text: report.title }),
+        h('p', { class: 'file-meta' }, metaParts)
+      ]),
+      h('div', { class: 'row-actions' }, actions.concat(extraActions || []))
+    ]);
+  }
+
+  var DECISION_TEXT = { approve: 'Approved', changes: 'Changes requested', comment: 'Comment' };
 
   function fileRow(file, extraActions) {
     var download = h('a', {
@@ -260,6 +309,31 @@
 
       if (nudge) nudge.hidden = data.user.passwordSetBy !== 'admin';
 
+      var reports = data.reports || [];
+      var openReports = reports.filter(function (r) { return r.status !== 'closed'; });
+      var pastReports = reports.filter(function (r) { return r.status === 'closed'; });
+      var reportList = root.querySelector('[data-report-list]');
+      clear(reportList);
+      openReports.forEach(function (report) { reportList.appendChild(reportRow(report)); });
+      root.querySelector('[data-reports-empty]').hidden = openReports.length > 0;
+      root.querySelector('[data-report-count]').textContent = openReports.length ? plural(openReports.length, 'report') : '';
+
+      var pastList = root.querySelector('[data-past-list]');
+      clear(pastList);
+      pastReports.forEach(function (report) { pastList.appendChild(reportRow(report)); });
+      root.querySelector('[data-past-section]').hidden = pastReports.length === 0;
+      root.querySelector('[data-past-count]').textContent = pastReports.length ? plural(pastReports.length, 'record') : '';
+
+      var compliance = data.files.filter(function (f) { return f.area === 'compliance'; });
+      var complianceList = root.querySelector('[data-compliance-list]');
+      clear(complianceList);
+      compliance.forEach(function (file) { complianceList.appendChild(fileRow(file)); });
+      complianceList.hidden = compliance.length === 0;
+      root.querySelector('[data-compliance-empty]').hidden = compliance.length > 0;
+      root.querySelector('[data-compliance-count]').textContent = compliance.length ? plural(compliance.length, 'file') : '';
+
+      data.files = data.files.filter(function (f) { return f.area !== 'compliance'; });
+
       clear(list);
       data.files.forEach(function (file) { list.appendChild(fileRow(file)); });
       loading.hidden = true;
@@ -305,6 +379,22 @@
     var dropzone = root.querySelector('[data-dropzone]');
     var input = root.querySelector('[data-upload-input]');
     var credential = root.querySelector('[data-credential]');
+    var reportList = root.querySelector('[data-report-list]');
+    var reportsEmpty = root.querySelector('[data-reports-empty]');
+    var reportCount = root.querySelector('[data-report-count]');
+    var pastList = root.querySelector('[data-past-list]');
+    var pastEmpty = root.querySelector('[data-past-empty]');
+    var pastCount = root.querySelector('[data-past-count]');
+    var complianceList = root.querySelector('[data-compliance-list]');
+    var complianceEmpty = root.querySelector('[data-compliance-empty]');
+    var complianceCount = root.querySelector('[data-compliance-count]');
+    var uploadArea = root.querySelector('[data-upload-area]');
+    var pastApprovalList = root.querySelector('[data-past-approval-list]');
+    var pastApprovalsHead = root.querySelector('[data-past-approvals-head]');
+    var pastApprovalsCard = root.querySelector('[data-past-approvals-card]');
+    var approvalList = root.querySelector('[data-approval-list]');
+    var approvalsEmpty = root.querySelector('[data-approvals-empty]');
+    var approvalsCount = root.querySelector('[data-approvals-count]');
 
     function selected() {
       return state.clients.filter(function (c) { return c.id === state.selectedId; })[0] || null;
@@ -329,31 +419,151 @@
           'aria-current': client.id === state.selectedId ? 'true' : null
         }, [
           h('span', { class: 'client-button-name', text: client.name }),
-          h('span', { class: 'client-button-meta', text: plural(client.files.length, 'file') + ', ' + plural(client.users.length, 'login') })
+          h('span', { class: 'client-button-meta', text: plural((client.reports || []).length, 'report') + ', ' + plural(client.files.length, 'file') + ', ' + plural(client.users.length, 'login') })
         ]);
         button.addEventListener('click', function () { select(client.id, true); });
         rail.appendChild(h('li', {}, [button]));
       });
     }
 
+    function deleteFileButton(client, file) {
+      var remove = h('button', { type: 'button', class: 'btn-small btn-small--danger', 'aria-label': 'Delete ' + file.name, text: 'Delete' });
+      confirmable(remove, 'Confirm delete', function () {
+        return api('DELETE', '/api/portal/admin/files/' + encodeURIComponent(file.id)).then(function () {
+          client.files = client.files.filter(function (f) { return f.id !== file.id; });
+          renderRail();
+          renderFiles(client);
+          setStatus(status, 'Deleted ' + file.name + '.', 'success');
+          root.querySelector('#admin-files-heading').focus();
+        }).catch(fail);
+      });
+      return remove;
+    }
+
     function renderFiles(client) {
+      var compliance = client.files.filter(function (f) { return f.area === 'compliance'; });
+      var other = client.files.filter(function (f) { return f.area !== 'compliance'; });
       clear(fileList);
-      client.files.forEach(function (file) {
-        var remove = h('button', { type: 'button', class: 'btn-small btn-small--danger', 'aria-label': 'Delete ' + file.name, text: 'Delete' });
-        confirmable(remove, 'Confirm delete', function () {
-          return api('DELETE', '/api/portal/admin/files/' + encodeURIComponent(file.id)).then(function () {
-            client.files = client.files.filter(function (f) { return f.id !== file.id; });
+      other.forEach(function (file) { fileList.appendChild(fileRow(file, [deleteFileButton(client, file)])); });
+      filesEmpty.hidden = other.length > 0;
+      fileList.hidden = other.length === 0;
+      clear(complianceList);
+      compliance.forEach(function (file) { complianceList.appendChild(fileRow(file, [deleteFileButton(client, file)])); });
+      complianceEmpty.hidden = compliance.length > 0;
+      complianceList.hidden = compliance.length === 0;
+      complianceCount.textContent = compliance.length ? plural(compliance.length, 'file') : '';
+      fileCount.textContent = client.files.length ? plural(client.files.length, 'file') : '';
+    }
+
+    function setStatusButton(client, report, closing) {
+      var button = h('button', {
+        type: 'button', class: 'btn-small',
+        'aria-label': (closing ? 'Close approval: ' : 'Reopen approval: ') + report.title,
+        text: closing ? 'Close approval' : 'Reopen'
+      });
+      confirmable(button, closing ? 'Confirm: move to past approvals' : 'Confirm: reopen for answers', function () {
+        return api('PATCH', '/api/portal/admin/reports/' + encodeURIComponent(report.id), { status: closing ? 'closed' : 'open' }).then(function (data) {
+          report.status = data.report.status;
+          report.closedAt = data.report.closedAt;
+          renderReports(client);
+          loadApprovals();
+          setStatus(status, closing ? report.title + ' moved to past approvals. The client can still view it, but can no longer change their answers.' : report.title + ' is open again.', 'success');
+        }).catch(fail);
+      });
+      return button;
+    }
+
+    function renderReports(client) {
+      client.reports = client.reports || [];
+      var openOnes = client.reports.filter(function (r) { return r.status !== 'closed'; });
+      var pastOnes = client.reports.filter(function (r) { return r.status === 'closed'; });
+
+      function deleteButton(report) {
+        var remove = h('button', { type: 'button', class: 'btn-small btn-small--danger', 'aria-label': 'Delete ' + report.title, text: 'Delete' });
+        confirmable(remove, 'Confirm: delete report and its answers', function () {
+          return api('DELETE', '/api/portal/admin/reports/' + encodeURIComponent(report.id)).then(function () {
+            client.reports = client.reports.filter(function (r) { return r.id !== report.id; });
             renderRail();
-            renderFiles(client);
-            setStatus(status, 'Deleted ' + file.name + '.', 'success');
-            root.querySelector('#admin-files-heading').focus();
+            renderReports(client);
+            loadApprovals();
+            setStatus(status, 'Deleted ' + report.title + ' and its answers.', 'success');
+            root.querySelector('#admin-reports-heading').focus();
           }).catch(fail);
         });
-        fileList.appendChild(fileRow(file, [remove]));
+        return remove;
+      }
+
+      clear(reportList);
+      openOnes.forEach(function (report) {
+        reportList.appendChild(reportRow(report, [setStatusButton(client, report, true), deleteButton(report)], { openLabel: 'Preview', record: true }));
       });
-      filesEmpty.hidden = client.files.length > 0;
-      fileList.hidden = client.files.length === 0;
-      fileCount.textContent = client.files.length ? plural(client.files.length, 'file') : '';
+      reportsEmpty.hidden = openOnes.length > 0;
+      reportList.hidden = openOnes.length === 0;
+      reportCount.textContent = openOnes.length ? plural(openOnes.length, 'report') : '';
+
+      clear(pastList);
+      pastOnes.forEach(function (report) {
+        pastList.appendChild(reportRow(report, [setStatusButton(client, report, false), deleteButton(report)], { openLabel: 'View', record: true }));
+      });
+      pastEmpty.hidden = pastOnes.length > 0;
+      pastList.hidden = pastOnes.length === 0;
+      pastCount.textContent = pastOnes.length ? plural(pastOnes.length, 'record') : '';
+    }
+
+    /** The team's view: every report, with each item's current answer. */
+    function approvalEntry(report) {
+      var items = report.items.map(function (item) {
+        var who = item.signerName + (item.decidedAt || item.savedAt ? ', ' + formatDateTime(item.decidedAt || item.savedAt) : '');
+        return h('li', {}, [
+          h('p', { class: 'approval-item-title' }, [
+            h('strong', { text: item.title || item.key }),
+            h('span', { text: ' \u2014 ' + (DECISION_TEXT[item.decision] || item.decision) + (item.choice ? ': ' + item.choice : '') })
+          ]),
+          item.comment ? h('p', { class: 'approval-comment', text: item.comment }) : null,
+          h('p', { class: 'file-meta' }, [h('span', { text: who })])
+        ]);
+      });
+      var closed = report.status === 'closed';
+      var summary = h('summary', {}, [
+        h('span', { class: 'approval-report', text: report.clientName + ': ' + report.title }),
+        h('span', { class: 'file-meta' }, [
+          h('span', { text: progressText(report.progress) }),
+          closed && report.closedAt ? h('span', { text: 'Closed ' + formatDate(report.closedAt) }) : null,
+          report.progress.lastAt ? h('span', { text: 'Last answered ' + formatDateTime(report.progress.lastAt) }) : null
+        ])
+      ]);
+      var record = h('p', { class: 'approval-record' }, [h('a', {
+        href: '/api/portal/reports/' + encodeURIComponent(report.id) + '/record',
+        text: 'Download the full record (CSV)'
+      })]);
+      var body = items.length
+        ? h('div', {}, [h('ul', { class: 'approval-items' }, items), record])
+        : h('p', { class: 'portal-empty', text: 'No answers yet.' });
+      return h('li', {}, [h('details', { open: !closed && items.length ? true : null }, [summary, body])]);
+    }
+
+    /** The team's view: open reports first, then the past-approvals repository. */
+    function renderApprovals(reports) {
+      var openOnes = reports.filter(function (r) { return r.status !== 'closed'; });
+      var pastOnes = reports.filter(function (r) { return r.status === 'closed'; });
+      clear(approvalList);
+      openOnes.forEach(function (report) { approvalList.appendChild(approvalEntry(report)); });
+      approvalsEmpty.hidden = openOnes.length > 0;
+      approvalList.hidden = openOnes.length === 0;
+      approvalsCount.textContent = openOnes.length ? plural(openOnes.length, 'open report') : '';
+
+      clear(pastApprovalList);
+      pastOnes.forEach(function (report) { pastApprovalList.appendChild(approvalEntry(report)); });
+      pastApprovalsHead.hidden = pastOnes.length === 0;
+      pastApprovalsCard.hidden = pastOnes.length === 0;
+    }
+
+    function loadApprovals() {
+      return api('GET', '/api/portal/admin/approvals').then(function (data) {
+        renderApprovals(data.reports);
+      }).catch(function (error) {
+        if (error.code !== 'signed_out') setStatus(status, error.message, 'error');
+      });
     }
 
     function showCredential(title, email, password) {
@@ -424,6 +634,7 @@
       detailName.textContent = client.name;
       root.querySelector('[data-dropzone-client]').textContent = client.name;
       renameForm.hidden = true;
+      renderReports(client);
       renderFiles(client);
       renderLogins(client);
     }
@@ -484,6 +695,34 @@
         select(state.clients.length ? state.clients[0].id : null, false);
         root.querySelector('#clients-heading').focus();
       }).catch(fail);
+    });
+
+    /* ---- reports ---- */
+
+    var addReport = root.querySelector('[data-add-report]');
+    bindForm(addReport, 'Publishing\u2026', function (values) {
+      var client = selected();
+      var file = addReport.querySelector('[name="file"]').files[0];
+      if (!file) {
+        var err = new Error('Choose the HTML file to publish.');
+        err.field = 'file';
+        throw err;
+      }
+      if (file.size > state.maxFileBytes) {
+        var big = new Error('That file is over the ' + formatBytes(state.maxFileBytes) + ' limit.');
+        big.field = 'file';
+        throw big;
+      }
+      var url = '/api/portal/admin/clients/' + encodeURIComponent(client.id) + '/reports?title=' + encodeURIComponent(values.title || '');
+      return api('POST', url, null, file).then(function (data) {
+        client.reports = client.reports || [];
+        client.reports.unshift(data.report);
+        addReport.reset();
+        renderRail();
+        renderReports(client);
+        loadApprovals();
+        return 'Published. ' + client.name + ' will see it in their portal straight away.';
+      });
     });
 
     /* ---- logins ---- */
@@ -552,7 +791,7 @@
         return Promise.resolve(reject('Over the ' + formatBytes(state.maxFileBytes) + ' limit \u2014 skipped'));
       }
 
-      var url = '/api/portal/admin/clients/' + encodeURIComponent(client.id) + '/files?name=' + encodeURIComponent(file.name);
+      var url = '/api/portal/admin/clients/' + encodeURIComponent(client.id) + '/files?name=' + encodeURIComponent(file.name) + '&area=' + encodeURIComponent(uploadArea.value);
       return api('POST', url, null, file).then(function (data) {
         client.files.unshift(data.file);
         row.className = 'is-done';
@@ -636,8 +875,17 @@
 
     bindLogout(root);
 
+    // Only masters add, rename or delete clients, and only masters see the operators page.
+    function applyRole(me) {
+      var master = !!me.isMaster;
+      Array.prototype.forEach.call(root.querySelectorAll('[data-master-control]'), function (node) { node.hidden = !master; });
+      var who = root.querySelector('[data-admin-meta]');
+      if (who && !master) who.textContent = 'You can work on the clients assigned to you. Ask a master operator if one is missing.';
+    }
+
     function load() {
       setStatus(status, '');
+      api('GET', '/api/portal/me').then(function (me) { if (me.role !== 'client') applyRole(me); }, function () {});
       return api('GET', '/api/portal/admin/clients').then(function (data) {
         state.clients = data.clients;
         state.maxFileBytes = data.maxFileBytes || state.maxFileBytes;
@@ -646,11 +894,230 @@
         if (!selected()) state.selectedId = state.clients.length ? state.clients[0].id : null;
         hideCredential();
         render();
+        loadApprovals();
       }).catch(function (error) {
         if (error.code === 'signed_out') return;
         railLoading.hidden = true;
         // A client login that reaches this page is told nothing about it.
         if (error.status === 404) { go('/portal'); return; }
+        setStatus(status, error.message, 'error');
+      });
+    }
+
+    return { load: load };
+  }
+
+  /* ---------------------------------------------------------- operators --- */
+
+  function initOperators(root) {
+    var state = { operators: [], clients: [], openId: null, meEmail: '' };
+
+    var status = root.querySelector('[data-portal-status]');
+    var masterOnly = root.querySelector('[data-master-only]');
+    var accountSection = root.querySelector('[data-account-section]');
+    var list = root.querySelector('[data-operator-list]');
+    var loading = root.querySelector('[data-operators-loading]');
+    var empty = root.querySelector('[data-operators-empty]');
+    var count = root.querySelector('[data-operator-count]');
+    var credential = root.querySelector('[data-credential]');
+    var meta = root.querySelector('[data-operators-meta]');
+
+    bindLogout(root);
+
+    function fail(error) {
+      if (error.code !== 'signed_out') setStatus(status, error.message, 'error');
+      throw error;
+    }
+
+    function showCredential(title, email, password) {
+      credential.querySelector('[data-credential-title]').textContent = title;
+      credential.querySelector('[data-credential-email]').textContent = email;
+      credential.querySelector('[data-credential-password]').textContent = password;
+      credential.querySelector('[data-credential-copied]').textContent = '';
+      credential.hidden = false;
+      credential.focus();
+    }
+    function hideCredential() {
+      credential.querySelector('[data-credential-password]').textContent = '';
+      credential.hidden = true;
+    }
+    credential.querySelector('[data-credential-dismiss]').addEventListener('click', hideCredential);
+    credential.querySelector('[data-credential-copy]').addEventListener('click', function () {
+      var copied = credential.querySelector('[data-credential-copied]');
+      var text = [
+        'Your Accessrank team console',
+        'Sign in: ' + window.location.origin + '/client-login',
+        'Email: ' + credential.querySelector('[data-credential-email]').textContent,
+        'Password: ' + credential.querySelector('[data-credential-password]').textContent,
+        '',
+        'You can change this password after you sign in.'
+      ].join('\n');
+      var done = function () { copied.textContent = 'Copied. Paste it into a private message to the operator.'; };
+      var manual = function () {
+        var range = document.createRange();
+        range.selectNodeContents(credential.querySelector('[data-credential-password]'));
+        var selection = window.getSelection();
+        selection.removeAllRanges();
+        selection.addRange(range);
+        copied.textContent = 'Password selected \u2014 press Ctrl or Cmd + C to copy it.';
+      };
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done, manual);
+      else manual();
+    });
+
+    function clientName(id) {
+      var match = state.clients.filter(function (c) { return c.id === id; })[0];
+      return match ? match.name : '';
+    }
+
+    function assignedText(op) {
+      if (op.role === 'master') return 'Sees every client';
+      if (!op.clientIds.length) return 'No clients assigned yet';
+      var names = op.clientIds.map(clientName).filter(Boolean).sort();
+      return plural(op.clientIds.length, 'client') + ': ' + names.join(', ');
+    }
+
+    function assignPanel(op) {
+      var boxes = state.clients.map(function (client) {
+        var id = 'assign-' + op.id + '-' + client.id;
+        var input = h('input', { type: 'checkbox', id: id, value: client.id, checked: op.clientIds.indexOf(client.id) !== -1 ? true : null });
+        return h('li', {}, [h('label', { for: id, class: 'assign-option' }, [input, h('span', { text: client.name })])]);
+      });
+      var formStatus = h('p', { class: 'form-status', role: 'status', 'aria-live': 'polite' });
+      var save = h('button', { type: 'submit', class: 'btn-small btn-small--brand', text: 'Save assignments' });
+      var cancel = h('button', { type: 'button', class: 'btn-small', text: 'Close' });
+      var form = h('form', { class: 'assign-form', novalidate: true }, [
+        h('p', { class: 'field-hint', text: op.role === 'master'
+          ? 'Masters see every client, so assignments only matter if this person is later changed to an operator.'
+          : 'This operator will see only the clients ticked here.' }),
+        boxes.length ? h('ul', { class: 'assign-list' }, boxes) : h('p', { class: 'portal-empty', text: 'No clients yet. Add one on the Client portals page.' }),
+        formStatus,
+        h('div', { class: 'row-actions' }, [save, cancel])
+      ]);
+      cancel.addEventListener('click', function () { state.openId = null; render(); });
+      form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        var ids = Array.prototype.slice.call(form.querySelectorAll('input[type=checkbox]:checked')).map(function (i) { return i.value; });
+        save.disabled = true;
+        setStatus(formStatus, '');
+        api('PUT', '/api/portal/operators/' + encodeURIComponent(op.id) + '/clients', { clientIds: ids }).then(function (data) {
+          op.clientIds = data.operator.clientIds;
+          setStatus(status, 'Saved. ' + op.name + ' now has ' + plural(op.clientIds.length, 'client') + '.', 'success');
+          state.openId = null;
+          render();
+          var row = list.querySelector('[data-operator-id="' + op.id + '"] .assign-open');
+          if (row) row.focus();
+        }, function (error) {
+          save.disabled = false;
+          setStatus(formStatus, error.message, 'error');
+        });
+      });
+      return form;
+    }
+
+    function operatorRow(op) {
+      var isMe = op.email.toLowerCase() === state.meEmail;
+      var role = h('span', { class: 'role-badge role-badge--' + op.role, text: op.role === 'master' ? 'Master' : 'Operator' });
+
+      var assign = h('button', { type: 'button', class: 'btn-small assign-open', 'aria-expanded': state.openId === op.id ? 'true' : 'false', text: 'Assign clients' });
+      assign.addEventListener('click', function () { state.openId = state.openId === op.id ? null : op.id; render(); });
+
+      var toggle = h('button', { type: 'button', class: 'btn-small', text: op.role === 'master' ? 'Make operator' : 'Make master', 'aria-label': (op.role === 'master' ? 'Make ' : 'Make ') + op.name + (op.role === 'master' ? ' an operator' : ' a master') });
+      confirmable(toggle, 'Confirm change', function () {
+        return api('PATCH', '/api/portal/operators/' + encodeURIComponent(op.id), { role: op.role === 'master' ? 'operator' : 'master' }).then(function (data) {
+          op.role = data.operator.role;
+          render();
+          setStatus(status, op.name + ' is now ' + (op.role === 'master' ? 'a master operator.' : 'an operator.'), 'success');
+        }).catch(fail);
+      });
+
+      var reset = h('button', { type: 'button', class: 'btn-small', 'aria-label': 'Reset password for ' + op.name, text: 'Reset password' });
+      confirmable(reset, 'Confirm reset', function () {
+        return api('POST', '/api/portal/operators/' + encodeURIComponent(op.id) + '/reset').then(function (data) {
+          op.passwordSetBy = 'admin';
+          render();
+          setStatus(status, 'Password reset for ' + op.email + '. Their old password no longer works.', 'success');
+          showCredential('New password for ' + op.name, op.email, data.password);
+        }).catch(fail);
+      });
+
+      var remove = h('button', { type: 'button', class: 'btn-small btn-small--danger', 'aria-label': 'Remove ' + op.name, text: 'Remove' });
+      confirmable(remove, 'Confirm remove', function () {
+        return api('DELETE', '/api/portal/operators/' + encodeURIComponent(op.id)).then(function () {
+          state.operators = state.operators.filter(function (o) { return o.id !== op.id; });
+          render();
+          setStatus(status, 'Removed ' + op.name + '.', 'success');
+          root.querySelector('#operators-heading').focus();
+        }).catch(fail);
+      });
+
+      var actions = [assign];
+      if (!isMe) actions.push(toggle, reset, remove);
+
+      return h('li', { 'data-operator-id': op.id }, [
+        h('div', { class: 'operator-main' }, [
+          h('div', {}, [
+            h('p', { class: 'login-name' }, [document.createTextNode(op.name + (isMe ? ' (you)' : '') + ' '), role]),
+            h('p', { class: 'login-meta' }, [
+              h('span', { text: op.email }),
+              h('span', { text: op.lastLoginAt ? 'Last signed in ' + formatDateTime(op.lastLoginAt) : 'Hasn\u2019t signed in yet' }),
+              h('span', { text: assignedText(op) })
+            ])
+          ]),
+          h('div', { class: 'row-actions' }, actions)
+        ]),
+        state.openId === op.id ? assignPanel(op) : null
+      ]);
+    }
+
+    function render() {
+      loading.hidden = true;
+      clear(list);
+      state.operators.forEach(function (op) { list.appendChild(operatorRow(op)); });
+      empty.hidden = state.operators.length > 0;
+      list.hidden = state.operators.length === 0;
+      count.textContent = state.operators.length ? plural(state.operators.length, 'operator') : '';
+    }
+
+    bindForm(root.querySelector('[data-add-operator]'), 'Adding\u2026', function (values) {
+      return api('POST', '/api/portal/operators', { name: values.name, email: values.email, role: values.role }).then(function (data) {
+        state.operators.push(data.operator);
+        state.operators.sort(function (a, b) { return a.name.toLowerCase().localeCompare(b.name.toLowerCase()); });
+        root.querySelector('[data-add-operator]').reset();
+        render();
+        setStatus(status, 'Added ' + data.operator.name + '.', 'success');
+        showCredential('Login created for ' + data.operator.name, data.operator.email, data.password);
+      });
+    });
+
+    var passwordForm = root.querySelector('[data-operator-password-form]');
+    bindForm(passwordForm, 'Changing\u2026', function (values) {
+      return api('POST', '/api/portal/operator/password', { current: values.current, next: values.next }).then(function () {
+        passwordForm.reset();
+        return 'Password changed. Use the new one next time you sign in.';
+      });
+    });
+
+    function load() {
+      setStatus(status, '');
+      return api('GET', '/api/portal/me').then(function (me) {
+        if (me.role === 'client') { go('/portal'); return null; }
+        state.meEmail = (me.user.email || '').toLowerCase();
+        accountSection.hidden = me.role !== 'operator';
+        if (!me.isMaster) {
+          loading.hidden = true;
+          meta.textContent = 'Your account. Only master operators can manage the team.';
+          return null;
+        }
+        masterOnly.hidden = false;
+        return api('GET', '/api/portal/operators').then(function (data) {
+          state.operators = data.operators;
+          state.clients = data.clients;
+          render();
+        });
+      }).catch(function (error) {
+        if (error.code === 'signed_out') return;
+        loading.hidden = true;
         setStatus(status, error.message, 'error');
       });
     }
@@ -664,10 +1131,12 @@
   var loginForm = document.querySelector('[data-portal-login]');
   var filesRoot = document.querySelector('[data-portal-files]');
   var adminRoot = document.querySelector('[data-portal-admin]');
+  var operatorsRoot = document.querySelector('[data-portal-operators]');
 
   if (loginForm) views.login = initLogin(loginForm);
   if (filesRoot) views.files = initFiles(filesRoot);
   if (adminRoot) views.admin = initAdmin(adminRoot);
+  if (operatorsRoot) views.operators = initOperators(operatorsRoot);
 
   /** Reload one view's data (or all of them). */
   A.portal = {

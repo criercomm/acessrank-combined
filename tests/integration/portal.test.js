@@ -76,6 +76,7 @@ function browser(ip = '203.0.113.20') {
     get: (p, o) => call('GET', p, o),
     post: (p, json, o) => call('POST', p, { json: json ?? {}, ...o }),
     patch: (p, json) => call('PATCH', p, { json }),
+    put: (p, json) => call('PUT', p, { json }),
     del: (p) => call('DELETE', p),
     upload: (p, raw, o) => call('POST', p, { raw, ...o }),
     login: (creds) => call('POST', '/api/portal/login', { json: creds }),
@@ -377,4 +378,498 @@ test('cross-origin writes to the portal API are refused', async () => {
   const { status, body } = await admin.post('/api/portal/admin/clients', { name: 'From elsewhere' }, { headers: { Origin: 'https://evil.example' } });
   assert.equal(status, 403);
   assert.equal(body.code, 'bad_origin');
+});
+
+/* -------------------------------------------------------------- reports --- */
+
+const REPORT_HTML = '<!doctype html><html lang="en"><head><title>Status</title><style>body{margin:0}</style></head>'
+  + '<body><p style="color:#222">Hello</p><script>window.__ran = true;</script></body></html>';
+
+async function publish(admin, clientId, title = 'Status update', html = REPORT_HTML) {
+  const res = await admin.upload(`/api/portal/admin/clients/${clientId}/reports?title=${encodeURIComponent(title)}`, Buffer.from(html, 'utf8'));
+  assert.equal(res.status, 201, JSON.stringify(res.body));
+  return res.body.report;
+}
+
+test('a client opens their own report in the browser; no one else can', async () => {
+  const admin = await adminBrowser();
+  const a = await clientWithLogin(admin, 'Top Seedz', 'jordan@topseedz.test');
+  const b = await clientWithLogin(admin, 'Larkspur Tea Co.', 'sam@larkspur.test');
+  const report = await publish(admin, a.client.id);
+
+  const listed = (await a.person.get('/api/portal/reports')).body.reports;
+  assert.equal(listed.length, 1);
+  assert.equal(listed[0].title, 'Status update');
+  assert.deepEqual((await b.person.get('/api/portal/reports')).body.reports, []);
+  assert.equal((await a.person.get('/api/portal/me')).body.reports.length, 1);
+
+  const page = await a.person.get(`/portal/report/${report.id}`);
+  assert.equal(page.status, 200);
+  assert.match(page.headers.get('content-type'), /^text\/html/);
+  assert.equal(page.headers.get('cache-control'), 'private, no-store');
+  assert.equal(page.headers.get('x-robots-tag'), 'noindex, nofollow');
+  assert.equal(page.body.toString('utf8'), REPORT_HTML, 'the page is served exactly as published, not as a download');
+  assert.equal(page.headers.get('content-disposition'), null);
+
+  const csp = page.headers.get('content-security-policy');
+  assert.match(csp, /script-src 'self' 'sha256-[A-Za-z0-9+/=]+'(;|$)/);
+  assert.match(csp, /connect-src 'self'(;|$)/);
+  assert.match(csp, /script-src-attr 'none'/);
+  assert.match(csp, /frame-ancestors 'none'/);
+  assert.doesNotMatch(csp.split(';').find((d) => d.trim().startsWith('script-src ')), /unsafe-inline/);
+
+  assert.equal((await b.person.get(`/portal/report/${report.id}`)).status, 404, 'another client');
+  const signedOut = await browser().get(`/portal/report/${report.id}`);
+  assert.equal(signedOut.status, 302);
+  assert.equal(signedOut.headers.get('location'), '/client-login');
+  assert.equal((await admin.get(`/portal/report/${report.id}`)).status, 200, 'the team can open it');
+  assert.equal((await a.person.get('/portal/report/not-a-uuid')).status, 404);
+});
+
+test('only the team publishes reports, and only whole HTML pages', async () => {
+  const admin = await adminBrowser();
+  const { client, person } = await clientWithLogin(admin, 'Top Seedz', 'jordan@topseedz.test');
+  const url = `/api/portal/admin/clients/${client.id}/reports?title=X%20report`;
+
+  assert.equal((await person.upload(url, Buffer.from(REPORT_HTML))).status, 404, 'a client login cannot publish');
+  assert.equal((await browser().upload(url, Buffer.from(REPORT_HTML))).status, 401);
+
+  const notHtml = await admin.upload(url, Buffer.from('just some text'));
+  assert.equal(notHtml.status, 415);
+  assert.equal(notHtml.body.code, 'not_html');
+  assert.equal((await admin.upload(`/api/portal/admin/clients/${client.id}/reports?title=`, Buffer.from(REPORT_HTML))).body.code, 'title_required');
+  assert.equal((await admin.upload(url, Buffer.alloc(1024 * 1024 + 1, 0x20))).status, 413);
+  assert.equal((await person.get('/api/portal/reports')).body.reports.length, 0, 'nothing stored by the refused attempts');
+});
+
+test('approvals are saved against the report, deduplicated, and visible to the team', async () => {
+  const admin = await adminBrowser();
+  const a = await clientWithLogin(admin, 'Top Seedz', 'jordan@topseedz.test');
+  const report = await publish(admin, a.client.id, 'Accessibility status update');
+  const path = `/api/portal/reports/${report.id}/approvals`;
+
+  const first = await a.person.post(path, {
+    name: 'Jordan Rivera',
+    items: [
+      { key: 'd1', title: 'Visible keyboard outline', decision: 'approve', decidedAt: new Date().toISOString() },
+      { key: 'd2', title: 'Slideshow', decision: 'changes', choice: 'Add a pause button', comment: 'Please make it larger.' },
+      { key: 'c5', title: 'FAQ content', decision: 'comment', comment: 'We will email our FAQs.' },
+      { key: 'c6', title: 'Nut-free', decision: 'comment', comment: '   ' },
+    ],
+  });
+  assert.equal(first.status, 201, JSON.stringify(first.body));
+  assert.equal(first.body.saved, 3, 'an empty comment is not an answer');
+  assert.equal(first.body.items.length, 3);
+
+  const again = await a.person.post(path, { name: 'Jordan Rivera', items: [{ key: 'd1', title: 'Visible keyboard outline', decision: 'approve' }] });
+  assert.equal(again.body.saved, 0);
+  assert.equal(again.body.unchanged, 1);
+
+  const changed = await a.person.post(path, { name: 'Jordan Rivera', items: [{ key: 'd2', title: 'Slideshow', decision: 'approve', choice: 'Add a pause button' }] });
+  assert.equal(changed.body.saved, 1);
+
+  const mine = (await a.person.get(path)).body.items;
+  assert.equal(mine.find((i) => i.key === 'd2').decision, 'approve', 'the newest answer is the current one');
+  assert.equal(mine.find((i) => i.key === 'd1').signerName, 'Jordan Rivera');
+  assert.equal(mine.find((i) => i.key === 'd1').email, 'jordan@topseedz.test');
+
+  const seen = (await admin.get('/api/portal/admin/approvals')).body.reports;
+  assert.equal(seen.length, 1);
+  assert.equal(seen[0].clientName, 'Top Seedz');
+  assert.equal(seen[0].title, 'Accessibility status update');
+  assert.deepEqual({ approved: seen[0].progress.approved, changes: seen[0].progress.changes, comments: seen[0].progress.comments }, { approved: 2, changes: 0, comments: 1 });
+  assert.equal((await a.person.get('/api/portal/reports')).body.reports[0].progress.approved, 2);
+
+  const history = (await admin.get(`/api/portal/admin/reports/${report.id}/history`)).body.history;
+  assert.equal(history.length, 4, 'the earlier answer is kept as history');
+  assert.deepEqual(history.filter((h) => h.key === 'd2').map((h) => h.decision), ['approve', 'changes']);
+});
+
+test('approvals are refused for strangers, other clients, bad input and other origins', async () => {
+  const admin = await adminBrowser();
+  const a = await clientWithLogin(admin, 'Top Seedz', 'jordan@topseedz.test');
+  const b = await clientWithLogin(admin, 'Larkspur Tea Co.', 'sam@larkspur.test');
+  const report = await publish(admin, a.client.id);
+  const path = `/api/portal/reports/${report.id}/approvals`;
+  const ok = { name: 'Jordan Rivera', items: [{ key: 'd1', title: 'T', decision: 'approve' }] };
+
+  assert.equal((await browser().post(path, ok)).status, 401, 'no session');
+  assert.equal((await b.person.post(path, ok)).status, 404, 'another client');
+  assert.equal((await b.person.get(path)).status, 404);
+  assert.equal((await admin.post(path, ok)).status, 404, 'the team does not approve on a client’s behalf');
+  assert.equal((await a.person.post(path, { ...ok, name: ' ' })).body.code, 'name_required');
+  assert.equal((await a.person.post(path, { name: 'Jordan Rivera', items: [] })).body.code, 'no_items');
+  assert.equal((await a.person.post(path, { name: 'Jordan Rivera', items: [{ key: 'D1; DROP', decision: 'approve' }] })).body.code, 'bad_item');
+  assert.equal((await a.person.post(path, { name: 'Jordan Rivera', items: [{ key: 'd1', decision: 'maybe' }] })).body.code, 'bad_item');
+  assert.equal((await a.person.post(path, { name: 'Jordan Rivera', items: [{ key: 'd1', decision: 'approve' }, { key: 'd1', decision: 'changes' }] })).body.code, 'bad_item');
+  assert.equal((await a.person.post(`/api/portal/reports/00000000-0000-4000-8000-000000000000/approvals`, ok)).status, 404);
+
+  const foreign = await a.person.post(path, ok, { headers: { Origin: 'https://evil.example' } });
+  assert.equal(foreign.status, 403);
+  assert.deepEqual((await a.person.get(path)).body.items, [], 'nothing was stored by the refused attempts');
+  assert.equal((await a.person.get('/api/portal/admin/approvals')).status, 404, 'clients cannot see the team view');
+});
+
+test('deleting a report or a client removes its approvals too', async () => {
+  const admin = await adminBrowser();
+  const a = await clientWithLogin(admin, 'Top Seedz', 'jordan@topseedz.test');
+  const r1 = await publish(admin, a.client.id, 'One');
+  const r2 = await publish(admin, a.client.id, 'Two');
+  const save = (r) => a.person.post(`/api/portal/reports/${r.id}/approvals`, { name: 'Jordan Rivera', items: [{ key: 'd1', title: 'T', decision: 'approve' }] });
+  assert.equal((await save(r1)).status, 201);
+  assert.equal((await save(r2)).status, 201);
+
+  assert.equal((await admin.del(`/api/portal/admin/reports/${r1.id}`)).status, 200);
+  assert.equal((await a.person.get(`/portal/report/${r1.id}`)).status, 404);
+  const left = (await admin.get('/api/portal/admin/approvals')).body.reports;
+  assert.deepEqual(left.map((r) => r.title), ['Two']);
+
+  assert.equal((await admin.del(`/api/portal/admin/clients/${a.client.id}`)).status, 200);
+  assert.deepEqual((await admin.get('/api/portal/admin/approvals')).body.reports, []);
+});
+
+/* ------------------------------------------------------------ operators --- */
+
+const { _setTransportForTests } = await import('../../server/lib/email.js');
+
+/** An operator created by the owner login, already signed in on their own browser. */
+async function operatorWithLogin(admin, { name, email, role = 'operator' }, ip = '198.51.100.40') {
+  const created = await admin.post('/api/portal/operators', { name, email, role });
+  assert.equal(created.status, 201, JSON.stringify(created.body));
+  const person = browser(ip);
+  const signedIn = await person.login({ email, password: created.body.password });
+  assert.equal(signedIn.status, 200, JSON.stringify(signedIn.body));
+  assert.equal(signedIn.body.next, '/portal/admin');
+  return { operator: created.body.operator, password: created.body.password, person };
+}
+
+test('masters add operators, who sign in with a one-time password and see no clients until assigned', async () => {
+  const owner = await adminBrowser();
+  const a = await clientWithLogin(owner, 'Top Seedz', 'jordan@topseedz.test');
+  await clientWithLogin(owner, 'Larkspur Tea Co.', 'sam@larkspur.test');
+  const op = await operatorWithLogin(owner, { name: 'Emerson Dev', email: 'Emerson@Accessrank.test' });
+
+  assert.equal(op.operator.role, 'operator');
+  assert.equal(op.operator.email, 'Emerson@Accessrank.test');
+  assert.ok(op.password.length >= 10);
+  const me = (await op.person.get('/api/portal/me')).body;
+  assert.equal(me.role, 'operator');
+  assert.equal(me.isMaster, false);
+
+  assert.deepEqual((await op.person.get('/api/portal/admin/clients')).body.clients, [], 'nothing assigned yet');
+
+  const assigned = await owner.put?.(`/api/portal/operators/${op.operator.id}/clients`, { clientIds: [a.client.id] });
+  assert.equal(assigned.status, 200, JSON.stringify(assigned.body));
+  const seen = (await op.person.get('/api/portal/admin/clients')).body.clients;
+  assert.deepEqual(seen.map((c) => c.name), ['Top Seedz']);
+
+  const list = (await owner.get('/api/portal/operators')).body;
+  assert.deepEqual(list.operators.find((o) => o.id === op.operator.id).clientIds, [a.client.id]);
+  assert.equal(list.clients.length, 2);
+  assert.ok(!JSON.stringify(list).includes(op.password), 'the password is never listed');
+});
+
+test('an operator reaches only assigned clients, in every part of the team API', async () => {
+  const owner = await adminBrowser();
+  const mine = await clientWithLogin(owner, 'Top Seedz', 'jordan@topseedz.test');
+  const theirs = await clientWithLogin(owner, 'Larkspur Tea Co.', 'sam@larkspur.test');
+  const op = await operatorWithLogin(owner, { name: 'Emerson Dev', email: 'emerson@accessrank.test' });
+  await owner.put(`/api/portal/operators/${op.operator.id}/clients`, { clientIds: [mine.client.id] });
+
+  const myReport = await publish(owner, mine.client.id, 'Mine');
+  const theirReport = await publish(owner, theirs.client.id, 'Theirs');
+  const theirFile = (await owner.upload(`/api/portal/admin/clients/${theirs.client.id}/files?name=secret.pdf`, PDF)).body.file;
+  await theirs.person.post(`/api/portal/reports/${theirReport.id}/approvals`, { name: 'Sam', items: [{ key: 'i1', title: 'T', decision: 'approve' }] });
+  await mine.person.post(`/api/portal/reports/${myReport.id}/approvals`, { name: 'Jordan', items: [{ key: 'i1', title: 'T', decision: 'approve' }] });
+
+  // What an operator can do on an assigned client.
+  assert.equal((await op.person.upload(`/api/portal/admin/clients/${mine.client.id}/reports?title=Another`, Buffer.from(REPORT_HTML))).status, 201);
+  assert.equal((await op.person.upload(`/api/portal/admin/clients/${mine.client.id}/files?name=ok.pdf`, PDF)).status, 201);
+  assert.equal((await op.person.post(`/api/portal/admin/clients/${mine.client.id}/logins`, { email: 'new@topseedz.test' })).status, 201);
+  assert.equal((await op.person.get(`/portal/report/${myReport.id}`)).status, 200);
+  assert.deepEqual((await op.person.get('/api/portal/admin/approvals')).body.reports.map((r) => r.title).sort(), ['Another', 'Mine']);
+
+  // What it cannot do on anyone else's.
+  const other = theirs.client.id;
+  assert.equal((await op.person.upload(`/api/portal/admin/clients/${other}/reports?title=X`, Buffer.from(REPORT_HTML))).status, 404);
+  assert.equal((await op.person.upload(`/api/portal/admin/clients/${other}/files?name=x.pdf`, PDF)).status, 404);
+  assert.equal((await op.person.post(`/api/portal/admin/clients/${other}/logins`, { email: 'x@larkspur.test' })).status, 404);
+  assert.equal((await op.person.post(`/api/portal/admin/logins/${theirs.user.id}/reset`)).status, 404);
+  assert.equal((await op.person.del(`/api/portal/admin/logins/${theirs.user.id}`)).status, 404);
+  assert.equal((await op.person.del(`/api/portal/admin/reports/${theirReport.id}`)).status, 404);
+  assert.equal((await op.person.get(`/api/portal/admin/reports/${theirReport.id}/history`)).status, 404);
+  assert.equal((await op.person.del(`/api/portal/admin/files/${theirFile.id}`)).status, 404);
+  assert.equal((await op.person.get(`/api/portal/files/${theirFile.id}`)).status, 404);
+  assert.equal((await op.person.get(`/portal/report/${theirReport.id}`)).status, 404);
+  assert.ok(!(await op.person.get('/api/portal/admin/approvals')).body.reports.some((r) => r.title === 'Theirs'));
+
+  // Management is for masters.
+  assert.equal((await op.person.post('/api/portal/admin/clients', { name: 'New Co' })).status, 404);
+  assert.equal((await op.person.patch(`/api/portal/admin/clients/${mine.client.id}`, { name: 'Renamed' })).status, 404);
+  assert.equal((await op.person.del(`/api/portal/admin/clients/${mine.client.id}`)).status, 404);
+  assert.equal((await op.person.get('/api/portal/operators')).status, 404);
+  assert.equal((await op.person.post('/api/portal/operators', { name: 'Sneaky', email: 's@x.test', role: 'master' })).status, 404);
+  assert.equal((await op.person.put(`/api/portal/operators/${op.operator.id}/clients`, { clientIds: [other] })).status, 404, 'cannot assign themselves more clients');
+  assert.equal((await mine.person.get('/api/portal/operators')).status, 404, 'client logins reach nothing here');
+  assert.equal((await mine.person.get('/api/portal/admin/clients')).status, 404);
+
+  // Unassigning takes effect on the next request.
+  await owner.put(`/api/portal/operators/${op.operator.id}/clients`, { clientIds: [] });
+  assert.equal((await op.person.get(`/portal/report/${myReport.id}`)).status, 404);
+  assert.deepEqual((await op.person.get('/api/portal/admin/clients')).body.clients, []);
+});
+
+test('master operators see every client and manage the team; role changes bite immediately', async () => {
+  const owner = await adminBrowser();
+  const a = await clientWithLogin(owner, 'Top Seedz', 'jordan@topseedz.test');
+  const jp = await operatorWithLogin(owner, { name: 'JP Lincoln', email: 'jp@accessrank.test', role: 'master' }, '198.51.100.41');
+  const carlos = await operatorWithLogin(owner, { name: 'Carlos', email: 'carlos@accessrank.test', role: 'master' }, '198.51.100.42');
+
+  assert.equal((await jp.person.get('/api/portal/me')).body.isMaster, true);
+  assert.equal((await jp.person.get('/api/portal/admin/clients')).body.clients.length, 1, 'a master sees every client with none assigned');
+  assert.equal((await jp.person.post('/api/portal/admin/clients', { name: 'New Co' })).status, 201);
+
+  const added = await jp.person.post('/api/portal/operators', { name: 'Arturo', email: 'arturo@accessrank.test' });
+  assert.equal(added.status, 201);
+  const arturo = added.body.operator;
+
+  assert.equal((await jp.person.patch(`/api/portal/operators/${jp.operator.id}`, { role: 'operator' })).body.code, 'self_demote');
+  assert.equal((await jp.person.del(`/api/portal/operators/${jp.operator.id}`)).body.code, 'self_delete');
+
+  const promoted = await jp.person.patch(`/api/portal/operators/${arturo.id}`, { role: 'master' });
+  assert.equal(promoted.body.operator.role, 'master');
+  const arturoBrowser = browser('198.51.100.43');
+  await arturoBrowser.login({ email: 'arturo@accessrank.test', password: added.body.password });
+  assert.equal((await arturoBrowser.get('/api/portal/operators')).status, 200);
+
+  // Demoted while signed in: the very next request is an operator's.
+  assert.equal((await carlos.person.patch(`/api/portal/operators/${arturo.id}`, { role: 'operator' })).status, 200);
+  assert.equal((await arturoBrowser.get('/api/portal/operators')).status, 404);
+  assert.deepEqual((await arturoBrowser.get('/api/portal/admin/clients')).body.clients, []);
+
+  // Reset and removal sign the person out at once.
+  const reset = await carlos.person.post(`/api/portal/operators/${arturo.id}/reset`);
+  assert.equal(reset.status, 200);
+  assert.equal((await arturoBrowser.get('/api/portal/me')).status, 401, 'old session ended');
+  assert.equal((await browser().login({ email: 'arturo@accessrank.test', password: added.body.password })).status, 401, 'old password no longer works');
+  const back = browser('198.51.100.44');
+  assert.equal((await back.login({ email: 'arturo@accessrank.test', password: reset.body.password })).status, 200);
+  assert.equal((await carlos.person.del(`/api/portal/operators/${arturo.id}`)).status, 200);
+  assert.equal((await back.get('/api/portal/me')).status, 401);
+
+  // Never zero masters: the last one cannot be demoted or removed, even by the owner.
+  assert.equal((await owner.del(`/api/portal/operators/${carlos.operator.id}`)).status, 200);
+  assert.equal((await owner.patch(`/api/portal/operators/${jp.operator.id}`, { role: 'operator' })).body.code, 'last_master');
+  assert.equal((await owner.del(`/api/portal/operators/${jp.operator.id}`)).body.code, 'last_master');
+  assert.equal(a.client.name, 'Top Seedz');
+});
+
+test('operator logins are kept apart from client logins and the owner', async () => {
+  const owner = await adminBrowser();
+  await clientWithLogin(owner, 'Top Seedz', 'jordan@topseedz.test');
+
+  assert.equal((await owner.post('/api/portal/operators', { name: 'Dup', email: 'jordan@topseedz.test' })).status, 409, 'a client login email');
+  assert.equal((await owner.post('/api/portal/operators', { name: 'Dup', email: 'team@accessrank.test' })).body.code, 'email_reserved', 'the owner email');
+  assert.equal((await owner.post('/api/portal/operators', { name: ' ', email: 'x@accessrank.test' })).body.code, 'name_required');
+  assert.equal((await owner.post('/api/portal/operators', { name: 'Em', email: 'not-an-email' })).body.code, 'email_invalid');
+
+  await operatorWithLogin(owner, { name: 'Emerson', email: 'emerson@accessrank.test' });
+  assert.equal((await owner.post('/api/portal/operators', { name: 'Again', email: 'EMERSON@accessrank.test' })).status, 409);
+  const client = await owner.post('/api/portal/admin/clients', { name: 'Other Co' });
+  const clash = await owner.post(`/api/portal/admin/clients/${client.body.client.id}/logins`, { email: 'emerson@accessrank.test' });
+  assert.equal(clash.body.code, 'email_reserved', 'a client login cannot reuse an operator email');
+
+  assert.equal((await browser().post('/api/portal/operators', { name: 'X', email: 'x@y.test' })).status, 401);
+  const foreign = await owner.post('/api/portal/operators', { name: 'X', email: 'x@y.test' }, { headers: { Origin: 'https://evil.example' } });
+  assert.equal(foreign.status, 403);
+});
+
+test('operators choose their own password, and the page gates send each kind of person home', async () => {
+  const owner = await adminBrowser();
+  const op = await operatorWithLogin(owner, { name: 'Emerson', email: 'emerson@accessrank.test' });
+  const other = browser('198.51.100.60');
+  await other.login({ email: 'emerson@accessrank.test', password: op.password });
+
+  assert.equal((await op.person.post('/api/portal/operator/password', { current: 'wrong-password', next: 'a-brand-new-password' })).body.code, 'bad_credentials');
+  assert.equal((await op.person.post('/api/portal/operator/password', { current: op.password, next: 'short' })).body.code, 'password_weak');
+  assert.equal((await op.person.post('/api/portal/operator/password', { current: op.password, next: 'a-brand-new-password' })).status, 200);
+  assert.equal((await other.get('/api/portal/me')).status, 401, 'other devices are signed out');
+  assert.equal((await op.person.get('/api/portal/me')).status, 200, 'this one stays');
+  assert.equal((await browser().login({ email: 'emerson@accessrank.test', password: 'a-brand-new-password' })).status, 200);
+  assert.equal((await owner.post('/api/portal/operator/password', { current: 'x', next: 'another-long-password' })).status, 400, 'the owner password lives in server settings');
+
+  const client = await clientWithLogin(owner, 'Top Seedz', 'jordan@topseedz.test');
+  assert.equal((await op.person.get('/portal')).headers.get('location'), '/portal/admin');
+  assert.equal((await op.person.get('/portal/operators')).status, 200, 'any operator may open their own account page');
+  assert.equal((await client.person.get('/portal/operators')).headers.get('location'), '/portal');
+  assert.equal((await client.person.get('/portal/admin')).headers.get('location'), '/portal');
+  assert.equal((await browser().get('/portal/operators')).headers.get('location'), '/client-login');
+});
+
+/* -------------------------------------------------------- notifications --- */
+
+function captureMail() {
+  const sent = [];
+  _setTransportForTests({ name: 'test', send: async (m) => { sent.push(m); return { id: 'x' }; } });
+  return sent;
+}
+const settle = async (sent, n) => { for (let i = 0; i < 50 && sent.length < n; i += 1) await new Promise((r) => setTimeout(r, 10)); };
+
+test('a client submitting answers emails info@accessrank.ai once, with what changed', async () => {
+  const sent = captureMail();
+  try {
+    const owner = await adminBrowser();
+    const a = await clientWithLogin(owner, 'Top Seedz & Co', 'jordan@topseedz.test');
+    const report = await publish(owner, a.client.id, 'Accessibility status update');
+    const path = `/api/portal/reports/${report.id}/approvals`;
+
+    const first = await a.person.post(path, { name: 'Jordan Rivera', items: [
+      { key: 'i1', title: '1. Keyboard outline', decision: 'approve' },
+      { key: 'i3', title: '3. Overlay', decision: 'changes', comment: 'Keep it <script>x</script> until the audit.' },
+    ] });
+    assert.equal(first.status, 201);
+    await settle(sent, 1);
+    assert.equal(sent.length, 1);
+    const mail = sent[0];
+    assert.equal(mail.to, 'info@accessrank.ai');
+    assert.equal(mail.subject, 'Top Seedz & Co submitted approvals: Accessibility status update (2 answers)');
+    assert.match(mail.html, /Top Seedz &amp; Co submitted answers/);
+    assert.match(mail.text, /1\. Keyboard outline: Approved/);
+    assert.match(mail.text, /3\. Overlay: Changes requested/);
+    assert.match(mail.text, /Keep it <script>x<\/script> until the audit\./);
+    assert.match(mail.text, /jordan@topseedz\.test/);
+    assert.match(mail.html, /&lt;script&gt;x&lt;\/script&gt;/, 'client text is escaped in the HTML part');
+    assert.doesNotMatch(mail.html, /<script>x/);
+    assert.match(mail.html, new RegExp(`/portal/report/${report.id}`));
+
+    // Pressing Submit again with nothing new, or a refused attempt, tells nobody.
+    await a.person.post(path, { name: 'Jordan Rivera', items: [{ key: 'i1', title: '1. Keyboard outline', decision: 'approve' }] });
+    await a.person.post(path, { name: ' ', items: [{ key: 'i1', decision: 'changes' }] });
+    await new Promise((r) => setTimeout(r, 80));
+    assert.equal(sent.length, 1);
+
+    // A changed answer sends one more, listing only that answer.
+    await a.person.post(path, { name: 'Jordan Rivera', items: [{ key: 'i1', title: '1. Keyboard outline', decision: 'changes', comment: 'Make it blue.' }] });
+    await settle(sent, 2);
+    assert.equal(sent.length, 2);
+    assert.match(sent[1].subject, /\(1 answer\)$/);
+    assert.doesNotMatch(sent[1].text, /Overlay/);
+  } finally {
+    _setTransportForTests(null);
+  }
+});
+
+test('a mail failure never fails the client’s save', async () => {
+  _setTransportForTests({ name: 'broken', send: async () => { throw new Error('provider down'); } });
+  try {
+    const owner = await adminBrowser();
+    const a = await clientWithLogin(owner, 'Top Seedz', 'jordan@topseedz.test');
+    const report = await publish(owner, a.client.id);
+    const saved = await a.person.post(`/api/portal/reports/${report.id}/approvals`, { name: 'Jordan Rivera', items: [{ key: 'i1', title: 'T', decision: 'approve' }] });
+    assert.equal(saved.status, 201);
+    assert.equal(saved.body.saved, 1);
+    assert.equal((await a.person.get(`/api/portal/reports/${report.id}/approvals`)).body.items.length, 1);
+  } finally {
+    _setTransportForTests(null);
+  }
+});
+
+/* --------------------------------------------- past approvals, compliance --- */
+
+test('a closed report keeps its answers, stays readable, and stops taking changes; reopening restores it', async () => {
+  const owner = await adminBrowser();
+  const a = await clientWithLogin(owner, 'Top Seedz', 'jordan@topseedz.test');
+  const report = await publish(owner, a.client.id, 'Status update');
+  const path = `/api/portal/reports/${report.id}/approvals`;
+  const answer = { name: 'Jordan Rivera', items: [{ key: 'i1', title: '1. Outline', decision: 'approve' }] };
+  assert.equal((await a.person.post(path, answer)).status, 201);
+
+  assert.equal(report.status, 'open');
+  const closed = await owner.patch(`/api/portal/admin/reports/${report.id}`, { status: 'closed' });
+  assert.equal(closed.status, 200);
+  assert.equal(closed.body.report.status, 'closed');
+  assert.ok(closed.body.report.closedAt);
+  assert.match(closed.body.report.closedBy, /team@accessrank\.test/);
+
+  const mine = (await a.person.get('/api/portal/me')).body.reports;
+  assert.equal(mine[0].status, 'closed');
+  assert.equal(mine[0].progress.approved, 1);
+  assert.equal((await a.person.get(`/portal/report/${report.id}`)).status, 200, 'still viewable');
+  const read = (await a.person.get(path)).body;
+  assert.equal(read.closed, true);
+  assert.equal(read.items.length, 1);
+
+  const refused = await a.person.post(path, { name: 'Jordan Rivera', items: [{ key: 'i1', title: '1. Outline', decision: 'changes' }] });
+  assert.equal(refused.status, 409);
+  assert.equal(refused.body.code, 'report_closed');
+  assert.equal((await a.person.get(path)).body.items[0].decision, 'approve', 'nothing changed');
+
+  const past = (await owner.get('/api/portal/admin/approvals')).body.reports;
+  assert.equal(past[0].status, 'closed');
+  assert.equal(past[0].items.length, 1, 'the answers are still there');
+
+  assert.equal((await a.person.patch(`/api/portal/admin/reports/${report.id}`, { status: 'open' })).status, 404, 'clients cannot reopen');
+  assert.equal((await owner.patch(`/api/portal/admin/reports/${report.id}`, { status: 'archived' })).status, 400);
+  assert.equal((await owner.patch(`/api/portal/admin/reports/${report.id}`, { status: 'open' })).body.report.status, 'open');
+  assert.equal((await a.person.post(path, { name: 'Jordan Rivera', items: [{ key: 'i1', title: '1. Outline', decision: 'changes' }] })).status, 201);
+});
+
+test('operators close and reopen only their own clients’ reports', async () => {
+  const owner = await adminBrowser();
+  const mine = await clientWithLogin(owner, 'Top Seedz', 'jordan@topseedz.test');
+  const theirs = await clientWithLogin(owner, 'Larkspur Tea Co.', 'sam@larkspur.test');
+  const op = await operatorWithLogin(owner, { name: 'Emerson', email: 'emerson@accessrank.test' });
+  await owner.put(`/api/portal/operators/${op.operator.id}/clients`, { clientIds: [mine.client.id] });
+  const r1 = await publish(owner, mine.client.id, 'Mine');
+  const r2 = await publish(owner, theirs.client.id, 'Theirs');
+  assert.equal((await op.person.patch(`/api/portal/admin/reports/${r1.id}`, { status: 'closed' })).status, 200);
+  assert.equal((await op.person.patch(`/api/portal/admin/reports/${r2.id}`, { status: 'closed' })).status, 404);
+  assert.equal((await owner.get('/api/portal/admin/approvals')).body.reports.find((r) => r.title === 'Theirs').status, 'open');
+});
+
+test('the approvals record downloads as a spreadsheet with full history, to the right people only', async () => {
+  const owner = await adminBrowser();
+  const a = await clientWithLogin(owner, 'Top Seedz', 'jordan@topseedz.test');
+  const b = await clientWithLogin(owner, 'Larkspur Tea Co.', 'sam@larkspur.test');
+  const report = await publish(owner, a.client.id, 'Status, "Q4" update');
+  const path = `/api/portal/reports/${report.id}/approvals`;
+  await a.person.post(path, { name: 'Jordan Rivera', items: [{ key: 'i1', title: '1. Outline', decision: 'approve' }, { key: 'i3', title: '3. Overlay', decision: 'changes', comment: '=HYPERLINK("http://evil.example")\nsecond line, with comma' }] });
+  await a.person.post(path, { name: 'Jordan Rivera', items: [{ key: 'i1', title: '1. Outline', decision: 'changes', comment: 'Make it blue.' }] });
+
+  const url = `/api/portal/reports/${report.id}/record`;
+  const res = await a.person.get(url);
+  assert.equal(res.status, 200);
+  assert.match(res.headers.get('content-type'), /^text\/csv/);
+  assert.match(res.headers.get('content-disposition'), /^attachment;.*Approvals-record-status-q4-update\.csv/);
+  const csv = res.body.toString('utf8');
+  assert.ok(csv.startsWith('﻿Client,Report,Report status,Item,Decision'));
+  const lines = csv.trim().split('\r\n');
+  assert.equal(lines.length, 1 + 3, 'a header and every answer ever saved');
+  assert.match(csv, /"Status, ""Q4"" update"/, 'commas and quotes are escaped');
+  assert.match(csv, /"'=HYPERLINK\(""http:\/\/evil\.example""\)\nsecond line, with comma"/, 'a formula is defused');
+  assert.equal(lines.filter((l) => /,yes$/.test(l)).length, 2, 'one current answer per item');
+  assert.match(csv, /Changes requested,,Make it blue\.,Jordan Rivera,jordan@topseedz\.test/);
+
+  assert.equal((await owner.get(url)).status, 200);
+  assert.equal((await b.person.get(url)).status, 404, 'another client');
+  assert.equal((await browser().get(url)).status, 401);
+});
+
+test('files are kept in two areas, and the client sees them separately', async () => {
+  const owner = await adminBrowser();
+  const a = await clientWithLogin(owner, 'Top Seedz', 'jordan@topseedz.test');
+  const base = `/api/portal/admin/clients/${a.client.id}/files`;
+  const rec = await owner.upload(`${base}?name=Compliance-Record.pdf&area=compliance`, PDF);
+  const plain = await owner.upload(`${base}?name=Notes.pdf`, PDF);
+  const odd = await owner.upload(`${base}?name=Odd.pdf&area=../../etc`, PDF);
+  assert.equal(rec.body.file.area, 'compliance');
+  assert.equal(plain.body.file.area, 'files');
+  assert.equal(odd.body.file.area, 'files', 'anything unexpected falls back to ordinary files');
+
+  const files = (await a.person.get('/api/portal/me')).body.files;
+  assert.deepEqual(files.filter((f) => f.area === 'compliance').map((f) => f.name), ['Compliance-Record.pdf']);
+  assert.equal(files.filter((f) => f.area === 'files').length, 2);
+  assert.equal((await a.person.get(`/api/portal/files/${rec.body.file.id}`)).status, 200);
+  const overview = (await owner.get('/api/portal/admin/clients')).body.clients[0];
+  assert.equal(overview.files.find((f) => f.name === 'Compliance-Record.pdf').area, 'compliance');
 });

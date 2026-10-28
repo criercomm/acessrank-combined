@@ -222,4 +222,74 @@ export async function notifySales(payload) {
   }
 }
 
-export default { getTransport, sendReport, notifySales, reportEmail, leadNotificationEmail };
+/* ------------------------------------------------- portal approvals --- */
+
+const DECISION_LABEL = { approve: 'Approved', changes: 'Changes requested', comment: 'Comment' };
+
+/**
+ * Internal heads-up that a client has answered a portal report. Lists what is
+ * new in this submission only; the portal holds the full picture.
+ */
+export function approvalsNotificationEmail({ clientName, reportTitle, reportId, signerName, email, changes, savedAt = new Date() }) {
+  const when = savedAt.toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short', timeZone: 'America/Los_Angeles' });
+  const link = `${config.siteUrl}/portal/admin`;
+  const reportLink = `${config.siteUrl}/portal/report/${reportId}`;
+  const line = (c) => `${c.title || c.key}: ${DECISION_LABEL[c.decision] || c.decision}${c.choice ? ` (${c.choice})` : ''}`;
+  const counts = { approve: 0, changes: 0, comment: 0 };
+  for (const c of changes) counts[c.decision] = (counts[c.decision] ?? 0) + 1;
+  const summary = [
+    counts.approve ? `${counts.approve} approved` : null,
+    counts.changes ? `${counts.changes} with changes requested` : null,
+    counts.comment ? `${counts.comment} comment${counts.comment === 1 ? '' : 's'}` : null,
+  ].filter(Boolean).join(', ');
+
+  const rows = changes.map((c) => `<tr>
+      <td style="padding:10px 0;border-top:1px solid #e3e5ea;vertical-align:top;">
+        <div style="font-weight:600;">${escapeHtml(c.title || c.key)}</div>
+        <div style="color:#4a4f5c;">${escapeHtml(DECISION_LABEL[c.decision] || c.decision)}${c.choice ? `: ${escapeHtml(c.choice)}` : ''}</div>
+        ${c.comment ? `<div style="margin-top:4px;white-space:pre-wrap;">${escapeHtml(c.comment)}</div>` : ''}
+      </td></tr>`).join('');
+
+  const html = brandShell('Client approvals', `
+    <p style="margin:0 0 6px;font-weight:600;">${escapeHtml(clientName)} submitted answers</p>
+    <p style="margin:0 0 18px;color:#4a4f5c;">${escapeHtml(reportTitle)}<br>
+      ${escapeHtml(signerName)} (${escapeHtml(email)}) &middot; ${escapeHtml(when)} Pacific<br>${escapeHtml(summary)}</p>
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="font:400 14px/1.5 -apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">${rows}</table>
+    <p style="margin:22px 0 0;"><a href="${escapeHtml(link)}" style="color:#3b4a9a;">Open the operators view</a>
+      &nbsp;&middot;&nbsp; <a href="${escapeHtml(reportLink)}" style="color:#3b4a9a;">Open the report</a></p>
+  `);
+
+  const text = [
+    `${clientName} submitted answers`,
+    reportTitle,
+    `${signerName} (${email}), ${when} Pacific`,
+    summary,
+    '',
+    ...changes.flatMap((c) => [line(c), ...(c.comment ? [`   ${c.comment.replace(/\n/g, '\n   ')}`] : [])]),
+    '',
+    `Approvals: ${link}`,
+    `Report: ${reportLink}`,
+  ].join('\n');
+
+  return { subject: `${clientName} submitted approvals: ${reportTitle} (${changes.length} ${changes.length === 1 ? 'answer' : 'answers'})`, html, text };
+}
+
+/** Best-effort: a failure here must never fail the client's save. */
+export async function notifyApprovals(payload) {
+  if (!config.email.portalNotify || !payload.changes?.length) return null;
+  try {
+    const transport = await getTransport();
+    const { subject, html, text } = approvalsNotificationEmail(payload);
+    return await transport.send({ to: config.email.portalNotify, subject, html, text });
+  } catch (err) {
+    log.error('approvals notification failed', { err: err.message });
+    return null;
+  }
+}
+
+/** Tests swap the transport so they can read what would have been sent. */
+export function _setTransportForTests(transport) {
+  transportPromise = transport ? Promise.resolve(transport) : null;
+}
+
+export default { getTransport, sendReport, notifySales, reportEmail, leadNotificationEmail, approvalsNotificationEmail, notifyApprovals };
