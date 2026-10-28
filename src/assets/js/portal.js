@@ -536,9 +536,22 @@
         href: '/api/portal/reports/' + encodeURIComponent(report.id) + '/record',
         text: 'Download the full record (CSV)'
       })]);
+      var remove = h('button', { type: 'button', class: 'btn-small btn-small--danger', 'aria-label': 'Delete ' + report.title, text: 'Delete this report' });
+      confirmable(remove, 'Confirm: delete report and its answers', function () {
+        return api('DELETE', '/api/portal/admin/reports/' + encodeURIComponent(report.id)).then(function () {
+          state.clients.forEach(function (c) {
+            if (c.reports) c.reports = c.reports.filter(function (r) { return r.id !== report.id; });
+          });
+          renderRail();
+          if (selected()) renderReports(selected());
+          loadApprovals();
+          setStatus(status, 'Deleted ' + report.title + ' and its answers.', 'success');
+        }).catch(fail);
+      });
+      var actions = h('p', { class: 'approval-record' }, [remove]);
       var body = items.length
-        ? h('div', {}, [h('ul', { class: 'approval-items' }, items), record])
-        : h('p', { class: 'portal-empty', text: 'No answers yet.' });
+        ? h('div', {}, [h('ul', { class: 'approval-items' }, items), record, actions])
+        : h('div', {}, [h('p', { class: 'portal-empty', text: 'No answers yet.' }), actions]);
       return h('li', {}, [h('details', { open: !closed && items.length ? true : null }, [summary, body])]);
     }
 
