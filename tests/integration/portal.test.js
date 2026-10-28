@@ -873,3 +873,22 @@ test('files are kept in two areas, and the client sees them separately', async (
   const overview = (await owner.get('/api/portal/admin/clients')).body.clients[0];
   assert.equal(overview.files.find((f) => f.name === 'Compliance-Record.pdf').area, 'compliance');
 });
+
+test('operators move a file between Compliance and Other files, within their own clients', async () => {
+  const owner = await adminBrowser();
+  const mine = await clientWithLogin(owner, 'Top Seedz', 'jordan@topseedz.test');
+  const theirs = await clientWithLogin(owner, 'Larkspur Tea Co.', 'sam@larkspur.test');
+  const op = await operatorWithLogin(owner, { name: 'Emerson', email: 'emerson@accessrank.test' });
+  await owner.put(`/api/portal/operators/${op.operator.id}/clients`, { clientIds: [mine.client.id] });
+  const f1 = (await owner.upload(`/api/portal/admin/clients/${mine.client.id}/files?name=a.pdf`, PDF)).body.file;
+  const f2 = (await owner.upload(`/api/portal/admin/clients/${theirs.client.id}/files?name=b.pdf`, PDF)).body.file;
+
+  const moved = await op.person.patch(`/api/portal/admin/files/${f1.id}`, { area: 'compliance' });
+  assert.equal(moved.status, 200);
+  assert.equal(moved.body.file.area, 'compliance');
+  assert.equal((await mine.person.get('/api/portal/me')).body.files.find((f) => f.id === f1.id).area, 'compliance');
+  assert.equal((await op.person.patch(`/api/portal/admin/files/${f1.id}`, { area: 'files' })).body.file.area, 'files');
+  assert.equal((await op.person.patch(`/api/portal/admin/files/${f1.id}`, { area: 'nope' })).status, 400);
+  assert.equal((await op.person.patch(`/api/portal/admin/files/${f2.id}`, { area: 'compliance' })).status, 404, 'not their client');
+  assert.equal((await mine.person.patch(`/api/portal/admin/files/${f1.id}`, { area: 'compliance' })).status, 404, 'clients cannot');
+});

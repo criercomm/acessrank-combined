@@ -359,6 +359,9 @@ function pgRepo(store) {
     async deleteFile(id) {
       return (await q('DELETE FROM portal_files WHERE id = $1', [id])).rowCount > 0;
     },
+    async setFileArea(id, area) {
+      return (await q('UPDATE portal_files SET area = $2 WHERE id = $1 RETURNING id, client_id, filename, size_bytes, area, created_at', [id, area])).rows[0] ?? null;
+    },
 
     async listOperators() {
       return (await q('SELECT id, name, email, role, password_set_by, last_login_at, created_at FROM portal_operators ORDER BY lower(name), created_at')).rows;
@@ -592,6 +595,12 @@ function memRepo(store) {
     },
     async getFile(id) { return db.files.get(id) ?? null; },
     async deleteFile(id) { return db.files.delete(id); },
+    async setFileArea(id, area) {
+      const row = db.files.get(id);
+      if (!row) return null;
+      row.area = area;
+      return row;
+    },
 
     async listOperators() {
       return [...db.operators.values()].sort((a, b) => a.name.toLowerCase().localeCompare(b.name.toLowerCase()) || byCreated(a, b));
@@ -1343,6 +1352,15 @@ export async function getFile(store, id) {
   return repoFor(store).getFile(id);
 }
 
+/** Move a file between the client's Compliance files and Other files. */
+export async function setFileArea(store, id, rawArea) {
+  const area = String(rawArea ?? '');
+  if (!FILE_AREAS.has(area)) throw new PortalError('Choose Files or Compliance files.', { code: 'bad_area', field: 'area' });
+  const row = isUuid(id) ? await repoFor(store).setFileArea(id, area) : null;
+  if (!row) throw notFound('file');
+  return row;
+}
+
 export async function deleteFile(store, id) {
   if (!isUuid(id) || !(await repoFor(store).deleteFile(id))) throw notFound('file');
 }
@@ -1352,7 +1370,7 @@ export default {
   signIn, signOut, sessionFor, setSessionCookie, clearSessionCookie,
   adminOverview, createClient, renameClient, deleteClient,
   createLogin, resetLoginPassword, deleteLogin, changeOwnPassword,
-  listClientFiles, addFile, getFile, deleteFile,
+  listClientFiles, addFile, getFile, deleteFile, setFileArea,
   addReport, listReports, getReport, deleteReport, saveApprovals, currentApprovals, adminApprovals, approvalHistory,
   setReportStatus, approvalsRecordCsv, loginClientId, isStaff, clientScope, canAccessClient, listOperators, createOperator, setOperatorRole, resetOperatorPassword,
   deleteOperator, setOperatorClients, changeOwnOperatorPassword,

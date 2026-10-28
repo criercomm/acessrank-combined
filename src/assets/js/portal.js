@@ -440,15 +440,29 @@
       return remove;
     }
 
+    function moveFileButton(client, file, to) {
+      var label = to === 'compliance' ? 'Move to Compliance' : 'Move to Other files';
+      var button = h('button', { type: 'button', class: 'btn-small', 'aria-label': label + ': ' + file.name, text: label });
+      button.addEventListener('click', function () {
+        button.disabled = true;
+        api('PATCH', '/api/portal/admin/files/' + encodeURIComponent(file.id), { area: to }).then(function (data) {
+          file.area = data.file.area;
+          renderFiles(client);
+          setStatus(status, file.name + ' is now in ' + (to === 'compliance' ? 'Compliance files' : 'Other files') + '. The client sees the change straight away.', 'success');
+        }).catch(function (e) { button.disabled = false; fail(e); });
+      });
+      return button;
+    }
+
     function renderFiles(client) {
       var compliance = client.files.filter(function (f) { return f.area === 'compliance'; });
       var other = client.files.filter(function (f) { return f.area !== 'compliance'; });
       clear(fileList);
-      other.forEach(function (file) { fileList.appendChild(fileRow(file, [deleteFileButton(client, file)])); });
+      other.forEach(function (file) { fileList.appendChild(fileRow(file, [moveFileButton(client, file, 'compliance'), deleteFileButton(client, file)])); });
       filesEmpty.hidden = other.length > 0;
       fileList.hidden = other.length === 0;
       clear(complianceList);
-      compliance.forEach(function (file) { complianceList.appendChild(fileRow(file, [deleteFileButton(client, file)])); });
+      compliance.forEach(function (file) { complianceList.appendChild(fileRow(file, [moveFileButton(client, file, 'files'), deleteFileButton(client, file)])); });
       complianceEmpty.hidden = compliance.length > 0;
       complianceList.hidden = compliance.length === 0;
       complianceCount.textContent = compliance.length ? plural(compliance.length, 'file') : '';
@@ -532,11 +546,13 @@
           report.progress.lastAt ? h('span', { text: 'Last answered ' + formatDateTime(report.progress.lastAt) }) : null
         ])
       ]);
-      var record = h('p', { class: 'approval-record' }, [h('a', {
+      var record = h('a', {
+        class: 'btn-small',
         href: '/api/portal/reports/' + encodeURIComponent(report.id) + '/record',
-        text: 'Download the full record (CSV)'
-      })]);
-      var remove = h('button', { type: 'button', class: 'btn-small btn-small--danger', 'aria-label': 'Delete ' + report.title, text: 'Delete this report' });
+        'aria-label': 'Download record (CSV) for ' + report.title,
+        text: 'Download record'
+      });
+      var remove = h('button', { type: 'button', class: 'btn-small btn-small--danger', 'aria-label': 'Delete ' + report.title, text: 'Delete' });
       confirmable(remove, 'Confirm: delete report and its answers', function () {
         return api('DELETE', '/api/portal/admin/reports/' + encodeURIComponent(report.id)).then(function () {
           state.clients.forEach(function (c) {
@@ -548,11 +564,11 @@
           setStatus(status, 'Deleted ' + report.title + ' and its answers.', 'success');
         }).catch(fail);
       });
-      var actions = h('p', { class: 'approval-record' }, [remove]);
       var body = items.length
-        ? h('div', {}, [h('ul', { class: 'approval-items' }, items), record, actions])
-        : h('div', {}, [h('p', { class: 'portal-empty', text: 'No answers yet.' }), actions]);
-      return h('li', {}, [h('details', { open: !closed && items.length ? true : null }, [summary, body])]);
+        ? h('div', {}, [h('ul', { class: 'approval-items' }, items)])
+        : h('p', { class: 'portal-empty', text: 'No answers yet.' });
+      var actions = h('div', { class: 'row-actions approval-actions' }, [record, remove]);
+      return h('li', { class: 'approval-entry' }, [h('details', { open: !closed && items.length ? true : null }, [summary, body]), actions]);
     }
 
     /** The team's view: open reports first, then the past-approvals repository. */

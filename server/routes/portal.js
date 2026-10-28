@@ -9,7 +9,7 @@ import {
   PortalError, signIn, signOut, sessionFor, setSessionCookie, clearSessionCookie,
   adminOverview, createClient, renameClient, deleteClient,
   createLogin, resetLoginPassword, deleteLogin, changeOwnPassword,
-  listClientFiles, addFile, getFile, deleteFile, contentDisposition, PASSWORD_MAX,
+  listClientFiles, addFile, getFile, deleteFile, setFileArea, contentDisposition, PASSWORD_MAX,
   addReport, listReports, getReport, deleteReport, saveApprovals, currentApprovals, adminApprovals, approvalHistory,
   setReportStatus, approvalsRecordCsv, loginClientId, isStaff, clientScope, canAccessClient, listOperators, createOperator, setOperatorRole, resetOperatorPassword,
   deleteOperator, setOperatorClients, changeOwnOperatorPassword,
@@ -354,6 +354,14 @@ admin.get('/reports/:id/history', wrap(async (req, res) => {
   const found = await getReport(await getStore(), req.params.id);
   await assertClient(req, found ? found.client_id : null);
   res.json({ ok: true, history: await approvalHistory(await getStore(), req.params.id) });
+}));
+
+admin.patch('/files/:id', wrap(async (req, res) => {
+  const found = await getFile(await getStore(), req.params.id);
+  await assertClient(req, found ? found.client_id : null);
+  const row = await setFileArea(await getStore(), req.params.id, req.body && req.body.area);
+  log.info('portal file moved', { fileId: req.params.id, area: row.area });
+  res.json({ ok: true, file: { id: row.id, area: row.area } });
 }));
 
 admin.delete('/files/:id', wrap(async (req, res) => {
