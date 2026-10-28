@@ -99,13 +99,16 @@
           </section>
 
           <section class="portal-section" aria-labelledby="admin-past-heading">
-            <div class="portal-section-head">
-              <h3 id="admin-past-heading" tabindex="-1">Past approvals</h3>
-              <p class="portal-count" data-past-count></p>
+            <div class="files-head">
+              <h3 id="admin-past-heading" tabindex="-1">Past approvals <span class="portal-count" data-past-count></span></h3>
+              <label class="btn-small upload-button" for="upload-approvals">Add files</label>
+              <input class="visually-hidden" type="file" id="upload-approvals" multiple data-upload-input="approvals">
             </div>
-            <div class="portal-card">
-              <p class="portal-empty" data-past-empty>Closed reports and their recorded answers are kept here.</p>
+            <p class="field-hint files-hint">Closed reports and their recorded answers are kept here. Add completed approvals the client sent back, such as a signed PDF; the client sees them in their own Past approvals.</p>
+            <div class="portal-card drop-card" data-drop-area="approvals">
+              <p class="portal-empty" data-past-empty>No past approvals yet. Close a report, or drag a completed approval here.</p>
               <ul class="file-list" data-past-list hidden></ul>
+              <ul class="file-list" data-approval-file-list hidden></ul>
             </div>
           </section>
 

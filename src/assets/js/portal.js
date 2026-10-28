@@ -294,8 +294,11 @@
     var pastList = root.querySelector('[data-past-list]');
     clear(pastList);
     pastReports.forEach(function (report) { pastList.appendChild(reportRow(report)); });
-    root.querySelector('[data-past-section]').hidden = pastReports.length === 0;
-    root.querySelector('[data-past-count]').textContent = pastReports.length ? plural(pastReports.length, 'record') : '';
+    var pastFiles = allFiles.filter(function (f) { return f.area === 'approvals'; });
+    pastFiles.forEach(function (file) { pastList.appendChild(fileRow(file)); });
+    var pastTotal = pastReports.length + pastFiles.length;
+    root.querySelector('[data-past-section]').hidden = pastTotal === 0;
+    root.querySelector('[data-past-count]').textContent = pastTotal ? plural(pastTotal, 'record') : '';
 
     var compliance = allFiles.filter(function (f) { return f.area === 'compliance'; });
     var complianceList = root.querySelector('[data-compliance-list]');
@@ -305,7 +308,7 @@
     root.querySelector('[data-compliance-empty]').hidden = compliance.length > 0;
     root.querySelector('[data-compliance-count]').textContent = compliance.length ? plural(compliance.length, 'file') : '';
 
-    var others = allFiles.filter(function (f) { return f.area !== 'compliance'; });
+    var others = allFiles.filter(function (f) { return f.area !== 'compliance' && f.area !== 'approvals'; });
 
     var list = root.querySelector('[data-file-list]');
     var empty = root.querySelector('[data-files-empty]');
@@ -454,6 +457,7 @@
     var pastList = root.querySelector('[data-past-list]');
     var pastEmpty = root.querySelector('[data-past-empty]');
     var pastCount = root.querySelector('[data-past-count]');
+    var approvalFileList = root.querySelector('[data-approval-file-list]');
     var complianceList = root.querySelector('[data-compliance-list]');
     var complianceEmpty = root.querySelector('[data-compliance-empty]');
     var complianceCount = root.querySelector('[data-compliance-count]');
@@ -522,9 +526,19 @@
       return button;
     }
 
+    /** Past approvals holds closed reports and uploaded completed approvals. */
+    function renderPastSummary(client) {
+      var closed = (client.reports || []).filter(function (r) { return r.status === 'closed'; }).length;
+      var uploaded = client.files.filter(function (f) { return f.area === 'approvals'; }).length;
+      var total = closed + uploaded;
+      pastEmpty.hidden = total > 0;
+      pastCount.textContent = total ? plural(total, 'record') : '';
+    }
+
     function renderFiles(client) {
       var compliance = client.files.filter(function (f) { return f.area === 'compliance'; });
-      var other = client.files.filter(function (f) { return f.area !== 'compliance'; });
+      var other = client.files.filter(function (f) { return f.area === 'files'; });
+      var approvalFiles = client.files.filter(function (f) { return f.area === 'approvals'; });
       clear(fileList);
       other.forEach(function (file) { fileList.appendChild(fileRow(file, [moveFileButton(client, file, 'compliance'), deleteFileButton(client, file)])); });
       filesEmpty.hidden = other.length > 0;
@@ -534,6 +548,10 @@
       complianceEmpty.hidden = compliance.length > 0;
       complianceList.hidden = compliance.length === 0;
       complianceCount.textContent = compliance.length ? plural(compliance.length, 'file') : '';
+      clear(approvalFileList);
+      approvalFiles.forEach(function (file) { approvalFileList.appendChild(fileRow(file, [deleteFileButton(client, file)])); });
+      approvalFileList.hidden = approvalFiles.length === 0;
+      renderPastSummary(client);
       fileCount.textContent = client.files.length ? plural(client.files.length, 'file') : '';
     }
 
@@ -587,9 +605,8 @@
       pastOnes.forEach(function (report) {
         pastList.appendChild(reportRow(report, [setStatusButton(client, report, false), deleteButton(report)], { openLabel: 'View', record: true }));
       });
-      pastEmpty.hidden = pastOnes.length > 0;
       pastList.hidden = pastOnes.length === 0;
-      pastCount.textContent = pastOnes.length ? plural(pastOnes.length, 'record') : '';
+      renderPastSummary(client);
     }
 
     /** The team's view: every report, with each item's current answer. */
@@ -926,7 +943,7 @@
         var skipped = batch.length - added;
         setStatus(
           status,
-          'Added ' + plural(added, 'file') + ' to ' + (area === 'compliance' ? 'Compliance files' : 'Other files') + (skipped ? '. ' + plural(skipped, 'file') + ' could not be added \u2014 see the list below.' : '.'),
+          'Added ' + plural(added, 'file') + ' to ' + ({ compliance: 'Compliance files', approvals: 'Past approvals' }[area] || 'Other files') + (skipped ? '. ' + plural(skipped, 'file') + ' could not be added \u2014 see the list below.' : '.'),
           skipped ? 'error' : 'success'
         );
         // Successful rows have done their job; problems stay until the next batch.
@@ -971,7 +988,7 @@
       depth = 0;
       setOver(false);
       var card = cardAt(e);
-      if (!card) { setStatus(status, 'Drop files onto Compliance files or Other files.', 'error'); return; }
+      if (!card) { setStatus(status, 'Drop files onto Past approvals, Compliance files or Other files.', 'error'); return; }
       uploadFiles(e.dataTransfer.files, card.getAttribute('data-drop-area'));
     });
 

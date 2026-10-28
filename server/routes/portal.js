@@ -309,7 +309,7 @@ admin.post(
     const file = await addFile(await getStore(), req.params.id, {
       filename: typeof req.query.name === 'string' ? req.query.name : '',
       data: req.body,
-      area: req.query.area === 'compliance' ? 'compliance' : 'files',
+      area: ['compliance', 'approvals'].includes(req.query.area) ? req.query.area : 'files',
     });
     log.info('portal file uploaded', { fileId: file.id, clientId: req.params.id, bytes: file.size });
     res.status(201).json({ ok: true, file });

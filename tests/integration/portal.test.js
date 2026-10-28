@@ -928,3 +928,17 @@ test('the team’s client list carries each report’s progress', async () => {
   const row = (await owner.get('/api/portal/admin/clients')).body.clients[0].reports[0];
   assert.equal(row.progress.approved, 1);
 });
+
+test('completed approvals can be uploaded into Past approvals, and the client sees them there', async () => {
+  const owner = await adminBrowser();
+  const a = await clientWithLogin(owner, 'Top Seedz', 'jordan@topseedz.test');
+  const base = `/api/portal/admin/clients/${a.client.id}/files`;
+  const up = await owner.upload(`${base}?name=Approved-copy-edits.pdf&area=approvals`, PDF);
+  assert.equal(up.status, 201);
+  assert.equal(up.body.file.area, 'approvals');
+  const mine = (await a.person.get('/api/portal/me')).body.files.find((f) => f.name === 'Approved-copy-edits.pdf');
+  assert.equal(mine.area, 'approvals');
+  assert.equal((await a.person.get(`/api/portal/files/${mine.id}`)).status, 200);
+  assert.equal((await owner.patch(`/api/portal/admin/files/${mine.id}`, { area: 'compliance' })).body.file.area, 'compliance');
+  assert.equal((await owner.upload(`${base}?name=x.pdf&area=bogus`, PDF)).body.file.area, 'files');
+});

@@ -1132,7 +1132,7 @@ export async function listClientFiles(store, clientId) {
   return (await repoFor(store).listFiles(clientId)).map(fileOut);
 }
 
-export const FILE_AREAS = new Set(['files', 'compliance']);
+export const FILE_AREAS = new Set(['files', 'compliance', 'approvals']);
 
 export async function addFile(store, clientId, { filename, data, area = 'files' }) {
   const repo = repoFor(store);
@@ -1141,7 +1141,7 @@ export async function addFile(store, clientId, { filename, data, area = 'files' 
     throw new PortalError('That file is empty.', { code: 'file_empty' });
   }
   const name = sanitizeFilename(filename);
-  if (!FILE_AREAS.has(area)) throw new PortalError('Choose Files or Compliance files.', { code: 'bad_area', field: 'area' });
+  if (!FILE_AREAS.has(area)) throw new PortalError('Choose Files, Compliance files or Past approvals.', { code: 'bad_area', field: 'area' });
   return fileOut(await repo.insertFile({ clientId, filename: name, contentType: contentTypeFor(name), data, area }));
 }
 
@@ -1357,7 +1357,7 @@ export async function getFile(store, id) {
 /** Move a file between the client's Compliance files and Other files. */
 export async function setFileArea(store, id, rawArea) {
   const area = String(rawArea ?? '');
-  if (!FILE_AREAS.has(area)) throw new PortalError('Choose Files or Compliance files.', { code: 'bad_area', field: 'area' });
+  if (!FILE_AREAS.has(area)) throw new PortalError('Choose Files, Compliance files or Past approvals.', { code: 'bad_area', field: 'area' });
   const row = isUuid(id) ? await repoFor(store).setFileArea(id, area) : null;
   if (!row) throw notFound('file');
   return row;
