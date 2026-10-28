@@ -160,8 +160,17 @@ router.get('/reports', requireSession('client'), wrap(async (req, res) => {
   res.json({ ok: true, reports: await listReports(await getStore(), req.portal.clientId) });
 }));
 
-router.get('/reports/:id/approvals', requireSession('client'), wrap(async (req, res) => {
-  const report = await ownReport(req);
+router.get('/reports/:id/approvals', requireSession(), wrap(async (req, res) => {
+  // A client reads their own report's answers; the team reads them for the clients they work on.
+  let report;
+  if (isStaff(req.portal)) {
+    report = await getReport(await getStore(), req.params.id);
+    if (!report || !(await canAccessClient(await getStore(), req.portal, report.client_id))) {
+      throw new PortalError('That report is no longer available.', { code: 'not_found', status: 404 });
+    }
+  } else {
+    report = await ownReport(req);
+  }
   res.json({ ok: true, closed: report.status === 'closed', items: await currentApprovals(await getStore(), report.id) });
 }));
 
@@ -518,7 +527,7 @@ export const portalPageGate = wrap(async (req, res, next) => {
   }
 
   if (!session) return res.redirect(302, '/client-login');
-  const staffPage = /^\/(admin|operators)(\/|$)/.test(req.path);
+  const staffPage = /^\/(admin|operators|clients)(\/|$)/.test(req.path);
   if (staffPage && !isStaff(session)) return res.redirect(302, '/portal');
   if (!staffPage && isStaff(session)) return res.redirect(302, '/portal/admin');
   return next();

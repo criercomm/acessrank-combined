@@ -874,15 +874,17 @@ const notFound = (what) => new PortalError(`That ${what} no longer exists.`, { c
 /** Everything the admin page shows, in one round trip. */
 export async function adminOverview(store, scope = null) {
   const repo = repoFor(store);
-  const [allClients, users, files, reports] = await Promise.all([
-    repo.listClients(), repo.listUsers(), repo.listFiles(), repo.listReports(),
+  const [allClients, users, files, reports, latest] = await Promise.all([
+    repo.listClients(), repo.listUsers(), repo.listFiles(), repo.listReports(), repo.latestApprovals(),
   ]);
+  const byReport = new Map();
+  for (const a of latest) (byReport.get(a.report_id) ?? byReport.set(a.report_id, []).get(a.report_id)).push(a);
   const clients = scope ? allClients.filter((c) => scope.has(c.id)) : allClients;
   return clients.map((client) => ({
     ...clientOut(client),
     users: users.filter((u) => u.client_id === client.id).map(userOut),
     files: files.filter((f) => f.client_id === client.id).map(fileOut),
-    reports: reports.filter((r) => r.client_id === client.id).map(reportOut),
+    reports: reports.filter((r) => r.client_id === client.id).map((r) => ({ ...reportOut(r), progress: progressOf(byReport.get(r.id) ?? []) })),
   }));
 }
 

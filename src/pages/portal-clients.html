@@ -1,0 +1,72 @@
+<section class="portal-main" data-portal-client-view>
+  <div class="portal-wrap portal-wrap--wide">
+    <header class="portal-head">
+      <div class="portal-head-text">
+        <p class="portal-kicker">Accessrank team &middot; client view</p>
+        <h1 data-view-client>Clients</h1>
+        <p class="portal-meta">This is what the client sees in their portal. To publish, close, upload or manage logins, use <strong>Manage this client</strong>.</p>
+      </div>
+      <div class="row-actions">
+        <a class="btn-ghost" href="/portal/admin">Client portals</a>
+        <a class="btn-ghost" href="/portal/operators" data-master-control>Operators</a>
+        <button class="btn-ghost" type="button" data-portal-logout>Sign out</button>
+      </div>
+    </header>
+
+    <p class="form-status portal-status" data-portal-status role="status" aria-live="polite"></p>
+
+    <p class="portal-empty" data-no-clients hidden>No clients to show yet. Ask a master operator to assign one to you.</p>
+
+    <div data-client-view hidden>
+      <div class="field client-picker">
+        <label for="client-picker">Client</label>
+        <select id="client-picker" data-client-picker></select>
+      </div>
+      <p class="portal-meta" data-view-logins></p>
+      <p><a class="btn-small btn-small--brand" data-manage-client href="/portal/admin">Manage this client</a></p>
+
+      <section class="portal-section" aria-labelledby="reports-heading">
+        <div class="portal-section-head">
+          <h2 id="reports-heading">Awaiting approval</h2>
+          <p class="portal-count" data-report-count></p>
+        </div>
+        <div class="portal-card">
+          <p class="portal-empty" data-reports-empty hidden>Nothing is waiting for this client&rsquo;s approval.</p>
+          <ul class="file-list" data-report-list></ul>
+        </div>
+      </section>
+
+      <section class="portal-section" aria-labelledby="compliance-heading">
+        <div class="portal-section-head">
+          <h2 id="compliance-heading">Compliance files</h2>
+          <p class="portal-count" data-compliance-count></p>
+        </div>
+        <div class="portal-card">
+          <p class="portal-empty" data-compliance-empty>No compliance files yet.</p>
+          <ul class="file-list" data-compliance-list hidden></ul>
+        </div>
+      </section>
+
+      <section class="portal-section" aria-labelledby="past-heading" data-past-section hidden>
+        <div class="portal-section-head">
+          <h2 id="past-heading">Past approvals</h2>
+          <p class="portal-count" data-past-count></p>
+        </div>
+        <div class="portal-card">
+          <ul class="file-list" data-past-list></ul>
+        </div>
+      </section>
+
+      <section class="portal-section" aria-labelledby="files-heading">
+        <div class="portal-section-head">
+          <h2 id="files-heading">Other files</h2>
+          <p class="portal-count" data-file-count></p>
+        </div>
+        <div class="portal-card">
+          <p class="portal-empty" data-files-empty hidden>No other files yet.</p>
+          <ul class="file-list" data-file-list hidden></ul>
+        </div>
+      </section>
+    </div>
+  </div>
+</section>

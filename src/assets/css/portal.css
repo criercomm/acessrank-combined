@@ -278,3 +278,5 @@ select#new-op-role { min-height: 44px; }
 .drop-card.is-ready { border-style: dashed; }
 .drop-card.is-over { border-color: var(--brand); background: var(--brand-soft); }
 .files-head:has(input:focus-visible) .upload-button { outline: 3px solid var(--brand); outline-offset: 2px; }
+
+.client-picker { max-width: 360px; margin: 0 0 12px; }

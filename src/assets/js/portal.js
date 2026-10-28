@@ -281,6 +281,43 @@
 
   /* ------------------------------------------------------ client portal --- */
 
+  /** The four sections a client sees: awaiting approval, compliance files, past approvals, other files. */
+  function renderPortalSections(root, reports, allFiles) {
+    var openReports = reports.filter(function (r) { return r.status !== 'closed'; });
+    var pastReports = reports.filter(function (r) { return r.status === 'closed'; });
+    var reportList = root.querySelector('[data-report-list]');
+    clear(reportList);
+    openReports.forEach(function (report) { reportList.appendChild(reportRow(report)); });
+    root.querySelector('[data-reports-empty]').hidden = openReports.length > 0;
+    root.querySelector('[data-report-count]').textContent = openReports.length ? plural(openReports.length, 'report') : '';
+
+    var pastList = root.querySelector('[data-past-list]');
+    clear(pastList);
+    pastReports.forEach(function (report) { pastList.appendChild(reportRow(report)); });
+    root.querySelector('[data-past-section]').hidden = pastReports.length === 0;
+    root.querySelector('[data-past-count]').textContent = pastReports.length ? plural(pastReports.length, 'record') : '';
+
+    var compliance = allFiles.filter(function (f) { return f.area === 'compliance'; });
+    var complianceList = root.querySelector('[data-compliance-list]');
+    clear(complianceList);
+    compliance.forEach(function (file) { complianceList.appendChild(fileRow(file)); });
+    complianceList.hidden = compliance.length === 0;
+    root.querySelector('[data-compliance-empty]').hidden = compliance.length > 0;
+    root.querySelector('[data-compliance-count]').textContent = compliance.length ? plural(compliance.length, 'file') : '';
+
+    var others = allFiles.filter(function (f) { return f.area !== 'compliance'; });
+
+    var list = root.querySelector('[data-file-list]');
+    var empty = root.querySelector('[data-files-empty]');
+    var count = root.querySelector('[data-file-count]');
+    clear(list);
+    others.forEach(function (file) { list.appendChild(fileRow(file)); });
+    var loading = root.querySelector('[data-files-loading]'); if (loading) loading.hidden = true;
+    empty.hidden = others.length > 0;
+    list.hidden = others.length === 0;
+    count.textContent = others.length ? plural(others.length, 'file') : '';
+  }
+
   function initFiles(root) {
     var status = root.querySelector('[data-portal-status]');
     var list = root.querySelector('[data-file-list]');
@@ -309,37 +346,7 @@
 
       if (nudge) nudge.hidden = data.user.passwordSetBy !== 'admin';
 
-      var reports = data.reports || [];
-      var openReports = reports.filter(function (r) { return r.status !== 'closed'; });
-      var pastReports = reports.filter(function (r) { return r.status === 'closed'; });
-      var reportList = root.querySelector('[data-report-list]');
-      clear(reportList);
-      openReports.forEach(function (report) { reportList.appendChild(reportRow(report)); });
-      root.querySelector('[data-reports-empty]').hidden = openReports.length > 0;
-      root.querySelector('[data-report-count]').textContent = openReports.length ? plural(openReports.length, 'report') : '';
-
-      var pastList = root.querySelector('[data-past-list]');
-      clear(pastList);
-      pastReports.forEach(function (report) { pastList.appendChild(reportRow(report)); });
-      root.querySelector('[data-past-section]').hidden = pastReports.length === 0;
-      root.querySelector('[data-past-count]').textContent = pastReports.length ? plural(pastReports.length, 'record') : '';
-
-      var compliance = data.files.filter(function (f) { return f.area === 'compliance'; });
-      var complianceList = root.querySelector('[data-compliance-list]');
-      clear(complianceList);
-      compliance.forEach(function (file) { complianceList.appendChild(fileRow(file)); });
-      complianceList.hidden = compliance.length === 0;
-      root.querySelector('[data-compliance-empty]').hidden = compliance.length > 0;
-      root.querySelector('[data-compliance-count]').textContent = compliance.length ? plural(compliance.length, 'file') : '';
-
-      data.files = data.files.filter(function (f) { return f.area !== 'compliance'; });
-
-      clear(list);
-      data.files.forEach(function (file) { list.appendChild(fileRow(file)); });
-      loading.hidden = true;
-      empty.hidden = data.files.length > 0;
-      list.hidden = data.files.length === 0;
-      count.textContent = data.files.length ? plural(data.files.length, 'file') : '';
+      renderPortalSections(root, data.reports || [], data.files || []);
     }
 
     function load() {
@@ -350,6 +357,68 @@
       }).catch(function (error) {
         if (error.code === 'signed_out') return;
         loading.hidden = true;
+        setStatus(status, error.message, 'error');
+      });
+    }
+
+    return { load: load };
+  }
+
+  /* ------------------------------------------------- team: client view --- */
+
+  /**
+   * The team's window onto a client's portal: the same four sections the client
+   * sees, for any client the signed-in operator may work on. Read-only here;
+   * the team tools live on the Client portals page.
+   */
+  function initClientView(root) {
+    var status = root.querySelector('[data-portal-status]');
+    var picker = root.querySelector('[data-client-picker]');
+    var heading = root.querySelector('[data-view-client]');
+    var manage = root.querySelector('[data-manage-client]');
+    var emptyState = root.querySelector('[data-no-clients]');
+    var body = root.querySelector('[data-client-view]');
+    var clients = [];
+    var current = null;
+
+    bindLogout(root);
+
+    function fromHash() {
+      var m = /client=([0-9a-f-]{36})/i.exec(location.hash || '');
+      return m ? m[1] : null;
+    }
+
+    function show(id) {
+      current = clients.filter(function (c) { return c.id === id; })[0] || clients[0] || null;
+      body.hidden = !current;
+      emptyState.hidden = !!current;
+      if (!current) return;
+      picker.value = current.id;
+      heading.textContent = current.name;
+      manage.href = '/portal/admin#client=' + encodeURIComponent(current.id);
+      try { history.replaceState(null, '', '#client=' + encodeURIComponent(current.id)); } catch (e) { /* not essential */ }
+      renderPortalSections(root, current.reports || [], current.files || []);
+      var logins = current.users || [];
+      root.querySelector('[data-view-logins]').textContent = logins.length
+        ? 'Logins: ' + logins.map(function (u) { return u.name ? u.name + ' (' + u.email + ')' : u.email; }).join(', ')
+        : 'No one at this client has a login yet.';
+    }
+
+    picker.addEventListener('change', function () { show(picker.value); });
+
+    function load() {
+      setStatus(status, '');
+      api('GET', '/api/portal/me').then(function (me) {
+        if (me.role === 'client') { go('/portal'); return; }
+        Array.prototype.forEach.call(root.querySelectorAll('[data-master-control]'), function (node) { node.hidden = !me.isMaster; });
+      }, function () {});
+      return api('GET', '/api/portal/admin/clients').then(function (data) {
+        clients = data.clients.slice().sort(function (a, b) { return a.name.toLowerCase().localeCompare(b.name.toLowerCase()); });
+        clear(picker);
+        clients.forEach(function (c) { picker.appendChild(h('option', { value: c.id, text: c.name })); });
+        show(fromHash());
+      }).catch(function (error) {
+        if (error.code === 'signed_out') return;
         setStatus(status, error.message, 'error');
       });
     }
@@ -926,6 +995,8 @@
         state.maxFileBytes = data.maxFileBytes || state.maxFileBytes;
         root.querySelector('[data-max-file]').textContent = formatBytes(state.maxFileBytes);
         sortClients();
+        var wanted = /client=([0-9a-f-]{36})/i.exec(location.hash || '');
+        if (wanted && state.clients.some(function (c) { return c.id === wanted[1]; })) state.selectedId = wanted[1];
         if (!selected()) state.selectedId = state.clients.length ? state.clients[0].id : null;
         hideCredential();
         render();
@@ -1167,11 +1238,13 @@
   var filesRoot = document.querySelector('[data-portal-files]');
   var adminRoot = document.querySelector('[data-portal-admin]');
   var operatorsRoot = document.querySelector('[data-portal-operators]');
+  var clientViewRoot = document.querySelector('[data-portal-client-view]');
 
   if (loginForm) views.login = initLogin(loginForm);
   if (filesRoot) views.files = initFiles(filesRoot);
   if (adminRoot) views.admin = initAdmin(adminRoot);
   if (operatorsRoot) views.operators = initOperators(operatorsRoot);
+  if (clientViewRoot) views.clientView = initClientView(clientViewRoot);
 
   /** Reload one view's data (or all of them). */
   A.portal = {

@@ -272,6 +272,16 @@
       "excludeFromSitemap": true
     },
     {
+      "file": "portal-clients.html",
+      "url": "/portal/clients",
+      "layout": "page",
+      "title": "Clients — Accessrank admin",
+      "description": "Accessrank team access only.",
+      "portal": true,
+      "noindex": true,
+      "excludeFromSitemap": true
+    },
+    {
       "file": "portal-operators.html",
       "url": "/portal/operators",
       "layout": "page",

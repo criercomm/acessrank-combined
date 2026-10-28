@@ -352,7 +352,7 @@ test('uploads are bounded and validated', async () => {
 
 test('portal pages redirect to sign-in without a session, and to the right place with one', async () => {
   const nobody = browser();
-  for (const path of ['/portal', '/portal/', '/portal/index.html', '/portal/admin', '/portal/admin/index.html']) {
+  for (const path of ['/portal', '/portal/', '/portal/index.html', '/portal/admin', '/portal/admin/index.html', '/portal/clients']) {
     const { status, headers } = await nobody.get(path);
     assert.equal(status, 302, path);
     assert.equal(headers.get('location'), '/client-login', path);
@@ -363,6 +363,8 @@ test('portal pages redirect to sign-in without a session, and to the right place
   const { person } = await clientWithLogin(admin, 'Harbor & Pine', 'jordan@harborpine.test');
 
   assert.equal((await person.get('/portal/admin')).headers.get('location'), '/portal', 'a client never reaches the admin page');
+  assert.equal((await person.get('/portal/clients')).headers.get('location'), '/portal', 'nor the team’s client view');
+  assert.notEqual((await admin.get('/portal/clients')).status, 302, 'the team does');
   assert.equal((await admin.get('/portal')).headers.get('location'), '/portal/admin');
   assert.equal((await person.get('/client-login')).headers.get('location'), '/portal');
   assert.equal((await admin.get('/client-login')).headers.get('location'), '/portal/admin');
@@ -891,4 +893,38 @@ test('operators move a file between Compliance and Other files, within their own
   assert.equal((await op.person.patch(`/api/portal/admin/files/${f1.id}`, { area: 'nope' })).status, 400);
   assert.equal((await op.person.patch(`/api/portal/admin/files/${f2.id}`, { area: 'compliance' })).status, 404, 'not their client');
   assert.equal((await mine.person.patch(`/api/portal/admin/files/${f1.id}`, { area: 'compliance' })).status, 404, 'clients cannot');
+});
+
+
+test('the team reads a client’s answers for the clients they work on, and cannot write them', async () => {
+  const owner = await adminBrowser();
+  const mine = await clientWithLogin(owner, 'Top Seedz', 'jordan@topseedz.test');
+  const theirs = await clientWithLogin(owner, 'Larkspur Tea Co.', 'sam@larkspur.test');
+  const op = await operatorWithLogin(owner, { name: 'Emerson', email: 'emerson@accessrank.test' });
+  await owner.put(`/api/portal/operators/${op.operator.id}/clients`, { clientIds: [mine.client.id] });
+  const r1 = await publish(owner, mine.client.id, 'Mine');
+  const r2 = await publish(owner, theirs.client.id, 'Theirs');
+  await mine.person.post(`/api/portal/reports/${r1.id}/approvals`, { name: 'Jordan Rivera', items: [{ key: 'i1', title: '1. Outline', decision: 'approve' }] });
+
+  const read = await op.person.get(`/api/portal/reports/${r1.id}/approvals`);
+  assert.equal(read.status, 200);
+  assert.equal(read.body.items[0].decision, 'approve');
+  assert.equal((await owner.get(`/api/portal/reports/${r1.id}/approvals`)).status, 200);
+  assert.equal((await op.person.get(`/api/portal/reports/${r2.id}/approvals`)).status, 404, 'not their client');
+  assert.equal((await mine.person.get(`/api/portal/reports/${r2.id}/approvals`)).status, 404, 'another client');
+  assert.equal((await op.person.get(`/portal/report/${r1.id}`)).status, 200);
+  assert.equal((await op.person.get(`/portal/report/${r2.id}`)).status, 404);
+
+  const write = await op.person.post(`/api/portal/reports/${r1.id}/approvals`, { name: 'Emerson', items: [{ key: 'i1', title: '1. Outline', decision: 'changes' }] });
+  assert.ok([401, 403, 404].includes(write.status), `operators cannot answer for a client (got ${write.status})`);
+  assert.equal((await mine.person.get(`/api/portal/reports/${r1.id}/approvals`)).body.items[0].decision, 'approve', 'the client’s answer is untouched');
+});
+
+test('the team’s client list carries each report’s progress', async () => {
+  const owner = await adminBrowser();
+  const a = await clientWithLogin(owner, 'Top Seedz', 'jordan@topseedz.test');
+  const report = await publish(owner, a.client.id, 'Status update');
+  await a.person.post(`/api/portal/reports/${report.id}/approvals`, { name: 'Jordan Rivera', items: [{ key: 'i1', title: '1. Outline', decision: 'approve' }] });
+  const row = (await owner.get('/api/portal/admin/clients')).body.clients[0].reports[0];
+  assert.equal(row.progress.approved, 1);
 });
