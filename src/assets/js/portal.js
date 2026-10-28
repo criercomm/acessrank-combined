@@ -210,13 +210,14 @@
     var reviewed = report.progress && report.progress.lastAt;
     var metaParts = [h('span', { text: closed && report.closedAt ? 'Closed ' + formatDate(report.closedAt) : 'Added ' + formatDate(report.createdAt) })];
     metaParts.push(h('span', { text: progressText(report.progress) + (reviewed ? ' \u00b7 last answered ' + formatDateTime(report.progress.lastAt) : '') }));
-    return h('li', { 'data-report-id': report.id }, [
+    var allActions = actions.concat(extraActions || []);
+    return h('li', { 'data-report-id': report.id, class: allActions.length > 2 ? 'stack-actions' : '' }, [
       h('span', { class: 'file-badge', 'aria-hidden': 'true', text: 'HTML' }),
       h('div', { class: 'file-text' }, [
         h('p', { class: 'file-name', text: report.title }),
         h('p', { class: 'file-meta' }, metaParts)
       ]),
-      h('div', { class: 'row-actions' }, actions.concat(extraActions || []))
+      h('div', { class: 'row-actions' }, allActions)
     ]);
   }
 
@@ -229,7 +230,7 @@
       'aria-label': 'Download ' + file.name,
       text: 'Download'
     });
-    return h('li', { 'data-file-id': file.id }, [
+    return h('li', { 'data-file-id': file.id, class: (extraActions || []).length > 1 ? 'stack-actions' : '' }, [
       h('span', { class: 'file-badge', 'aria-hidden': 'true', text: fileKind(file.name) }),
       h('div', { class: 'file-text' }, [
         h('p', { class: 'file-name', text: file.name }),
