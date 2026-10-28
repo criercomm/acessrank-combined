@@ -43,7 +43,7 @@ try {
   await store.migrate();
   const wanted = [];
   if (assign.length) {
-    const { clients } = await adminOverview(store, null);
+    const clients = await adminOverview(store, null);
     for (const name of assign) {
       const c = clients.find((x) => x.name.toLowerCase() === String(name).trim().toLowerCase());
       if (c) wanted.push(c.id); else { console.error(`No client named "${name}" — check the spelling in the Clients list.`); process.exitCode = 1; }
