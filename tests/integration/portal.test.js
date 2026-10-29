@@ -487,6 +487,44 @@ test('approvals are saved against the report, deduplicated, and visible to the t
   assert.deepEqual(history.filter((h) => h.key === 'd2').map((h) => h.decision), ['approve', 'changes']);
 });
 
+test('a changed answer gets a new time, and a cleared comment really clears', async () => {
+  const admin = await adminBrowser();
+  const a = await clientWithLogin(admin, 'Top Seedz', 'jordan@topseedz.test');
+  const report = await publish(admin, a.client.id, 'Accessibility status update');
+  const path = `/api/portal/reports/${report.id}/approvals`;
+  const name = 'Jordan Rivera';
+  const earlier = new Date(Date.now() - 2 * 3_600_000).toISOString();
+  const item = (over) => ({ key: 'd1', title: 'Slideshow', decision: 'approve', choice: 'Add a pause button', decidedAt: earlier, ...over });
+  const current = async () => (await a.person.get(path)).body.items.find((i) => i.key === 'd1');
+
+  assert.equal((await a.person.post(path, { name, items: [item()] })).status, 201);
+  assert.equal((await current()).decidedAt, earlier, 'a first answer keeps the time the page stamped');
+
+  // The page sends the old stamp again with a different option: it must not stick.
+  await a.person.post(path, { name, items: [item({ choice: 'Add a pause and a stop button' })] });
+  assert.ok((await current()).decidedAt > earlier, 'a changed option is stamped with the time of the change');
+
+  const stamped = (await current()).decidedAt;
+  await a.person.post(path, { name, items: [item({ choice: 'Add a pause and a stop button', comment: 'Thanks.', decidedAt: null })] });
+  assert.equal((await current()).decidedAt, stamped, 'a comment-only edit keeps the original time');
+
+  await a.person.post(path, { name, items: [item({ decision: 'changes', choice: 'Add a pause and a stop button', comment: 'Thanks.' })] });
+  assert.ok((await current()).decidedAt >= stamped && (await current()).decidedAt > earlier, 'a changed decision is restamped');
+
+  // Comment-only items: write one, then clear it.
+  const note = (comment) => ({ key: 'c5', title: 'FAQ content', decision: 'comment', comment });
+  await a.person.post(path, { name, items: [note('We will email our FAQs.')] });
+  assert.equal((await a.person.get(path)).body.items.find((i) => i.key === 'c5').comment, 'We will email our FAQs.');
+  const cleared = await a.person.post(path, { name, items: [note('')] });
+  assert.equal(cleared.body.saved, 1, 'clearing is saved, not skipped');
+  assert.equal((await a.person.get(path)).body.items.find((i) => i.key === 'c5'), undefined, 'the cleared comment is gone');
+  assert.equal((await admin.get('/api/portal/admin/approvals')).body.reports[0].items.find((i) => i.key === 'c5'), undefined, 'and gone for the team');
+  const again = await a.person.post(path, { name, items: [note('')] });
+  assert.equal(again.body.saved, 0, 'clearing twice stores nothing more');
+  const history = (await admin.get(`/api/portal/admin/reports/${report.id}/history`)).body.history;
+  assert.equal(history.filter((h) => h.key === 'c5').length, 2, 'the original comment stays in the record');
+});
+
 test('approvals are refused for strangers, other clients, bad input and other origins', async () => {
   const admin = await adminBrowser();
   const a = await clientWithLogin(admin, 'Top Seedz', 'jordan@topseedz.test');

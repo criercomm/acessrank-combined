@@ -1179,6 +1179,9 @@ export async function listReports(store, clientId) {
   return reports.map((r) => ({ ...reportOut(r), progress: progressOf(byReport.get(r.id) ?? []) }));
 }
 
+/** A comment that was cleared is kept as history but is no longer an answer. */
+const hasAnswer = (a) => !(a.decision === 'comment' && !a.comment);
+
 function progressOf(rows) {
   const counts = { approved: 0, changes: 0, comments: 0 };
   let lastAt = null;
@@ -1287,12 +1290,15 @@ export async function saveApprovals(store, session, report, { name, items }) {
       comment: String(raw.comment ?? '').replace(/\r\n?/g, '\n').replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, '').trim().slice(0, 5000),
       decidedAt: validDate(raw.decidedAt),
     };
-    if (decision === 'comment' && !row.comment) continue; // an empty comment is not an answer
     const have = current.get(key);
+    // An empty comment is not an answer, unless it clears one already saved: that
+    // is recorded as a new, empty row so the old text stops being the current one.
+    if (decision === 'comment' && !row.comment && !have?.comment) continue;
     if (have && have.decision === row.decision && have.choice === row.choice && have.comment === row.comment) {
       unchanged += 1;
       continue;
     }
+    row.decidedAt = decidedAtFor(have, row, raw.decidedAt);
     rows.push(row);
   }
   if (rows.length) await repo.insertApprovals(rows);
@@ -1302,6 +1308,21 @@ export async function saveApprovals(store, session, report, { name, items }) {
     changes: rows.map((r) => ({ key: r.key, title: r.title, decision: r.decision, choice: r.choice, comment: r.comment })),
     signerName,
   };
+}
+
+/**
+ * When an answer was given. The page sends the time it stamped, but the server
+ * does not let that carry an old time onto a new answer: if the decision or the
+ * option changed, the stamp must be newer than the one it replaces, otherwise it
+ * is the time of this save. A comment-only edit keeps the original time.
+ */
+function decidedAtFor(have, row, sent) {
+  const claimed = validDate(sent);
+  const before = have?.decided_at ? new Date(have.decided_at).toISOString() : null;
+  if (have && have.decision === row.decision && have.choice === row.choice) return before ?? claimed;
+  if (row.decision === 'comment') return claimed;
+  if (claimed && (!before || claimed > before)) return claimed;
+  return new Date().toISOString();
 }
 
 function validDate(value) {
@@ -1314,7 +1335,7 @@ function validDate(value) {
 
 /** Each item's current answer for one report. */
 export async function currentApprovals(store, reportId) {
-  return (await repoFor(store).latestApprovals(reportId)).map(approvalOut)
+  return (await repoFor(store).latestApprovals(reportId)).filter(hasAnswer).map(approvalOut)
     .sort((a, b) => (a.key < b.key ? -1 : 1));
 }
 
@@ -1328,7 +1349,7 @@ export async function adminApprovals(store, scope = null) {
   const reports = scope ? allReports.filter((r) => scope.has(r.client_id)) : allReports;
   const clientName = new Map(clients.map((c) => [c.id, c.name]));
   const byReport = new Map();
-  for (const a of latest) (byReport.get(a.report_id) ?? byReport.set(a.report_id, []).get(a.report_id)).push(a);
+  for (const a of latest) if (hasAnswer(a)) (byReport.get(a.report_id) ?? byReport.set(a.report_id, []).get(a.report_id)).push(a);
   return reports
     .map((r) => {
       const rows = byReport.get(r.id) ?? [];
