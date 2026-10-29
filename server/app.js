@@ -209,7 +209,9 @@ const burst = (limit, code, error, options = {}) => rateLimit({
  * start failing halfway through. It is still bounded, and every one of those
  * requests is refused without a valid admin session.
  */
-const isPortalAdmin = (req) => req.path === '/portal/admin' || req.path.startsWith('/portal/admin/');
+const isPortalAdmin = (req) => req.path === '/portal/admin' || req.path.startsWith('/portal/admin/')
+  || req.path === '/portal/team-files' || req.path.startsWith('/portal/team-files/')
+  || req.path === '/portal/team-notes';
 
 // Coarse ceiling so no single address can flood the API.
 app.use('/api', burst(
@@ -220,6 +222,19 @@ app.use('/api', burst(
 ));
 
 app.use('/api/portal/admin', burst(
+  config.portal.adminBurstPerMinute,
+  'too_many_requests',
+  'Too many requests. Wait a minute and try again.',
+));
+
+// The team repository is master-only too, and takes uploads the same way.
+app.use('/api/portal/team-files', burst(
+  config.portal.adminBurstPerMinute,
+  'too_many_requests',
+  'Too many requests. Wait a minute and try again.',
+));
+
+app.use('/api/portal/team-notes', burst(
   config.portal.adminBurstPerMinute,
   'too_many_requests',
   'Too many requests. Wait a minute and try again.',

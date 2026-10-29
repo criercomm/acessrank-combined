@@ -1,0 +1,20 @@
+<nav class="team-bar" aria-label="Team console" data-team-nav>
+  <a class="team-brand" href="/portal/approvals">Accessrank team</a>
+  <ul class="team-tabs">
+    <li><a href="/portal/approvals" data-tab="approvals">Approvals <span class="team-badge" data-approvals-badge hidden></span></a></li>
+    <li><a href="/portal/clients" data-tab="clients">Clients</a></li>
+    <li data-team-master hidden><a href="/portal/repository" data-tab="repository">Repository</a></li>
+    <li data-team-master hidden><a href="/portal/operators" data-tab="operators">Operators</a></li>
+  </ul>
+  <div class="team-actions">
+    <button class="btn-small btn-small--brand" type="button" data-team-create-client data-team-master hidden>Create client</button>
+    <details class="team-account" data-team-account>
+      <summary><span data-account-name>Account</span></summary>
+      <div class="team-account-menu">
+        <p class="team-account-email" data-account-email></p>
+        <button class="btn-small" type="button" data-account-password hidden>Change password</button>
+        <button class="btn-small" type="button" data-portal-logout>Sign out</button>
+      </div>
+    </details>
+  </div>
+</nav>

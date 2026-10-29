@@ -232,7 +232,7 @@ const DECISION_LABEL = { approve: 'Approved', changes: 'Changes requested', comm
  */
 export function approvalsNotificationEmail({ clientName, reportTitle, reportId, signerName, email, changes, savedAt = new Date() }) {
   const when = savedAt.toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short', timeZone: 'America/Los_Angeles' });
-  const link = `${config.siteUrl}/portal/admin`;
+  const link = `${config.siteUrl}/portal/approvals`;
   const reportLink = `${config.siteUrl}/portal/report/${reportId}`;
   const line = (c) => `${c.title || c.key}: ${DECISION_LABEL[c.decision] || c.decision}${c.choice ? ` (${c.choice})` : ''}`;
   const counts = { approve: 0, changes: 0, comment: 0 };

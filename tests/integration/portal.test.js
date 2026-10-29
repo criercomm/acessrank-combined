@@ -112,7 +112,7 @@ test('admin signs in with the configured credentials, case-insensitively on emai
   const admin = browser();
   const { status, body, headers } = await admin.login({ email: 'TEAM@accessrank.TEST', password: ADMIN.password });
   assert.equal(status, 200);
-  assert.deepEqual(body, { ok: true, role: 'admin', next: '/portal/admin' });
+  assert.deepEqual(body, { ok: true, role: 'admin', next: '/portal/approvals' });
 
   const cookie = headers.getSetCookie().find((c) => c.startsWith(`${SESSION_COOKIE}=`));
   assert.match(cookie, /HttpOnly/);
@@ -352,7 +352,7 @@ test('uploads are bounded and validated', async () => {
 
 test('portal pages redirect to sign-in without a session, and to the right place with one', async () => {
   const nobody = browser();
-  for (const path of ['/portal', '/portal/', '/portal/index.html', '/portal/admin', '/portal/admin/index.html', '/portal/clients']) {
+  for (const path of ['/portal', '/portal/', '/portal/index.html', '/portal/admin', '/portal/admin/index.html', '/portal/approvals', '/portal/clients', '/portal/client', '/portal/repository']) {
     const { status, headers } = await nobody.get(path);
     assert.equal(status, 302, path);
     assert.equal(headers.get('location'), '/client-login', path);
@@ -363,15 +363,21 @@ test('portal pages redirect to sign-in without a session, and to the right place
   const { person } = await clientWithLogin(admin, 'Harbor & Pine', 'jordan@harborpine.test');
 
   assert.equal((await person.get('/portal/admin')).headers.get('location'), '/portal', 'a client never reaches the admin page');
-  assert.equal((await person.get('/portal/clients')).headers.get('location'), '/portal', 'nor the team’s client view');
-  assert.notEqual((await admin.get('/portal/clients')).status, 302, 'the team does');
-  assert.equal((await admin.get('/portal')).headers.get('location'), '/portal/admin');
+  for (const path of ['/portal/approvals', '/portal/clients', '/portal/client', '/portal/repository', '/portal/operators']) {
+    assert.equal((await person.get(path)).headers.get('location'), '/portal', `a client never reaches ${path}`);
+    assert.notEqual((await admin.get(path)).status, 302, `the owner does reach ${path}`);
+  }
+  assert.equal((await admin.get('/portal/admin')).headers.get('location'), '/portal/approvals', 'the old console address lands on Approvals');
+  assert.equal((await admin.get('/portal')).headers.get('location'), '/portal/approvals');
   assert.equal((await person.get('/client-login')).headers.get('location'), '/portal');
-  assert.equal((await admin.get('/client-login')).headers.get('location'), '/portal/admin');
+  assert.equal((await admin.get('/client-login')).headers.get('location'), '/portal/approvals');
+  // The team may open the client page only to view it as a client: /portal?as=<client id>.
+  assert.notEqual((await admin.get('/portal?as=3f2b8c1e-6a4d-4f6e-9b7a-1c2d3e4f5a6b')).status, 302);
+  assert.equal((await admin.get('/portal?as=not-an-id')).headers.get('location'), '/portal/approvals');
 
   // Signed in and in the right place: not a redirect (200 with a built dist/, the 404 page without).
   assert.notEqual((await person.get('/portal')).status, 302);
-  assert.notEqual((await admin.get('/portal/admin')).status, 302);
+  assert.notEqual((await admin.get('/portal/approvals')).status, 302);
   assert.notEqual((await nobody.get('/client-login')).status, 302);
 });
 
@@ -579,7 +585,7 @@ async function operatorWithLogin(admin, { name, email, role = 'operator' }, ip =
   const person = browser(ip);
   const signedIn = await person.login({ email, password: created.body.password });
   assert.equal(signedIn.status, 200, JSON.stringify(signedIn.body));
-  assert.equal(signedIn.body.next, '/portal/admin');
+  assert.equal(signedIn.body.next, '/portal/approvals');
   return { operator: created.body.operator, password: created.body.password, person };
 }
 
@@ -739,8 +745,11 @@ test('operators choose their own password, and the page gates send each kind of 
   assert.equal((await owner.post('/api/portal/operator/password', { current: 'x', next: 'another-long-password' })).status, 400, 'the owner password lives in server settings');
 
   const client = await clientWithLogin(owner, 'Top Seedz', 'jordan@topseedz.test');
-  assert.equal((await op.person.get('/portal')).headers.get('location'), '/portal/admin');
-  assert.equal((await op.person.get('/portal/operators')).status, 200, 'any operator may open their own account page');
+  assert.equal((await op.person.get('/portal')).headers.get('location'), '/portal/approvals');
+  assert.equal((await op.person.get('/portal/approvals')).status, 200);
+  assert.equal((await op.person.get('/portal/clients')).status, 200);
+  assert.equal((await op.person.get('/portal/operators')).headers.get('location'), '/portal/approvals', 'Operators is for masters');
+  assert.equal((await op.person.get('/portal/repository')).headers.get('location'), '/portal/approvals', 'and so is the Repository');
   assert.equal((await client.person.get('/portal/operators')).headers.get('location'), '/portal');
   assert.equal((await client.person.get('/portal/admin')).headers.get('location'), '/portal');
   assert.equal((await browser().get('/portal/operators')).headers.get('location'), '/client-login');
@@ -979,4 +988,135 @@ test('completed approvals can be uploaded into Past approvals, and the client se
   assert.equal((await a.person.get(`/api/portal/files/${mine.id}`)).status, 200);
   assert.equal((await owner.patch(`/api/portal/admin/files/${mine.id}`, { area: 'compliance' })).body.file.area, 'compliance');
   assert.equal((await owner.upload(`${base}?name=x.pdf&area=bogus`, PDF)).body.file.area, 'files');
+});
+
+/* ------------------------------------------------------ team repository --- */
+
+test('the team repository is a master-only drawer: add, download, delete', async () => {
+  const owner = await adminBrowser();
+  const master = await operatorWithLogin(owner, { name: 'Carlos', email: 'carlos@accessrank.test', role: 'master' }, '198.51.100.41');
+  const plain = await operatorWithLogin(owner, { name: 'Priya', email: 'priya@accessrank.test' }, '198.51.100.42');
+  const client = await clientWithLogin(owner, 'Top Seedz', 'jordan@topseedz.test');
+
+  const empty = await master.person.get('/api/portal/team-files');
+  assert.equal(empty.status, 200);
+  assert.deepEqual(empty.body.files, []);
+  assert.equal(empty.body.maxFileBytes, 1024 * 1024);
+
+  const added = await master.person.upload('/api/portal/team-files?name=Operator%20handbook.pdf', PDF);
+  assert.equal(added.status, 201, JSON.stringify(added.body));
+  assert.equal(added.body.file.name, 'Operator handbook.pdf');
+  assert.equal(added.body.file.size, PDF.length);
+  assert.equal(added.body.file.addedByEmail, 'carlos@accessrank.test');
+  assert.equal(added.body.file.addedByName, 'Carlos');
+  const id = added.body.file.id;
+
+  // Any master sees it, including the owner login, and can download the same bytes.
+  assert.equal((await owner.get('/api/portal/team-files')).body.files.length, 1);
+  const download = await owner.get(`/api/portal/team-files/${id}`);
+  assert.equal(download.status, 200);
+  assert.match(download.headers.get('content-disposition'), /^attachment/);
+  assert.deepEqual(download.body, PDF);
+
+  // Nobody else can see, add, fetch or delete: it answers as if it were not there.
+  for (const who of [plain.person, client.person, browser()]) {
+    const denied = who === plain.person || who === client.person ? 404 : 401;
+    assert.equal((await who.get('/api/portal/team-files')).status, denied);
+    assert.equal((await who.upload('/api/portal/team-files?name=x.pdf', PDF)).status, denied);
+    assert.equal((await who.get(`/api/portal/team-files/${id}`)).status, denied);
+    assert.equal((await who.del(`/api/portal/team-files/${id}`)).status, denied);
+  }
+  assert.equal((await master.person.get('/api/portal/team-files')).body.files.length, 1, 'the refused attempts changed nothing');
+
+  assert.equal((await master.person.upload('/api/portal/team-files?name=empty.pdf', Buffer.alloc(0))).status, 400);
+  assert.equal((await master.person.upload('/api/portal/team-files?name=big.pdf', Buffer.alloc(1024 * 1024 + 1, 0x20))).status, 413);
+
+  assert.equal((await master.person.del(`/api/portal/team-files/${id}`)).status, 200);
+  assert.equal((await master.person.get(`/api/portal/team-files/${id}`)).status, 404);
+  assert.equal((await master.person.del(`/api/portal/team-files/${id}`)).status, 404);
+  assert.deepEqual((await master.person.get('/api/portal/team-files')).body.files, []);
+});
+
+test('a file in the team repository is never reachable through a client', async () => {
+  const owner = await adminBrowser();
+  const a = await clientWithLogin(owner, 'Top Seedz', 'jordan@topseedz.test');
+  const added = await owner.upload('/api/portal/team-files?name=Internal.pdf', PDF);
+  assert.equal(added.status, 201);
+  assert.equal((await a.person.get(`/api/portal/files/${added.body.file.id}`)).status, 404, 'the client file route does not serve it');
+  assert.equal((await a.person.get('/api/portal/me')).body.files.length, 0);
+});
+
+test('a master creates a client portal in one step: client, first login and assigned operators', async () => {
+  const owner = await adminBrowser();
+  const plain = await operatorWithLogin(owner, { name: 'Priya', email: 'priya@accessrank.test' }, '198.51.100.51');
+  const master = await operatorWithLogin(owner, { name: 'Carlos', email: 'carlos@accessrank.test', role: 'master' }, '198.51.100.52');
+
+  // Name only still works.
+  const bare = await master.person.post('/api/portal/admin/clients', { name: 'Bare Co.' });
+  assert.equal(bare.status, 201);
+  assert.equal(bare.body.login, null);
+
+  // Everything at once.
+  const made = await master.person.post('/api/portal/admin/clients', {
+    name: 'Larkspur Tea Co.',
+    login: { name: 'Sam Lark', email: 'sam@larkspur.test' },
+    operatorIds: [plain.operator.id],
+  });
+  assert.equal(made.status, 201, JSON.stringify(made.body));
+  assert.equal(made.body.client.name, 'Larkspur Tea Co.');
+  assert.ok(made.body.login.password.length >= 10);
+  assert.equal(made.body.login.user.email, 'sam@larkspur.test');
+
+  const sam = browser('198.51.100.53');
+  assert.equal((await sam.login({ email: 'sam@larkspur.test', password: made.body.login.password })).status, 200);
+
+  const mine = await plain.person.get('/api/portal/admin/clients');
+  assert.ok(mine.body.clients.some((c) => c.id === made.body.client.id), 'the assigned operator sees it');
+  assert.ok(!mine.body.clients.some((c) => c.id === bare.body.client.id), 'and not the unassigned one');
+
+  // A refused login leaves no half-made client behind.
+  const before = (await master.person.get('/api/portal/admin/clients')).body.clients.length;
+  const dup = await master.person.post('/api/portal/admin/clients', { name: 'Dup Co.', login: { email: 'sam@larkspur.test' } });
+  assert.equal(dup.status, 409);
+  const reserved = await master.person.post('/api/portal/admin/clients', { name: 'Res Co.', login: { email: 'carlos@accessrank.test' } });
+  assert.equal(reserved.status, 400);
+  const badOp = await master.person.post('/api/portal/admin/clients', { name: 'Op Co.', operatorIds: ['not-an-operator'] });
+  assert.equal(badOp.status, 404);
+  assert.equal((await master.person.get('/api/portal/admin/clients')).body.clients.length, before);
+
+  // Only masters.
+  assert.equal((await plain.person.post('/api/portal/admin/clients', { name: 'Nope', login: { email: 'n@x.test' } })).status, 404);
+});
+
+test('team notes: masters post, each note records its author and time, nobody else can see or change them', async () => {
+  const owner = await adminBrowser();
+  const master = await operatorWithLogin(owner, { name: 'Carlos', email: 'carlos@accessrank.test', role: 'master' }, '198.51.100.61');
+  const plain = await operatorWithLogin(owner, { name: 'Priya', email: 'priya@accessrank.test' }, '198.51.100.62');
+  const client = await clientWithLogin(owner, 'Top Seedz', 'jordan@topseedz.test');
+
+  assert.deepEqual((await master.person.get('/api/portal/team-notes')).body.notes, []);
+
+  const first = await master.person.post('/api/portal/team-notes', { body: '  Handbook v3 is up.  ', authorName: 'Someone Else', authorEmail: 'fake@x.test' });
+  assert.equal(first.status, 201, JSON.stringify(first.body));
+  assert.equal(first.body.note.body, 'Handbook v3 is up.');
+  assert.equal(first.body.note.authorName, 'Carlos');
+  assert.equal(first.body.note.authorEmail, 'carlos@accessrank.test', 'the author comes from the session');
+  assert.ok(!Number.isNaN(Date.parse(first.body.note.createdAt)));
+
+  assert.equal((await owner.post('/api/portal/team-notes', { body: 'From the owner.' })).status, 201);
+  const list = (await master.person.get('/api/portal/team-notes')).body.notes;
+  assert.equal(list.length, 2);
+  assert.equal(list[0].body, 'From the owner.', 'newest first');
+
+  assert.equal((await master.person.post('/api/portal/team-notes', { body: '   ' })).body.code, 'note_empty');
+  assert.equal((await master.person.post('/api/portal/team-notes', { body: 'x'.repeat(2001) })).body.code, 'note_long');
+
+  for (const who of [plain.person, client.person]) {
+    assert.equal((await who.get('/api/portal/team-notes')).status, 404);
+    assert.equal((await who.post('/api/portal/team-notes', { body: 'nope' })).status, 404);
+  }
+  assert.equal((await browser().get('/api/portal/team-notes')).status, 401);
+  assert.equal((await master.person.del(`/api/portal/team-notes/${list[0].id}`)).status, 404, 'notes cannot be deleted');
+  assert.equal((await master.person.get('/api/portal/team-notes')).body.notes.length, 2);
+
 });

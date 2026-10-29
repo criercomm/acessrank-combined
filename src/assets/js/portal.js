@@ -341,6 +341,9 @@
       });
     });
 
+    // A team member opening /portal?as=<client id> sees exactly what that client sees.
+    var asMatch = /^[0-9a-f-]{36}$/i.test(new URLSearchParams(location.search).get('as') || '') ? new URLSearchParams(location.search).get('as') : null;
+
     function render(data) {
       root.querySelector('[data-portal-client]').textContent = data.client.name;
       var user = root.querySelector('[data-portal-user]');
@@ -348,18 +351,60 @@
       user.appendChild(document.createTextNode('Signed in as '));
       user.appendChild(h('strong', { text: data.user.email }));
 
-      if (nudge) nudge.hidden = data.user.passwordSetBy !== 'admin';
+      if (nudge) nudge.hidden = asMatch ? true : data.user.passwordSetBy !== 'admin';
 
       renderPortalSections(root, data.reports || [], data.files || []);
+    }
+
+    /** The team bar above the client's own page: who you are looking at, and the way back. */
+    function mountViewAsBar(client) {
+      var wrap = root.querySelector('.portal-wrap');
+      var logins = client.users || [];
+      var picker = h('select', { id: 'viewas-login', 'aria-label': 'Show the page as this login' }, logins.length
+        ? logins.map(function (u) { return h('option', { value: u.email, text: u.name ? u.name + ' (' + u.email + ')' : u.email }); })
+        : [h('option', { value: '', text: 'No logins yet' })]);
+      picker.addEventListener('change', function () { render(viewData(client, picker.value)); });
+
+      var bar = h('div', { class: 'viewas-bar', role: 'region', 'aria-label': 'Team view' }, [
+        h('span', { class: 'viewas-label', text: 'Viewing as ' + client.name }),
+        h('span', { class: 'viewas-note', text: 'This is the client\u2019s page. Nothing here can be changed.' }),
+        h('label', { class: 'viewas-login', for: 'viewas-login' }, [h('span', { text: 'Login ' }), picker]),
+        h('a', { class: 'btn-small', href: '/portal/client#client=' + encodeURIComponent(client.id), text: 'Back to ' + client.name }),
+        h('a', { class: 'btn-small', href: '/portal/approvals', text: 'Exit' })
+      ]);
+      wrap.insertBefore(bar, wrap.firstChild);
+
+      var out = root.querySelector('[data-portal-logout]');
+      if (out) out.hidden = true;
+      if (passwordForm) {
+        Array.prototype.forEach.call(passwordForm.querySelectorAll('input, button'), function (el) { el.disabled = true; });
+        setStatus(passwordForm.querySelector('[data-form-status]'), 'Password changes are turned off while you view this page as a team member.');
+      }
+    }
+
+    function viewData(client, email) {
+      var login = (client.users || []).filter(function (u) { return u.email === email; })[0] || (client.users || [])[0];
+      return { client: client, user: { email: login ? login.email : 'no login yet' }, reports: client.reports || [], files: client.files || [] };
+    }
+
+    function loadAsTeam() {
+      return api('GET', '/api/portal/admin/clients').then(function (data) {
+        var client = data.clients.filter(function (c) { return c.id === asMatch; })[0];
+        if (!client) { go('/portal/clients'); return; }
+        mountViewAsBar(client);
+        render(viewData(client));
+      });
     }
 
     function load() {
       setStatus(status, '');
       return api('GET', '/api/portal/me').then(function (data) {
-        if (data.role === 'admin') { go('/portal/admin'); return; }
-        render(data);
+        if (data.role === 'client') { render(data); return; }
+        if (asMatch) return loadAsTeam();
+        go('/portal/approvals');
       }).catch(function (error) {
         if (error.code === 'signed_out') return;
+        if (asMatch && error.status === 404) { go('/portal/clients'); return; }
         loading.hidden = true;
         setStatus(status, error.message, 'error');
       });
@@ -368,60 +413,94 @@
     return { load: load };
   }
 
-  /* ------------------------------------------------- team: client view --- */
-
-  /**
-   * The team's window onto a client's portal: the same four sections the client
-   * sees, for any client the signed-in operator may work on. Read-only here;
-   * the team tools live on the Client portals page.
-   */
-  function initClientView(root) {
+  function initClientsList(root) {
     var status = root.querySelector('[data-portal-status]');
-    var picker = root.querySelector('[data-client-picker]');
-    var heading = root.querySelector('[data-view-client]');
-    var manage = root.querySelector('[data-manage-client]');
-    var emptyState = root.querySelector('[data-no-clients]');
-    var body = root.querySelector('[data-client-view]');
-    var clients = [];
-    var current = null;
+    var body = root.querySelector('[data-client-rows]');
+    var loading = root.querySelector('[data-clients-loading]');
+    var empty = root.querySelector('[data-clients-empty]');
+    var table = root.querySelector('[data-clients-table]');
+    var search = root.querySelector('[data-client-search]');
+    var chips = Array.prototype.slice.call(root.querySelectorAll('[data-client-chip]'));
+    var workedCol = root.querySelectorAll('[data-worked-col]');
+    var state = { clients: [], filter: 'all', query: '', workers: {}, master: false };
 
-    bindLogout(root);
-
-    function fromHash() {
-      var m = /client=([0-9a-f-]{36})/i.exec(location.hash || '');
-      return m ? m[1] : null;
+    function openCount(c) { return (c.reports || []).filter(function (r) { return r.status !== 'closed'; }).length; }
+    function lastActivity(c) {
+      return (c.reports || []).reduce(function (best, r) {
+        var at = r.progress && r.progress.lastAt;
+        return at && (!best || at > best) ? at : best;
+      }, null);
+    }
+    function awaiting(c) {
+      return (c.reports || []).some(function (r) { return r.status !== 'closed' && !(r.progress && r.progress.lastAt); });
     }
 
-    function show(id) {
-      current = clients.filter(function (c) { return c.id === id; })[0] || clients[0] || null;
-      body.hidden = !current;
-      emptyState.hidden = !!current;
-      if (!current) return;
-      picker.value = current.id;
-      heading.textContent = current.name;
-      manage.href = '/portal/admin#client=' + encodeURIComponent(current.id);
-      try { history.replaceState(null, '', '#client=' + encodeURIComponent(current.id)); } catch (e) { /* not essential */ }
-      renderPortalSections(root, current.reports || [], current.files || []);
-      var logins = current.users || [];
-      root.querySelector('[data-view-logins]').textContent = logins.length
-        ? 'Logins: ' + logins.map(function (u) { return u.name ? u.name + ' (' + u.email + ')' : u.email; }).join(', ')
-        : 'No one at this client has a login yet.';
+    function visible() {
+      var q = state.query.trim().toLowerCase();
+      return state.clients.filter(function (c) {
+        if (q && c.name.toLowerCase().indexOf(q) === -1) return false;
+        if (state.filter === 'open') return openCount(c) > 0;
+        if (state.filter === 'nologin') return c.users.length === 0;
+        return true;
+      });
     }
 
-    picker.addEventListener('change', function () { show(picker.value); });
+    function render() {
+      loading.hidden = true;
+      var rows = visible();
+      clear(body);
+      empty.hidden = rows.length > 0;
+      empty.textContent = state.clients.length ? 'No clients match.' : 'No clients yet. Use Create client to set up the first portal.';
+      table.hidden = rows.length === 0;
+      Array.prototype.forEach.call(workedCol, function (n) { n.hidden = !state.master; });
+      rows.forEach(function (c) {
+        var open = openCount(c);
+        var last = lastActivity(c);
+        var link = h('a', { class: 'client-link', href: '/portal/client#client=' + encodeURIComponent(c.id), text: c.name });
+        var cells = [
+          h('th', { scope: 'row' }, [link]),
+          h('td', { text: open ? plural(open, 'open approval') : 'None open' }),
+          h('td', { text: last ? formatDateTime(last) : (awaiting(c) ? 'Awaiting first answer' : '—') }),
+          h('td', { text: c.users.length ? plural(c.users.length, 'login') : 'No logins' })
+        ];
+        if (state.master) {
+          var names = state.workers[c.id] || [];
+          cells.push(h('td', { text: names.length ? names.join(', ') : 'Every master' }));
+        }
+        cells.push(h('td', {}, [h('a', { class: 'btn-small', href: '/portal/client#client=' + encodeURIComponent(c.id), 'aria-label': 'Open ' + c.name, text: 'Open' })]));
+        body.appendChild(h('tr', {}, cells));
+      });
+    }
+
+    search.addEventListener('input', function () { state.query = search.value; render(); });
+    chips.forEach(function (chip) {
+      chip.addEventListener('click', function () {
+        state.filter = chip.getAttribute('data-client-chip');
+        chips.forEach(function (c) { c.setAttribute('aria-pressed', c === chip ? 'true' : 'false'); });
+        render();
+      });
+    });
 
     function load() {
       setStatus(status, '');
-      api('GET', '/api/portal/me').then(function (me) {
-        if (me.role === 'client') { go('/portal'); return; }
-        Array.prototype.forEach.call(root.querySelectorAll('[data-master-control]'), function (node) { node.hidden = !me.isMaster; });
-      }, function () {});
-      return api('GET', '/api/portal/admin/clients').then(function (data) {
-        clients = data.clients.slice().sort(function (a, b) { return a.name.toLowerCase().localeCompare(b.name.toLowerCase()); });
-        clear(picker);
-        clients.forEach(function (c) { picker.appendChild(h('option', { value: c.id, text: c.name })); });
-        show(fromHash());
+      return api('GET', '/api/portal/me').then(function (me) {
+        if (me.role === 'client') { go('/portal'); return null; }
+        state.master = !!me.isMaster;
+        return state.master ? api('GET', '/api/portal/operators').then(function (d) { return d.operators || []; }, function () { return []; }) : [];
+      }).then(function (operators) {
+        if (operators === null) return null;
+        state.workers = {};
+        operators.forEach(function (op) {
+          if (op.role === 'master') return;
+          (op.clientIds || []).forEach(function (id) { (state.workers[id] = state.workers[id] || []).push(op.name); });
+        });
+        return api('GET', '/api/portal/admin/clients');
+      }).then(function (data) {
+        if (!data) return;
+        state.clients = data.clients.slice().sort(function (a, b) { return a.name.toLowerCase().localeCompare(b.name.toLowerCase()); });
+        render();
       }).catch(function (error) {
+        loading.hidden = true;
         if (error.code === 'signed_out') return;
         setStatus(status, error.message, 'error');
       });
@@ -430,14 +509,206 @@
     return { load: load };
   }
 
-  /* -------------------------------------------------------------- admin --- */
+  /* ------------------------------------------------ team bar and approvals --- */
 
+  /** Dialog for an operator choosing their own password (the owner's lives in server settings). */
+  function openPasswordDialog(trigger) {
+    var dialog = h('dialog', { class: 'team-dialog', 'aria-labelledby': 'pw-title' });
+    var status = h('p', { class: 'form-status', 'data-form-status': true, role: 'alert', 'aria-live': 'assertive' });
+    var form = h('form', { class: 'password-form', novalidate: true }, [
+      h('h2', { id: 'pw-title', tabindex: '-1', text: 'Change your password' }),
+      h('div', { class: 'field' }, [h('label', { for: 'dlg-pw-current', text: 'Current password' }), h('input', { type: 'password', id: 'dlg-pw-current', name: 'current', autocomplete: 'current-password', required: true })]),
+      h('div', { class: 'field' }, [h('label', { for: 'dlg-pw-next', text: 'New password' }), h('input', { type: 'password', id: 'dlg-pw-next', name: 'next', autocomplete: 'new-password', minlength: '10', required: true }), h('p', { class: 'field-hint', text: 'At least 10 characters. Changing it signs you out on your other devices.' })]),
+      status,
+      h('div', { class: 'row-actions' }, [
+        h('button', { class: 'btn-small btn-small--brand', type: 'submit', text: 'Change password' }),
+        h('button', { class: 'btn-small', type: 'button', 'data-close': true, text: 'Close' })
+      ])
+    ]);
+    dialog.appendChild(form);
+    function close() { dialog.close ? dialog.close() : null; dialog.remove(); if (trigger && trigger.focus) trigger.focus(); }
+    dialog.addEventListener('cancel', function (e) { e.preventDefault(); close(); });
+    form.querySelector('[data-close]').addEventListener('click', close);
+    bindForm(form, 'Changing…', function (values) {
+      return api('POST', '/api/portal/operator/password', { current: values.current, next: values.next }).then(function () {
+        form.reset();
+        return 'Password changed. Use the new one next time you sign in.';
+      });
+    });
+    document.body.appendChild(dialog);
+    if (dialog.showModal) dialog.showModal(); else dialog.setAttribute('open', '');
+    form.elements.current.focus();
+  }
+
+  /** The tab bar every team screen shares: tabs, Create client, and the account menu. */
+  function initTeamNav() {
+    var nav = document.querySelector('[data-team-nav]');
+    if (!nav) return null;
+
+    var here = location.pathname.replace(/\/+$/, '');
+    Array.prototype.forEach.call(nav.querySelectorAll('[data-tab]'), function (link) {
+      var path = link.getAttribute('href');
+      // The client workspace belongs to the Clients tab.
+      if (path === here || (path === '/portal/clients' && here === '/portal/client')) link.setAttribute('aria-current', 'page');
+    });
+
+    var badge = nav.querySelector('[data-approvals-badge]');
+    function refreshBadge() {
+      return api('GET', '/api/portal/admin/approvals').then(function (data) {
+        var open = data.reports.filter(function (r) { return r.status !== 'closed'; }).length;
+        badge.textContent = String(open);
+        badge.hidden = open === 0;
+        badge.setAttribute('aria-label', plural(open, 'open approval'));
+      }, function () { /* the badge is a convenience */ });
+    }
+
+    var logout = nav.querySelector('[data-portal-logout]');
+    logout.addEventListener('click', function () {
+      logout.disabled = true;
+      api('POST', '/api/portal/logout').catch(function () { /* signed out either way */ }).then(function () { go('/client-login'); });
+    });
+
+    var account = nav.querySelector('[data-team-account]');
+    document.addEventListener('click', function (e) { if (account.open && !account.contains(e.target)) account.open = false; });
+    account.addEventListener('keydown', function (e) { if (e.key === 'Escape' && account.open) { account.open = false; account.querySelector('summary').focus(); } });
+
+    var pwButton = nav.querySelector('[data-account-password]');
+    pwButton.addEventListener('click', function () { account.open = false; openPasswordDialog(account.querySelector('summary')); });
+
+    nav.querySelector('[data-team-create-client]').addEventListener('click', function () {
+      openCreateClient({ onCreated: function (client) { go('/portal/client#client=' + encodeURIComponent(client.id)); } });
+    });
+
+    api('GET', '/api/portal/me').then(function (me) {
+      if (me.role === 'client') return;
+      Array.prototype.forEach.call(nav.querySelectorAll('[data-team-master]'), function (n) { n.hidden = !me.isMaster; });
+      nav.querySelector('[data-account-name]').textContent = (me.user && (me.user.name || me.user.email)) || 'Account';
+      nav.querySelector('[data-account-email]').textContent = (me.user && me.user.email) || '';
+      pwButton.hidden = me.role !== 'operator';
+    }, function () {});
+
+    refreshBadge();
+    return { refreshBadge: refreshBadge };
+  }
+
+  /** One row of the Approvals table: the answers open in place; the rest sits under More. */
+  function approvalEntry(report, hooks) {
+    var closed = report.status === 'closed';
+    var items = report.items.map(function (item) {
+      var who = item.signerName + (item.decidedAt || item.savedAt ? ', ' + formatDateTime(item.decidedAt || item.savedAt) : '');
+      return h('li', {}, [
+        h('p', { class: 'approval-item-title' }, [
+          h('strong', { text: item.title || item.key }),
+          h('span', { text: ' — ' + (DECISION_TEXT[item.decision] || item.decision) + (item.choice ? ': ' + item.choice : '') })
+        ]),
+        item.comment ? h('p', { class: 'approval-comment', text: item.comment }) : null,
+        h('p', { class: 'file-meta' }, [h('span', { text: who })])
+      ]);
+    });
+
+    var answers = h('div', { class: 'approval-answers', hidden: true }, [
+      items.length ? h('ul', { class: 'approval-items' }, items) : h('p', { class: 'portal-empty', text: 'No answers yet.' })
+    ]);
+    var toggle = h('button', { type: 'button', class: 'btn-small btn-small--brand', 'aria-expanded': 'false', 'aria-label': 'Open answers: ' + report.title, text: 'Open answers' });
+    toggle.addEventListener('click', function () {
+      var open = answers.hidden;
+      answers.hidden = !open;
+      toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+      toggle.textContent = open ? 'Hide answers' : 'Open answers';
+    });
+
+    var record = h('a', { class: 'more-item', href: '/api/portal/reports/' + encodeURIComponent(report.id) + '/record', text: 'Download record' });
+    var view = h('a', { class: 'more-item', href: '/portal/report/' + encodeURIComponent(report.id), text: closed ? 'View report' : 'Preview report' });
+    var toggleState = h('button', { type: 'button', class: 'more-item', text: closed ? 'Reopen approval' : 'Close approval' });
+    confirmable(toggleState, closed ? 'Confirm: reopen' : 'Confirm: move to past', function () {
+      return api('PATCH', '/api/portal/admin/reports/' + encodeURIComponent(report.id), { status: closed ? 'open' : 'closed' }).then(function () {
+        hooks.changed(closed ? report.title + ' is open again.' : report.title + ' moved to past approvals. The client can still view it, but can no longer change their answers.');
+      }).catch(hooks.fail);
+    });
+    var remove = h('button', { type: 'button', class: 'more-item more-item--danger', text: 'Delete' });
+    confirmable(remove, 'Confirm: delete report and its answers', function () {
+      return api('DELETE', '/api/portal/admin/reports/' + encodeURIComponent(report.id)).then(function () {
+        hooks.changed('Deleted ' + report.title + ' and its answers.');
+      }).catch(hooks.fail);
+    });
+    var more = h('details', { class: 'more-menu' }, [
+      h('summary', { 'aria-label': 'More actions for ' + report.title, text: 'More' }),
+      h('div', { class: 'more-list' }, [view, record, toggleState, remove])
+    ]);
+
+    return h('li', { class: 'approval-row' }, [
+      h('div', { class: 'approval-row-main' }, [
+        h('div', { class: 'approval-row-text' }, [
+          h('p', { class: 'approval-report', text: report.clientName + ': ' + report.title }),
+          h('p', { class: 'file-meta' }, [
+            h('span', { text: progressText(report.progress) }),
+            closed && report.closedAt ? h('span', { text: 'Closed ' + formatDate(report.closedAt) }) : null,
+            report.progress && report.progress.lastAt ? h('span', { text: 'Last answered ' + formatDateTime(report.progress.lastAt) }) : null
+          ])
+        ]),
+        h('div', { class: 'row-actions' }, [toggle, more])
+      ]),
+      answers
+    ]);
+  }
+
+  /** The screen masters and operators land on: open approvals, with Past approvals folded underneath. */
+  function initApprovals(root) {
+    var status = root.querySelector('[data-portal-status]');
+    var list = root.querySelector('[data-approval-list]');
+    var loading = root.querySelector('[data-approvals-loading]');
+    var empty = root.querySelector('[data-approvals-empty]');
+    var count = root.querySelector('[data-approvals-count]');
+    var past = root.querySelector('[data-past-approvals]');
+    var pastList = root.querySelector('[data-past-approval-list]');
+    var pastCount = root.querySelector('[data-past-count]');
+
+    var hooks = {
+      changed: function (message) { setStatus(status, message, 'success'); return load(true); },
+      fail: function (error) { if (error.code !== 'signed_out') setStatus(status, error.message, 'error'); throw error; }
+    };
+
+    function render(reports) {
+      var openOnes = reports.filter(function (r) { return r.status !== 'closed'; });
+      var pastOnes = reports.filter(function (r) { return r.status === 'closed'; });
+      loading.hidden = true;
+      clear(list);
+      openOnes.forEach(function (r) { list.appendChild(approvalEntry(r, hooks)); });
+      empty.hidden = openOnes.length > 0;
+      list.hidden = openOnes.length === 0;
+      count.textContent = openOnes.length ? plural(openOnes.length, 'open report') : '';
+
+      clear(pastList);
+      pastOnes.forEach(function (r) { pastList.appendChild(approvalEntry(r, hooks)); });
+      past.hidden = pastOnes.length === 0;
+      pastCount.textContent = pastOnes.length ? '(' + pastOnes.length + ')' : '';
+    }
+
+    function load(keepStatus) {
+      if (keepStatus !== true) setStatus(status, '');
+      return api('GET', '/api/portal/admin/approvals').then(function (data) {
+        render(data.reports);
+        if (A.portalTeam) A.portalTeam.refreshBadge();
+      }).catch(function (error) {
+        loading.hidden = true;
+        if (error.code === 'signed_out') return;
+        if (error.status === 404) { go('/portal'); return; }
+        setStatus(status, error.message, 'error');
+      });
+    }
+
+    return { load: load };
+  }
+
+  function refreshBadge() {
+    if (A.portalTeam && A.portalTeam.refreshBadge) A.portalTeam.refreshBadge();
+  }
+
+  /** One client's workspace: Approvals, Files and Logins, chosen by #client=<id>. */
   function initAdmin(root) {
     var state = { clients: [], selectedId: null, maxFileBytes: 25 * 1024 * 1024 };
 
     var status = root.querySelector('[data-portal-status]');
-    var rail = root.querySelector('[data-client-list]');
-    var railLoading = root.querySelector('[data-clients-loading]');
     var detail = root.querySelector('[data-detail]');
     var detailEmpty = root.querySelector('[data-detail-empty]');
     var detailName = root.querySelector('[data-detail-name]');
@@ -462,12 +733,6 @@
     var complianceList = root.querySelector('[data-compliance-list]');
     var complianceEmpty = root.querySelector('[data-compliance-empty]');
     var complianceCount = root.querySelector('[data-compliance-count]');
-    var pastApprovalList = root.querySelector('[data-past-approval-list]');
-    var pastApprovalsHead = root.querySelector('[data-past-approvals-head]');
-    var pastApprovalsCard = root.querySelector('[data-past-approvals-card]');
-    var approvalList = root.querySelector('[data-approval-list]');
-    var approvalsEmpty = root.querySelector('[data-approvals-empty]');
-    var approvalsCount = root.querySelector('[data-approvals-count]');
 
     function selected() {
       return state.clients.filter(function (c) { return c.id === state.selectedId; })[0] || null;
@@ -484,27 +749,11 @@
 
     /* ---- rendering ---- */
 
-    function renderRail() {
-      clear(rail);
-      state.clients.forEach(function (client) {
-        var button = h('button', {
-          type: 'button', class: 'client-button',
-          'aria-current': client.id === state.selectedId ? 'true' : null
-        }, [
-          h('span', { class: 'client-button-name', text: client.name }),
-          h('span', { class: 'client-button-meta', text: plural((client.reports || []).length, 'report') + ', ' + plural(client.files.length, 'file') + ', ' + plural(client.users.length, 'login') })
-        ]);
-        button.addEventListener('click', function () { select(client.id, true); });
-        rail.appendChild(h('li', {}, [button]));
-      });
-    }
-
     function deleteFileButton(client, file) {
       var remove = h('button', { type: 'button', class: 'btn-small btn-small--danger', 'aria-label': 'Delete ' + file.name, text: 'Delete' });
       confirmable(remove, 'Confirm delete', function () {
         return api('DELETE', '/api/portal/admin/files/' + encodeURIComponent(file.id)).then(function () {
           client.files = client.files.filter(function (f) { return f.id !== file.id; });
-          renderRail();
           renderFiles(client);
           setStatus(status, 'Deleted ' + file.name + '.', 'success');
           root.querySelector('#admin-files-heading').focus();
@@ -567,7 +816,7 @@
           report.status = data.report.status;
           report.closedAt = data.report.closedAt;
           renderReports(client);
-          loadApprovals();
+          refreshBadge();
           setStatus(status, closing ? report.title + ' moved to past approvals. The client can still view it, but can no longer change their answers.' : report.title + ' is open again.', 'success');
         }).catch(fail);
       });
@@ -584,9 +833,8 @@
         confirmable(remove, 'Confirm: delete report and its answers', function () {
           return api('DELETE', '/api/portal/admin/reports/' + encodeURIComponent(report.id)).then(function () {
             client.reports = client.reports.filter(function (r) { return r.id !== report.id; });
-            renderRail();
             renderReports(client);
-            loadApprovals();
+            refreshBadge();
             setStatus(status, 'Deleted ' + report.title + ' and its answers.', 'success');
             root.querySelector('#admin-reports-heading').focus();
           }).catch(fail);
@@ -608,77 +856,6 @@
       });
       pastList.hidden = pastOnes.length === 0;
       renderPastSummary(client);
-    }
-
-    /** The team's view: every report, with each item's current answer. */
-    function approvalEntry(report) {
-      var items = report.items.map(function (item) {
-        var who = item.signerName + (item.decidedAt || item.savedAt ? ', ' + formatDateTime(item.decidedAt || item.savedAt) : '');
-        return h('li', {}, [
-          h('p', { class: 'approval-item-title' }, [
-            h('strong', { text: item.title || item.key }),
-            h('span', { text: ' \u2014 ' + (DECISION_TEXT[item.decision] || item.decision) + (item.choice ? ': ' + item.choice : '') })
-          ]),
-          item.comment ? h('p', { class: 'approval-comment', text: item.comment }) : null,
-          h('p', { class: 'file-meta' }, [h('span', { text: who })])
-        ]);
-      });
-      var closed = report.status === 'closed';
-      var summary = h('summary', {}, [
-        h('span', { class: 'approval-report', text: report.clientName + ': ' + report.title }),
-        h('span', { class: 'file-meta' }, [
-          h('span', { text: progressText(report.progress) }),
-          closed && report.closedAt ? h('span', { text: 'Closed ' + formatDate(report.closedAt) }) : null,
-          report.progress.lastAt ? h('span', { text: 'Last answered ' + formatDateTime(report.progress.lastAt) }) : null
-        ])
-      ]);
-      var record = h('a', {
-        class: 'btn-small',
-        href: '/api/portal/reports/' + encodeURIComponent(report.id) + '/record',
-        'aria-label': 'Download record (CSV) for ' + report.title,
-        text: 'Download record'
-      });
-      var remove = h('button', { type: 'button', class: 'btn-small btn-small--danger', 'aria-label': 'Delete ' + report.title, text: 'Delete' });
-      confirmable(remove, 'Confirm: delete report and its answers', function () {
-        return api('DELETE', '/api/portal/admin/reports/' + encodeURIComponent(report.id)).then(function () {
-          state.clients.forEach(function (c) {
-            if (c.reports) c.reports = c.reports.filter(function (r) { return r.id !== report.id; });
-          });
-          renderRail();
-          if (selected()) renderReports(selected());
-          loadApprovals();
-          setStatus(status, 'Deleted ' + report.title + ' and its answers.', 'success');
-        }).catch(fail);
-      });
-      var body = items.length
-        ? h('div', {}, [h('ul', { class: 'approval-items' }, items)])
-        : h('p', { class: 'portal-empty', text: 'No answers yet.' });
-      var actions = h('div', { class: 'row-actions approval-actions' }, [record, remove]);
-      return h('li', { class: 'approval-entry' }, [h('details', { open: !closed && items.length ? true : null }, [summary, body]), actions]);
-    }
-
-    /** The team's view: open reports first, then the past-approvals repository. */
-    function renderApprovals(reports) {
-      var openOnes = reports.filter(function (r) { return r.status !== 'closed'; });
-      var pastOnes = reports.filter(function (r) { return r.status === 'closed'; });
-      clear(approvalList);
-      openOnes.forEach(function (report) { approvalList.appendChild(approvalEntry(report)); });
-      approvalsEmpty.hidden = openOnes.length > 0;
-      approvalList.hidden = openOnes.length === 0;
-      approvalsCount.textContent = openOnes.length ? plural(openOnes.length, 'open report') : '';
-
-      clear(pastApprovalList);
-      pastOnes.forEach(function (report) { pastApprovalList.appendChild(approvalEntry(report)); });
-      pastApprovalsHead.hidden = pastOnes.length === 0;
-      pastApprovalsCard.hidden = pastOnes.length === 0;
-    }
-
-    function loadApprovals() {
-      return api('GET', '/api/portal/admin/approvals').then(function (data) {
-        renderApprovals(data.reports);
-      }).catch(function (error) {
-        if (error.code !== 'signed_out') setStatus(status, error.message, 'error');
-      });
     }
 
     function showCredential(title, email, password) {
@@ -716,7 +893,6 @@
           return api('DELETE', '/api/portal/admin/logins/' + encodeURIComponent(user.id)).then(function () {
             client.users = client.users.filter(function (u) { return u.id !== user.id; });
             hideCredential();
-            renderRail();
             renderLogins(client);
             setStatus(status, 'Removed the login for ' + user.email + '.', 'success');
             root.querySelector('#admin-logins-heading').focus();
@@ -743,39 +919,48 @@
     function renderDetail() {
       var client = selected();
       detail.hidden = !client;
-      detailEmpty.hidden = !!client || state.clients.length > 0;
+      detailEmpty.hidden = !!client;
       if (!client) return;
 
       detailName.textContent = client.name;
+      document.title = client.name + ' \u2014 Accessrank team';
+      var viewAs = root.querySelector('[data-view-as]');
+      viewAs.setAttribute('href', '/portal?as=' + encodeURIComponent(client.id));
       renameForm.hidden = true;
       renderReports(client);
       renderFiles(client);
       renderLogins(client);
     }
 
-    function render() {
-      railLoading.hidden = true;
-      renderRail();
-      renderDetail();
-    }
-
     function select(id, moveFocus) {
       state.selectedId = id;
       hideCredential();
       clear(queue);
-      render();
+      renderDetail();
       if (moveFocus && selected()) detailName.focus();
     }
 
-    /* ---- clients ---- */
+    /* ---- tabs ---- */
 
-    bindForm(root.querySelector('[data-add-client]'), 'Adding\u2026', function (values) {
-      return api('POST', '/api/portal/admin/clients', { name: values.name }).then(function (data) {
-        state.clients.push(data.client);
-        sortClients();
-        root.querySelector('[data-add-client]').reset();
-        setStatus(status, 'Added ' + data.client.name + '. Upload their files and create a login below.', 'success');
-        select(data.client.id, true);
+    var tabButtons = Array.prototype.slice.call(root.querySelectorAll('[data-tab-button]'));
+    function showTab(name, moveFocus) {
+      tabButtons.forEach(function (button) {
+        var on = button.getAttribute('data-tab-button') === name;
+        button.setAttribute('aria-selected', on ? 'true' : 'false');
+        button.tabIndex = on ? 0 : -1;
+        if (on && moveFocus) button.focus();
+      });
+      Array.prototype.forEach.call(root.querySelectorAll('[data-tab-panel]'), function (panel) {
+        panel.hidden = panel.getAttribute('data-tab-panel') !== name;
+      });
+    }
+    tabButtons.forEach(function (button, i) {
+      button.addEventListener('click', function () { showTab(button.getAttribute('data-tab-button')); });
+      button.addEventListener('keydown', function (e) {
+        var step = e.key === 'ArrowRight' ? 1 : e.key === 'ArrowLeft' ? -1 : 0;
+        if (!step) return;
+        e.preventDefault();
+        showTab(tabButtons[(i + step + tabButtons.length) % tabButtons.length].getAttribute('data-tab-button'), true);
       });
     });
 
@@ -804,10 +989,7 @@
     confirmable(root.querySelector('[data-delete-client]'), 'Confirm: delete client, logins and files', function () {
       var client = selected();
       return api('DELETE', '/api/portal/admin/clients/' + encodeURIComponent(client.id)).then(function () {
-        state.clients = state.clients.filter(function (c) { return c.id !== client.id; });
-        setStatus(status, 'Deleted ' + client.name + ', with its logins and files.', 'success');
-        select(state.clients.length ? state.clients[0].id : null, false);
-        root.querySelector('#clients-heading').focus();
+        go('/portal/clients');
       }).catch(fail);
     });
 
@@ -832,9 +1014,8 @@
         client.reports = client.reports || [];
         client.reports.unshift(data.report);
         addReport.reset();
-        renderRail();
         renderReports(client);
-        loadApprovals();
+        refreshBadge();
         return 'Published. ' + client.name + ' will see it in their portal straight away.';
       });
     });
@@ -849,7 +1030,6 @@
       }).then(function (data) {
         client.users.push(data.user);
         addLogin.reset();
-        renderRail();
         renderLogins(client);
         setStatus(status, 'Created a login for ' + data.user.email + '.', 'success');
         showCredential('Login created for ' + (data.user.name || data.user.email), data.user.email, data.password);
@@ -910,7 +1090,6 @@
         client.files.unshift(data.file);
         row.className = 'is-done';
         state_.textContent = 'Added';
-        renderRail();
         if (client.id === state.selectedId) renderFiles(client);
         return true;
       }, function (error) {
@@ -1001,8 +1180,6 @@
     function applyRole(me) {
       var master = !!me.isMaster;
       Array.prototype.forEach.call(root.querySelectorAll('[data-master-control]'), function (node) { node.hidden = !master; });
-      var who = root.querySelector('[data-admin-meta]');
-      if (who && !master) who.textContent = 'You can work on the clients assigned to you. Ask a master operator if one is missing.';
     }
 
     function load() {
@@ -1011,17 +1188,16 @@
       return api('GET', '/api/portal/admin/clients').then(function (data) {
         state.clients = data.clients;
         state.maxFileBytes = data.maxFileBytes || state.maxFileBytes;
-        root.querySelector('[data-max-file]').textContent = formatBytes(state.maxFileBytes);
+        Array.prototype.forEach.call(root.querySelectorAll('[data-max-file]'), function (n) { n.textContent = formatBytes(state.maxFileBytes); });
         sortClients();
         var wanted = /client=([0-9a-f-]{36})/i.exec(location.hash || '');
-        if (wanted && state.clients.some(function (c) { return c.id === wanted[1]; })) state.selectedId = wanted[1];
-        if (!selected()) state.selectedId = state.clients.length ? state.clients[0].id : null;
+        // No client chosen: the list is where you pick one.
+        if (!wanted) { go('/portal/clients'); return; }
+        state.selectedId = state.clients.some(function (c) { return c.id === wanted[1]; }) ? wanted[1] : null;
         hideCredential();
-        render();
-        loadApprovals();
+        renderDetail();
       }).catch(function (error) {
         if (error.code === 'signed_out') return;
-        railLoading.hidden = true;
         // A client login that reaches this page is told nothing about it.
         if (error.status === 404) { go('/portal'); return; }
         setStatus(status, error.message, 'error');
@@ -1038,7 +1214,6 @@
 
     var status = root.querySelector('[data-portal-status]');
     var masterOnly = root.querySelector('[data-master-only]');
-    var accountSection = root.querySelector('[data-account-section]');
     var list = root.querySelector('[data-operator-list]');
     var loading = root.querySelector('[data-operators-loading]');
     var empty = root.querySelector('[data-operators-empty]');
@@ -1214,25 +1389,12 @@
       });
     });
 
-    var passwordForm = root.querySelector('[data-operator-password-form]');
-    bindForm(passwordForm, 'Changing\u2026', function (values) {
-      return api('POST', '/api/portal/operator/password', { current: values.current, next: values.next }).then(function () {
-        passwordForm.reset();
-        return 'Password changed. Use the new one next time you sign in.';
-      });
-    });
-
     function load() {
       setStatus(status, '');
       return api('GET', '/api/portal/me').then(function (me) {
         if (me.role === 'client') { go('/portal'); return null; }
         state.meEmail = (me.user.email || '').toLowerCase();
-        accountSection.hidden = me.role !== 'operator';
-        if (!me.isMaster) {
-          loading.hidden = true;
-          meta.textContent = 'Your account. Only master operators can manage the team.';
-          return null;
-        }
+        if (!me.isMaster) { go('/portal/approvals'); return null; }
         masterOnly.hidden = false;
         return api('GET', '/api/portal/operators').then(function (data) {
           state.operators = data.operators;
@@ -1249,6 +1411,290 @@
     return { load: load };
   }
 
+  /* ----------------------------------------------------------- repository --- */
+
+  /** The team repository: master operators add and delete files; nobody else sees it. */
+  function initRepository(root) {
+    var state = { files: [], maxFileBytes: 1024 * 1024 };
+    var status = root.querySelector('[data-portal-status]');
+    var list = root.querySelector('[data-repo-list]');
+    var loading = root.querySelector('[data-repo-loading]');
+    var empty = root.querySelector('[data-repo-empty]');
+    var count = root.querySelector('[data-repo-count]');
+    var queue = root.querySelector('[data-upload-queue]');
+    var input = root.querySelector('[data-repo-input]');
+    var drop = root.querySelector('[data-repo-drop]');
+    var uploading = false;
+    var notes = [];
+    var noteForm = root.querySelector('[data-note-form]');
+    var noteList = root.querySelector('[data-note-list]');
+    var noteEmpty = root.querySelector('[data-notes-empty]');
+    var noteCount = root.querySelector('[data-notes-count]');
+
+    bindLogout(root);
+
+    function render() {
+      clear(list);
+      loading.hidden = true;
+      empty.hidden = state.files.length > 0;
+      list.hidden = state.files.length === 0;
+      count.textContent = state.files.length ? '(' + state.files.length + ')' : '';
+      state.files.forEach(function (file) {
+        var remove = h('button', { type: 'button', class: 'btn-small', 'aria-label': 'Delete ' + file.name, text: 'Delete' });
+        confirmable(remove, 'Delete for everyone', function () {
+          return api('DELETE', '/api/portal/team-files/' + encodeURIComponent(file.id)).then(function () {
+            state.files = state.files.filter(function (f) { return f.id !== file.id; });
+            render();
+            setStatus(status, 'Deleted ' + file.name + '.', 'success');
+          }, function (error) { setStatus(status, error.message, 'error'); throw error; });
+        });
+        list.appendChild(h('li', {}, [
+          h('span', { class: 'file-badge', 'aria-hidden': 'true', text: fileKind(file.name) }),
+          h('div', { class: 'file-text' }, [
+            h('p', { class: 'file-name', text: file.name }),
+            h('p', { class: 'file-meta' }, [
+              h('span', { text: formatBytes(file.size) }),
+              h('span', { text: 'Added ' + formatDate(file.createdAt) + (file.addedByName || file.addedByEmail ? ' by ' + (file.addedByName || file.addedByEmail) : '') })
+            ])
+          ]),
+          h('div', { class: 'row-actions' }, [
+            h('a', { class: 'btn-small', href: '/api/portal/team-files/' + encodeURIComponent(file.id), 'aria-label': 'Download ' + file.name, text: 'Download' }),
+            remove
+          ])
+        ]));
+      });
+    }
+
+    function uploadOne(file) {
+      var note = h('span', { class: 'upload-state', text: 'Uploading\u2026' });
+      var row = h('li', {}, [h('span', { class: 'upload-name', text: file.name }), note]);
+      queue.appendChild(row);
+      var reject = function (message) { row.className = 'is-error'; note.textContent = message; return false; };
+      if (file.size === 0) return Promise.resolve(reject('Empty file \u2014 skipped'));
+      if (file.size > state.maxFileBytes) return Promise.resolve(reject('Over the ' + formatBytes(state.maxFileBytes) + ' limit \u2014 skipped'));
+      return api('POST', '/api/portal/team-files?name=' + encodeURIComponent(file.name), null, file).then(function (data) {
+        state.files.unshift(data.file);
+        row.remove();
+        render();
+        return true;
+      }, function (error) { return reject(error.message); });
+    }
+
+    function uploadFiles(files) {
+      var batch = Array.prototype.slice.call(files || []);
+      if (!batch.length) return;
+      if (uploading) { setStatus(status, 'Wait for the current upload to finish, then add more.', 'error'); return; }
+      uploading = true;
+      clear(queue);
+      var added = 0;
+      batch.reduce(function (chain, file) {
+        return chain.then(function () { return uploadOne(file); }).then(function (ok) { if (ok) added += 1; });
+      }, Promise.resolve()).then(function () {
+        uploading = false;
+        input.value = '';
+        var skipped = batch.length - added;
+        setStatus(status, 'Added ' + plural(added, 'file') + (skipped ? '. ' + plural(skipped, 'file') + ' could not be added \u2014 see the list above.' : '.'), skipped ? 'error' : 'success');
+      });
+    }
+
+    /* ---- notes ---- */
+
+    function noteRow(note) {
+      return h('li', { class: 'note' }, [
+        h('p', { class: 'note-body', text: note.body }),
+        h('p', { class: 'file-meta' }, [
+          h('span', { text: note.authorName || note.authorEmail }),
+          note.authorName ? h('span', { text: note.authorEmail }) : null,
+          h('span', { text: formatDateTime(note.createdAt) })
+        ])
+      ]);
+    }
+
+    function renderNotes() {
+      clear(noteList);
+      notes.forEach(function (n) { noteList.appendChild(noteRow(n)); });
+      noteEmpty.hidden = notes.length > 0;
+      noteList.hidden = notes.length === 0;
+      noteCount.textContent = notes.length ? '(' + notes.length + ')' : '';
+    }
+
+    bindForm(noteForm, 'Posting…', function (values) {
+      return api('POST', '/api/portal/team-notes', { body: values.body }).then(function (data) {
+        notes.unshift(data.note);
+        noteForm.reset();
+        renderNotes();
+        return 'Note posted.';
+      });
+    });
+
+    input.addEventListener('change', function () { uploadFiles(input.files); });
+    ['dragenter', 'dragover'].forEach(function (type) {
+      drop.addEventListener(type, function (e) { e.preventDefault(); drop.classList.add('is-over'); });
+    });
+    ['dragleave', 'drop'].forEach(function (type) {
+      drop.addEventListener(type, function () { drop.classList.remove('is-over'); });
+    });
+    drop.addEventListener('drop', function (e) { e.preventDefault(); uploadFiles(e.dataTransfer.files); });
+
+    return {
+      load: function () {
+        api('GET', '/api/portal/me').then(function (me) {
+          root.querySelector('[data-note-as]').textContent = 'Posting as ' + (me.user.name || me.user.email) + (me.user.name ? ' (' + me.user.email + ')' : '');
+        }, function () {});
+        api('GET', '/api/portal/team-notes').then(function (data) { notes = data.notes; renderNotes(); }, function (error) {
+          if (error.code !== 'signed_out') setStatus(status, error.message, 'error');
+        });
+        return api('GET', '/api/portal/team-files').then(function (data) {
+          state.files = data.files;
+          state.maxFileBytes = data.maxFileBytes || state.maxFileBytes;
+          root.querySelector('[data-max-file]').textContent = formatBytes(state.maxFileBytes);
+          render();
+        }, function (error) {
+          loading.hidden = true;
+          // Anyone who is not a master gets a 404 here: send them back to the console.
+          if (error.status === 404) { go('/portal/approvals'); return; }
+          if (error.code !== 'signed_out') setStatus(status, error.message, 'error');
+        });
+      }
+    };
+  }
+
+  /* ------------------------------------------------- create-client dialog --- */
+
+  /**
+   * One dialog for creating a client portal, shared by every team screen. Step 1
+   * collects the company, an optional first login and the operators who will
+   * work on it; step 2 shows the new password once. `opts.onCreated(client)`
+   * runs after the client exists, so the caller can refresh whatever it shows.
+   */
+  function openCreateClient(opts) {
+    var previous = document.activeElement;
+    var dialog = h('dialog', { class: 'team-dialog', 'aria-labelledby': 'cc-title' });
+    var made = null;
+
+    function close() {
+      if (dialog.open && dialog.close) dialog.close();
+      dialog.remove();
+      if (made && opts.onCreated) opts.onCreated(made);
+      if (previous && previous.focus) previous.focus();
+    }
+    dialog.addEventListener('cancel', function (e) { e.preventDefault(); close(); });
+
+    function field(id, label, props, hint) {
+      var input = h('input', Object.assign({ id: id, type: 'text', autocomplete: 'off' }, props));
+      return h('div', { class: 'field' }, [h('label', { for: id, text: label }), input, hint ? h('p', { class: 'field-hint', text: hint }) : null]);
+    }
+
+    function stepOne(operators) {
+      clear(dialog);
+      var status = h('p', { class: 'form-status', 'data-form-status': true, role: 'alert', 'aria-live': 'assertive' });
+      var submit = h('button', { class: 'btn-small btn-small--brand', type: 'submit', text: 'Create client' });
+      var cancel = h('button', { class: 'btn-small', type: 'button', text: 'Cancel' });
+      cancel.addEventListener('click', close);
+
+      var picks = h('fieldset', { class: 'dialog-picks' }, [h('legend', { text: 'Operators who will work on this client' })]);
+      if (operators.length) {
+        operators.forEach(function (op, i) {
+          var id = 'cc-op-' + i;
+          picks.appendChild(h('label', { class: 'dialog-pick', for: id }, [
+            h('input', { type: 'checkbox', id: id, name: 'operatorIds', value: op.id }),
+            h('span', { text: op.name })
+          ]));
+        });
+      } else {
+        picks.appendChild(h('p', { class: 'field-hint', text: 'No operators to assign. Masters already see every client.' }));
+      }
+
+      var form = h('form', { novalidate: true, class: 'login-form' }, [
+        h('h2', { id: 'cc-title', tabindex: '-1', text: 'Create client' }),
+        field('cc-name', 'Company name', { name: 'name', maxlength: '120', required: true }),
+        h('p', { class: 'field-hint', text: 'First login for the client. Leave the email empty to add logins later.' }),
+        field('cc-login-name', 'Contact name', { name: 'loginName', maxlength: '120' }),
+        field('cc-login-email', 'Contact email', { name: 'loginEmail', type: 'email', autocapitalize: 'none', spellcheck: 'false' }),
+        picks,
+        status,
+        h('div', { class: 'row-actions' }, [submit, cancel])
+      ]);
+      dialog.appendChild(form);
+
+      form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        if (form.dataset.busy === '1') return;
+        form.dataset.busy = '1';
+        submit.disabled = true;
+        setStatus(status, '');
+        form.querySelectorAll('[aria-invalid]').forEach(function (el) { el.removeAttribute('aria-invalid'); });
+        var body = { name: form.elements.name.value };
+        var email = form.elements.loginEmail.value.trim();
+        if (email) body.login = { name: form.elements.loginName.value, email: email };
+        body.operatorIds = Array.prototype.map.call(form.querySelectorAll('input[name="operatorIds"]:checked'), function (el) { return el.value; });
+
+        api('POST', '/api/portal/admin/clients', body).then(function (data) {
+          made = data.client;
+          stepTwo(data);
+        }, function (error) {
+          var map = { email: 'loginEmail' };
+          setStatus(status, error.message, 'error');
+          var target = form.elements[map[error.field] || error.field];
+          if (target) { target.setAttribute('aria-invalid', 'true'); target.focus(); }
+        }).then(function () {
+          form.dataset.busy = '0';
+          submit.disabled = false;
+        });
+      });
+      form.elements.name.focus();
+    }
+
+    function stepTwo(data) {
+      clear(dialog);
+      var login = data.login;
+      var children = [h('h2', { id: 'cc-title', tabindex: '-1', text: data.client.name + ' is ready' })];
+      var done = h('button', { class: 'btn-small btn-small--brand', type: 'button', text: 'Done' });
+      done.addEventListener('click', close);
+
+      if (login) {
+        var text = [
+          'Your Accessrank client portal',
+          'Sign in: ' + window.location.origin + '/client-login',
+          'Email: ' + login.user.email,
+          'Password: ' + login.password,
+          '',
+          'You can choose your own password after signing in.'
+        ].join('\n');
+        var copied = h('span', { class: 'credential-copied', role: 'status', 'aria-live': 'polite' });
+        var copy = h('button', { class: 'btn-small btn-small--brand', type: 'button', text: 'Copy sign-in details' });
+        copy.addEventListener('click', function () {
+          var ok = function () { copied.textContent = 'Copied.'; };
+          var manual = function () { copied.textContent = 'Select the password above and copy it.'; };
+          if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(ok, manual);
+          else manual();
+        });
+        var mail = h('a', {
+          class: 'btn-small',
+          href: 'mailto:' + encodeURIComponent(login.user.email) + '?subject=' + encodeURIComponent('Your Accessrank client portal') + '&body=' + encodeURIComponent(text),
+          text: 'Open an email'
+        });
+        children.push(
+          h('div', { class: 'credential' }, [
+            h('p', { class: 'credential-line' }, [h('span', { class: 'credential-label', text: 'Email' }), h('code', { text: login.user.email })]),
+            h('p', { class: 'credential-line' }, [h('span', { class: 'credential-label', text: 'Password' }), h('code', { text: login.password })]),
+            h('p', { class: 'credential-note', text: 'This password is shown once and can’t be looked up later. Send it to the client now.' })
+          ]),
+          h('div', { class: 'row-actions' }, [copy, mail, done, copied])
+        );
+      } else {
+        children.push(h('p', { class: 'field-hint', text: 'The portal exists. Add the client’s logins from their page when you are ready.' }), h('div', { class: 'row-actions' }, [done]));
+      }
+      children.forEach(function (c) { dialog.appendChild(c); });
+      dialog.querySelector('#cc-title').focus();
+    }
+
+    document.body.appendChild(dialog);
+    if (dialog.showModal) dialog.showModal(); else dialog.setAttribute('open', '');
+    // The operator list is only needed for the assignment boxes; if it fails the dialog still works.
+    api('GET', '/api/portal/operators').then(function (data) { return (data.operators || []).filter(function (op) { return op.role !== 'master'; }); }, function () { return []; }).then(stepOne);
+  }
+
   /* --------------------------------------------------------------- boot --- */
 
   var views = {};
@@ -1257,12 +1703,18 @@
   var adminRoot = document.querySelector('[data-portal-admin]');
   var operatorsRoot = document.querySelector('[data-portal-operators]');
   var clientViewRoot = document.querySelector('[data-portal-client-view]');
+  var approvalsRoot = document.querySelector('[data-portal-approvals]');
+  var repositoryRoot = document.querySelector('[data-portal-repository]');
 
   if (loginForm) views.login = initLogin(loginForm);
   if (filesRoot) views.files = initFiles(filesRoot);
   if (adminRoot) views.admin = initAdmin(adminRoot);
   if (operatorsRoot) views.operators = initOperators(operatorsRoot);
-  if (clientViewRoot) views.clientView = initClientView(clientViewRoot);
+  if (clientViewRoot) views.clientView = initClientsList(clientViewRoot);
+  if (approvalsRoot) views.approvals = initApprovals(approvalsRoot);
+  if (repositoryRoot) views.repository = initRepository(repositoryRoot);
+
+  A.portalTeam = initTeamNav();
 
   /** Reload one view's data (or all of them). */
   A.portal = {

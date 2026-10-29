@@ -294,10 +294,17 @@ A private file area per client, behind a login.
 |---|---|---|
 | `/client-login` | anyone | Sign-in form. Linked from the main nav and the footer. |
 | `/portal` | a signed-in client | Their company's files, newest first, plus "change password". |
-| `/portal/admin` | the Accessrank admin login | Create clients, create and reset logins, upload and delete files. |
+| `/portal/approvals` | any team login (owner, master or operator) | Where the team lands after sign-in: open approvals with their answers, and Past approvals folded underneath. |
+| `/portal/clients` | any team login | List of the clients you can work on (search and filters). |
+| `/portal/client#client=<id>` | any team login | One client: Approvals, Files and Logins tabs; *View as client*; rename and delete (masters). |
+| `/portal?as=<client id>` | any team login | The client's own page exactly as they see it, with a team bar on top. |
+| `/portal/repository` | master operators and the owner | Team-only file drawer: add and delete files. Never visible to clients. |
+| `/portal/operators` | master operators and the owner | Add operators, assign clients, reset passwords. |
+
+`/portal/admin` still works as an old bookmark and sends staff to Approvals.
 
 **Turning it on.** Set two secrets, then deploy. That login is the only one that
-can reach `/portal/admin`; sign in with it at `/client-login` like anyone else.
+can create clients and manage operators; sign in with it at `/client-login` like anyone else.
 
 ```bash
 fly secrets set PORTAL_ADMIN_EMAIL="you@accessrank.ai" PORTAL_ADMIN_PASSWORD="at least 12 characters"
@@ -306,9 +313,9 @@ fly secrets set PORTAL_ADMIN_EMAIL="you@accessrank.ai" PORTAL_ADMIN_PASSWORD="at
 The tables come from `db/migrations/002_client_portal.sql`, applied by the
 `release_command` in `fly.toml` on every deploy (or by `npm run migrate`).
 
-**Day to day, in `/portal/admin`:**
+**Day to day, in the team console:**
 
-1. *Add a client* — the company name.
+1. *Create client* (masters only, in the bar on every screen) — company name, an optional first login (its password is shown once) and the operators who will work on it.
 2. *Drop files* onto the page (or "choose files"). They are in the client's portal immediately.
 3. *Create a login* — name and email. A password is generated and shown **once**;
    "Copy sign-in details" puts the URL, email and password on the clipboard to

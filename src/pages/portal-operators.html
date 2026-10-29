@@ -1,15 +1,11 @@
 <section class="portal-main" data-portal-operators>
   <div class="portal-wrap portal-wrap--wide">
+    {{> team-nav }}
+
     <header class="portal-head">
       <div class="portal-head-text">
-        <p class="portal-kicker">Accessrank team</p>
         <h1>Operators</h1>
         <p class="portal-meta" data-operators-meta>Who can sign in to the team console, and which clients each person works on.</p>
-      </div>
-      <div class="row-actions">
-        <a class="btn-ghost" href="/portal/admin">Client portals</a>
-        <a class="btn-ghost" href="/portal/clients">Clients</a>
-        <button class="btn-ghost" type="button" data-portal-logout>Sign out</button>
       </div>
     </header>
 
@@ -74,24 +70,5 @@
         </div>
       </section>
     </div>
-
-    <section class="portal-section" aria-labelledby="account-heading" data-account-section hidden>
-      <h2 id="account-heading">Your password</h2>
-      <div class="portal-card portal-card--form">
-        <form class="password-form" data-operator-password-form novalidate>
-          <div class="field">
-            <label for="op-pw-current">Current password</label>
-            <input type="password" id="op-pw-current" name="current" autocomplete="current-password" required>
-          </div>
-          <div class="field">
-            <label for="op-pw-next">New password</label>
-            <input type="password" id="op-pw-next" name="next" autocomplete="new-password" minlength="10" aria-describedby="op-pw-hint" required>
-            <p class="field-hint" id="op-pw-hint">At least 10 characters. Changing it signs you out on your other devices.</p>
-          </div>
-          <p class="form-status" data-form-status role="alert" aria-live="assertive"></p>
-          <button class="btn-small btn-small--brand" type="submit">Change password</button>
-        </form>
-      </div>
-    </section>
   </div>
 </section>

@@ -1,0 +1,33 @@
+<section class="portal-main" data-portal-approvals>
+  <div class="portal-wrap portal-wrap--wide">
+    {{> team-nav }}
+
+    <header class="portal-head">
+      <div class="portal-head-text">
+        <h1>Approvals</h1>
+        <p class="portal-meta" data-approvals-meta>Reports waiting on a client, with the answers as they arrive.</p>
+      </div>
+    </header>
+
+    <p class="form-status portal-status" data-portal-status role="status" aria-live="polite"></p>
+
+    <section class="portal-section" aria-labelledby="approvals-heading">
+      <div class="portal-section-head">
+        <h2 id="approvals-heading" tabindex="-1">Open approvals</h2>
+        <p class="portal-count" data-approvals-count></p>
+      </div>
+      <div class="portal-card">
+        <p class="portal-empty" data-approvals-loading>Loading&hellip;</p>
+        <p class="portal-empty" data-approvals-empty hidden>Nothing is open. Publish a report from a client&rsquo;s page and its answers will appear here as soon as the client submits them.</p>
+        <ul class="approval-list" data-approval-list hidden></ul>
+      </div>
+    </section>
+
+    <details class="past-approvals" data-past-approvals hidden>
+      <summary><span class="past-title">Past approvals</span> <span class="portal-count" data-past-count></span></summary>
+      <div class="portal-card">
+        <ul class="approval-list" data-past-approval-list></ul>
+      </div>
+    </details>
+  </div>
+</section>

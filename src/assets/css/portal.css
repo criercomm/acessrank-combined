@@ -1,5 +1,5 @@
 /*
- * portal.css — the client portal: /client-login, /portal and /portal/admin.
+ * portal.css — the client portal and the team console: /client-login, /portal, /portal/approvals and friends.
  *
  * NOT part of the inlined site bundle. build.mjs emits this as its own hashed
  * file and shell.html links it only from pages marked `portal` in site.json, so
@@ -281,3 +281,141 @@ select#new-op-role { min-height: 44px; }
 .files-head:has(input:focus-visible) .upload-button { outline: 3px solid var(--brand); outline-offset: 2px; }
 
 .client-picker { max-width: 360px; margin: 0 0 12px; }
+
+/* Create-client dialog and the button that opens it. */
+.rail-create { margin-top: 14px; }
+.team-dialog {
+  width: min(560px, calc(100vw - 32px)); max-height: calc(100vh - 48px); overflow: auto;
+  padding: 24px 24px 22px; border: 1px solid var(--hairline-strong); border-radius: 14px;
+  background: var(--surface-2); color: var(--text);
+}
+.team-dialog::backdrop { background: rgba(0, 0, 0, 0.55); }
+.team-dialog h2 { margin: 0 0 16px; font-size: 20px; line-height: 1.3; }
+.team-dialog .field { margin-bottom: 12px; }
+.team-dialog .row-actions { margin-top: 14px; }
+.dialog-picks { border: 0; margin: 14px 0 0; padding: 0; }
+.dialog-picks legend { font-size: 14px; font-weight: 600; padding: 0; margin-bottom: 6px; }
+.dialog-pick { display: flex; gap: 10px; align-items: center; padding: 6px 0; font-size: 15px; }
+
+/* ---- Team console bar: tabs, create button, account menu ---- */
+
+.team-bar {
+  display: flex; align-items: center; flex-wrap: wrap; gap: 10px 24px;
+  padding: 0 0 14px; margin-bottom: 26px; border-bottom: 1px solid var(--hairline);
+}
+.team-brand { font-size: 14px; font-weight: 700; color: var(--text); text-decoration: none; letter-spacing: -0.2px; }
+.team-tabs { list-style: none; display: flex; flex-wrap: wrap; gap: 4px; margin: 0; padding: 0; flex: 1 1 auto; }
+.team-tabs a {
+  display: inline-flex; align-items: center; gap: 8px; min-height: 36px; padding: 6px 14px;
+  font-size: 15px; font-weight: 600; color: var(--text-muted); text-decoration: none;
+  border: 1px solid transparent; border-radius: 10px;
+}
+.team-tabs a:hover { color: var(--text); background: var(--surface-2); }
+.team-tabs a[aria-current="page"] { color: var(--text); background: var(--surface-2); border-color: var(--hairline-strong); }
+.team-badge {
+  font-size: 12px; font-weight: 700; line-height: 1; padding: 4px 7px; border-radius: 999px;
+  color: var(--brand-ink); background: var(--brand); font-variant-numeric: tabular-nums;
+}
+.team-actions { display: flex; align-items: center; gap: 12px; position: relative; }
+.team-account summary {
+  list-style: none; cursor: pointer; min-height: 36px; display: inline-flex; align-items: center;
+  padding: 6px 14px; font-size: 14.5px; font-weight: 600; color: var(--text-soft);
+  border: 1px solid var(--hairline-strong); border-radius: 10px;
+}
+.team-account summary::-webkit-details-marker { display: none; }
+.team-account summary::after { content: "\25BE"; margin-left: 8px; font-size: 12px; }
+.team-account-menu {
+  position: absolute; right: 0; top: calc(100% + 6px); z-index: 20; min-width: 230px;
+  display: flex; flex-direction: column; gap: 8px; padding: 14px;
+  background: var(--surface-2); border: 1px solid var(--hairline-strong); border-radius: 12px;
+}
+.team-account-email { margin: 0 0 4px; font-size: 13.5px; color: var(--text-muted); overflow-wrap: anywhere; }
+
+/* Past approvals stay folded under Approvals until opened. */
+.past-approvals { margin-top: 34px; }
+.past-approvals > summary {
+  cursor: pointer; display: flex; align-items: baseline; gap: 12px; min-height: 36px; padding: 6px 0;
+  font-size: 18px; font-weight: 700; letter-spacing: -0.3px; color: var(--text);
+}
+.past-approvals > .portal-card { margin-top: 10px; }
+
+/* ---- Client workspace ---- */
+.back-link { margin: 0 0 14px; font-size: 14.5px; }
+.back-link a { color: var(--text-muted); }
+.detail-actions { align-items: center; }
+.detail-actions > span { display: inline-flex; gap: 8px; }
+.workspace-tabs { margin: 22px 0 0; padding-bottom: 12px; border-bottom: 1px solid var(--hairline); }
+.workspace-tabs button {
+  min-height: 36px; padding: 6px 16px; font: inherit; font-size: 15px; font-weight: 600; cursor: pointer;
+  color: var(--text-muted); background: transparent; border: 1px solid transparent; border-radius: 10px;
+}
+.workspace-tabs button:hover { color: var(--text); background: var(--surface-2); }
+.workspace-tabs button[aria-selected="true"] { color: var(--text); background: var(--surface-2); border-color: var(--hairline-strong); }
+
+/* ---- Approvals rows and the More menu ---- */
+.approval-row { padding: 16px 20px; list-style: none; }
+.approval-row + .approval-row { border-top: 1px solid var(--hairline); }
+.approval-row-main { display: flex; align-items: center; justify-content: space-between; gap: 12px 20px; flex-wrap: wrap; }
+.approval-row-text { min-width: 0; flex: 1 1 320px; }
+.approval-row .approval-report { margin: 0 0 4px; font-size: 15.5px; font-weight: 600; color: var(--text); overflow-wrap: anywhere; }
+.approval-answers { margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--hairline); }
+.more-menu { position: relative; display: inline-block; }
+.more-menu > summary {
+  list-style: none; cursor: pointer; min-height: 32px; display: inline-flex; align-items: center;
+  padding: 4px 12px; font-size: 14px; font-weight: 600; color: var(--text-soft);
+  border: 1px solid var(--hairline-strong); border-radius: 8px;
+}
+.more-menu > summary::-webkit-details-marker { display: none; }
+.more-menu > summary::after { content: "\25BE"; margin-left: 6px; font-size: 11px; }
+.more-list {
+  position: absolute; right: 0; top: calc(100% + 6px); z-index: 15; min-width: 240px;
+  display: flex; flex-direction: column; gap: 2px; padding: 8px;
+  background: var(--surface-2); border: 1px solid var(--hairline-strong); border-radius: 12px;
+}
+.more-item {
+  display: block; width: 100%; text-align: left; font: inherit; font-size: 14.5px; font-weight: 500;
+  padding: 8px 10px; min-height: 36px; color: var(--text); text-decoration: none; cursor: pointer;
+  background: transparent; border: 1px solid transparent; border-radius: 8px;
+}
+.more-item:hover { background: rgba(255, 255, 255, 0.06); }
+.more-item--danger { color: var(--danger, #ff8f8f); }
+
+/* ---- Clients list ---- */
+.client-tools { display: flex; align-items: flex-end; flex-wrap: wrap; gap: 14px 24px; margin: 22px 0 16px; }
+.client-search { margin: 0; min-width: min(320px, 100%); }
+.chip-row { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip {
+  min-height: 36px; padding: 6px 14px; font: inherit; font-size: 14.5px; font-weight: 600; cursor: pointer;
+  color: var(--text-muted); background: transparent; border: 1px solid var(--hairline-strong); border-radius: 999px;
+}
+.chip[aria-pressed="true"] { color: var(--text); background: var(--surface-2); border-color: var(--text-muted); }
+.table-card { overflow-x: auto; }
+.client-table { width: 100%; border-collapse: collapse; font-size: 15px; }
+.client-table th, .client-table td { text-align: left; padding: 14px 18px; vertical-align: middle; }
+.client-table thead th { font-size: 13px; font-weight: 600; color: var(--text-muted); border-bottom: 1px solid var(--hairline); }
+.client-table tbody tr + tr { border-top: 1px solid var(--hairline); }
+.client-table tbody th { font-weight: 600; }
+.client-link { color: var(--text); text-decoration: none; }
+.client-link:hover { text-decoration: underline; }
+
+/* ---- "View as client": the team bar above the client's own page ---- */
+.viewas-bar {
+  display: flex; align-items: center; flex-wrap: wrap; gap: 10px 18px;
+  padding: 10px 16px; margin: 0 0 24px; border: 1px solid var(--hairline-strong); border-radius: 12px;
+  background: var(--surface-2); font-size: 14.5px;
+}
+.viewas-label { font-weight: 700; color: var(--text); }
+.viewas-note { color: var(--text-muted); flex: 1 1 220px; }
+.viewas-login { display: inline-flex; align-items: center; gap: 8px; color: var(--text-muted); }
+.viewas-login select { font: inherit; max-width: 280px; }
+.team-dialog :is(h2, h3) { text-align: left; }
+.dialog-pick { justify-content: flex-start; width: auto; cursor: pointer; }
+.dialog-pick input[type="checkbox"] { width: 20px; height: 20px; flex: 0 0 auto; margin: 0; }
+.team-dialog .credential { margin-top: 4px; }
+
+/* ---- Team notes ---- */
+.note-card { margin-top: 18px; }
+.note-list { list-style: none; margin: 0; padding: 0; }
+.note { padding: 16px 20px; }
+.note + .note { border-top: 1px solid var(--hairline); }
+.note-body { margin: 0 0 8px; font-size: 15px; line-height: 1.55; color: var(--text); white-space: pre-wrap; overflow-wrap: anywhere; }

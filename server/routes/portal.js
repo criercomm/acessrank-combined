@@ -8,8 +8,9 @@ import { parseOrThrow } from '../lib/validate.js';
 import {
   PortalError, signIn, signOut, sessionFor, setSessionCookie, clearSessionCookie,
   adminOverview, createClient, renameClient, deleteClient,
-  createLogin, resetLoginPassword, deleteLogin, changeOwnPassword,
+  createLogin, createClientWithSetup, resetLoginPassword, deleteLogin, changeOwnPassword,
   listClientFiles, addFile, getFile, deleteFile, setFileArea, contentDisposition, PASSWORD_MAX,
+  listTeamFiles, addTeamFile, getTeamFile, deleteTeamFile, listTeamNotes, addTeamNote,
   addReport, listReports, getReport, deleteReport, saveApprovals, currentApprovals, adminApprovals, approvalHistory,
   setReportStatus, approvalsRecordCsv, loginClientId, isStaff, clientScope, canAccessClient, listOperators, createOperator, setOperatorRole, resetOperatorPassword,
   deleteOperator, setOperatorClients, changeOwnOperatorPassword,
@@ -97,7 +98,7 @@ router.post('/login', wrap(async (req, res) => {
   const store = await getStore();
   const session = await signIn(store, { ...input, ipHash: hashIp(clientIp(req)) });
   setSessionCookie(res, session.token, session.maxAgeSeconds);
-  res.json({ ok: true, role: session.role, next: isStaff(session) ? '/portal/admin' : '/portal' });
+  res.json({ ok: true, role: session.role, next: isStaff(session) ? '/portal/approvals' : '/portal' });
 }));
 
 router.post('/logout', wrap(async (req, res) => {
@@ -243,11 +244,16 @@ admin.get('/clients', wrap(async (req, res) => {
   });
 }));
 
+const clientCreateSchema = clientSchema.extend({
+  login: loginCreateSchema.optional().nullable(),
+  operatorIds: z.array(z.string().max(64)).max(200).optional(),
+});
+
 admin.post('/clients', requireSession('master'), wrap(async (req, res) => {
-  const { name } = parseOrThrow(clientSchema, req.body);
-  const client = await createClient(await getStore(), name);
-  log.info('portal client created', { clientId: client.id });
-  res.status(201).json({ ok: true, client });
+  const input = parseOrThrow(clientCreateSchema, req.body);
+  const { client, login } = await createClientWithSetup(await getStore(), input);
+  log.info('portal client created', { clientId: client.id, withLogin: Boolean(login) });
+  res.status(201).json({ ok: true, client, login });
 }));
 
 admin.patch('/clients/:id', requireSession('master'), wrap(async (req, res) => {
@@ -445,6 +451,73 @@ operators.delete('/:id', wrap(async (req, res) => {
 
 router.use('/operators', operators);
 
+/* ------------------------------------------------- team repository --- */
+
+/**
+ * A shared drawer for master operators: add, download, delete. Nothing else.
+ * Every route is master-only and answers 404 to anyone else, so a client login
+ * or a regular operator cannot even confirm it exists.
+ */
+const teamFiles = express.Router();
+teamFiles.use(requireSession('master'));
+
+teamFiles.get('/', wrap(async (req, res) => {
+  res.json({ ok: true, maxFileBytes: config.portal.maxFileMb * 1024 * 1024, files: await listTeamFiles(await getStore()) });
+}));
+
+teamFiles.post(
+  '/',
+  express.raw({ type: 'application/octet-stream', limit: `${config.portal.maxFileMb}mb` }),
+  wrap(async (req, res) => {
+    if (!Buffer.isBuffer(req.body)) {
+      if (req.is('application/octet-stream') !== false) throw new PortalError('That file is empty.', { code: 'file_empty' });
+      throw new PortalError('Upload the file as application/octet-stream.', { code: 'bad_upload', status: 415 });
+    }
+    const file = await addTeamFile(await getStore(), req.portal, {
+      filename: typeof req.query.name === 'string' ? req.query.name : '',
+      data: req.body,
+    });
+    log.info('portal team file added', { fileId: file.id, bytes: file.size, by: req.portal.email });
+    res.status(201).json({ ok: true, file });
+  }),
+);
+
+teamFiles.get('/:id', wrap(async (req, res) => {
+  const file = await getTeamFile(await getStore(), req.params.id);
+  if (!file) throw new PortalError('That file is no longer available.', { code: 'not_found', status: 404 });
+  const data = Buffer.isBuffer(file.data) ? file.data : Buffer.from(file.data);
+  res.setHeader('Content-Type', file.content_type);
+  res.setHeader('Content-Length', String(data.length));
+  // Always an attachment: nothing a person uploads is ever rendered on this origin.
+  res.setHeader('Content-Disposition', contentDisposition(file.filename));
+  res.end(data);
+}));
+
+teamFiles.delete('/:id', wrap(async (req, res) => {
+  await deleteTeamFile(await getStore(), req.params.id);
+  log.info('portal team file deleted', { fileId: req.params.id, by: req.portal.email });
+  res.json({ ok: true });
+}));
+
+router.use('/team-files', teamFiles);
+
+/** Team notes: a master-only, append-only record. There is deliberately no edit or delete. */
+const teamNotes = express.Router();
+teamNotes.use(requireSession('master'));
+
+teamNotes.get('/', wrap(async (req, res) => {
+  res.json({ ok: true, notes: await listTeamNotes(await getStore()) });
+}));
+
+teamNotes.post('/', wrap(async (req, res) => {
+  const input = parseOrThrow(z.object({ body: z.string().max(4000) }), req.body);
+  const note = await addTeamNote(await getStore(), req.portal, input.body);
+  log.info('portal team note added', { noteId: note.id, by: req.portal.email });
+  res.status(201).json({ ok: true, note });
+}));
+
+router.use('/team-notes', teamNotes);
+
 router.use('/admin', admin);
 
 /* -------------------------------------------------------------- errors --- */
@@ -527,9 +600,18 @@ export const portalPageGate = wrap(async (req, res, next) => {
   }
 
   if (!session) return res.redirect(302, '/client-login');
-  const staffPage = /^\/(admin|operators|clients)(\/|$)/.test(req.path);
+  if (req.path === '/admin' || req.path === '/admin/') {
+    return res.redirect(302, isStaff(session) ? '/portal/approvals' : '/portal');
+  }
+  const staffPage = /^\/(approvals|clients|client|repository|operators)(\/|$)/.test(req.path);
   if (staffPage && !isStaff(session)) return res.redirect(302, '/portal');
-  if (!staffPage && isStaff(session)) return res.redirect(302, '/portal/admin');
+  // Repository and Operators are for master operators; everyone else lands on Approvals.
+  if (/^\/(repository|operators)(\/|$)/.test(req.path) && !session.isMaster) {
+    return res.redirect(302, '/portal/approvals');
+  }
+  // Staff open the client page only to look at it as a client does: /portal?as=<client id>.
+  const viewingAs = (req.path === '/' || req.path === '') && typeof req.query.as === 'string' && /^[0-9a-f-]{36}$/i.test(req.query.as);
+  if (!staffPage && isStaff(session) && !viewingAs) return res.redirect(302, '/portal/approvals');
   return next();
 });
 
@@ -539,7 +621,7 @@ export const loginPageGate = wrap(async (req, res, next) => {
   res.setHeader('Cache-Control', 'private, no-store');
   try {
     const session = await sessionFor(await getStore(), req);
-    if (session) return res.redirect(302, isStaff(session) ? '/portal/admin' : '/portal');
+    if (session) return res.redirect(302, isStaff(session) ? '/portal/approvals' : '/portal');
   } catch (err) {
     log.error('portal gate could not read the session', { err: err.message });
   }

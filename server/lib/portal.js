@@ -363,6 +363,34 @@ function pgRepo(store) {
       return (await q('UPDATE portal_files SET area = $2 WHERE id = $1 RETURNING id, client_id, filename, size_bytes, area, created_at', [id, area])).rows[0] ?? null;
     },
 
+    async listTeamFiles() {
+      return (await q('SELECT id, filename, size_bytes, added_by_name, added_by_email, created_at FROM portal_team_files ORDER BY created_at DESC')).rows;
+    },
+    async insertTeamFile({ filename, contentType, data, addedByName, addedByEmail }) {
+      return (await q(
+        `INSERT INTO portal_team_files (filename, content_type, size_bytes, data, added_by_name, added_by_email)
+         VALUES ($1, $2, $3, $4, $5, $6) RETURNING id, filename, size_bytes, added_by_name, added_by_email, created_at`,
+        [filename, contentType, data.length, data, addedByName, addedByEmail],
+      )).rows[0];
+    },
+    async getTeamFile(id) {
+      return (await q('SELECT * FROM portal_team_files WHERE id = $1', [id])).rows[0] ?? null;
+    },
+    async deleteTeamFile(id) {
+      return (await q('DELETE FROM portal_team_files WHERE id = $1', [id])).rowCount > 0;
+    },
+
+    async listTeamNotes() {
+      return (await q('SELECT id, body, author_name, author_email, created_at FROM portal_team_notes ORDER BY created_at DESC LIMIT 500')).rows;
+    },
+    async insertTeamNote({ body, authorName, authorEmail }) {
+      return (await q(
+        `INSERT INTO portal_team_notes (body, author_name, author_email) VALUES ($1, $2, $3)
+         RETURNING id, body, author_name, author_email, created_at`,
+        [body, authorName, authorEmail],
+      )).rows[0];
+    },
+
     async listOperators() {
       return (await q('SELECT id, name, email, role, password_set_by, last_login_at, created_at FROM portal_operators ORDER BY lower(name), created_at')).rows;
     },
@@ -481,6 +509,8 @@ function memRepo(store) {
   store._portal.assignments ??= [];
   store._portal.reports ??= new Map();
   store._portal.approvals ??= [];
+  store._portal.teamFiles ??= new Map();
+  store._portal.teamNotes ??= [];
   const db = store._portal;
   let last = 0;
   // Strictly increasing, so "newest first" is stable for rows made in the same millisecond.
@@ -599,6 +629,27 @@ function memRepo(store) {
       const row = db.files.get(id);
       if (!row) return null;
       row.area = area;
+      return row;
+    },
+
+    async listTeamFiles() {
+      return [...db.teamFiles.values()].sort((a, b) => byCreated(b, a));
+    },
+    async insertTeamFile({ filename, contentType, data, addedByName, addedByEmail }) {
+      const row = {
+        id: crypto.randomUUID(), created_at: now(), filename, content_type: contentType,
+        size_bytes: data.length, data, added_by_name: addedByName, added_by_email: addedByEmail,
+      };
+      db.teamFiles.set(row.id, row);
+      return row;
+    },
+    async getTeamFile(id) { return db.teamFiles.get(id) ?? null; },
+    async deleteTeamFile(id) { return db.teamFiles.delete(id); },
+
+    async listTeamNotes() { return [...db.teamNotes].sort((a, b) => byCreated(b, a)); },
+    async insertTeamNote({ body, authorName, authorEmail }) {
+      const row = { id: crypto.randomUUID(), created_at: now(), body, author_name: authorName, author_email: authorEmail };
+      db.teamNotes.push(row);
       return row;
     },
 
@@ -892,6 +943,54 @@ export async function createClient(store, rawName) {
   return { ...clientOut(await repoFor(store).insertClient(cleanClientName(rawName))), users: [], files: [], reports: [] };
 }
 
+/**
+ * Create a client portal in one step: the client, optionally its first login
+ * (returned with its one-time password) and optionally the operators who work on
+ * it. Everything that can be checked is checked before anything is written, and
+ * if the login is refused the client is removed again, so a failed attempt
+ * leaves nothing behind.
+ */
+export async function createClientWithSetup(store, { name, login = null, operatorIds = [] }) {
+  const repo = repoFor(store);
+  const cleanName = cleanClientName(name);
+
+  const wanted = [...new Set((Array.isArray(operatorIds) ? operatorIds : []).map(String))];
+  const operators = [];
+  for (const id of wanted) operators.push(await operatorOrThrow(repo, id));
+
+  if (login) {
+    const identity = normalizeLoginEmail(login.email);
+    if (identity.key === config.portal.adminEmail || (await repo.findOperatorByEmailKey(identity.key))) {
+      throw new PortalError('That address belongs to an Accessrank login. Use a different email.', {
+        code: 'email_reserved', field: 'email',
+      });
+    }
+  }
+
+  const client = await createClient(store, cleanName);
+  let created = null;
+  try {
+    if (login) created = await createLogin(store, client.id, login);
+  } catch (err) {
+    await repo.deleteClient(client.id);
+    throw err;
+  }
+
+  if (operators.length) {
+    const all = await repo.listAssignments();
+    for (const op of operators) {
+      const ids = new Set(all.filter((a) => a.operator_id === op.id).map((a) => a.client_id));
+      ids.add(client.id);
+      await repo.setAssignments(op.id, [...ids]);
+    }
+  }
+
+  return {
+    client: { ...client, users: created ? [created.user] : [] },
+    login: created,
+  };
+}
+
 export async function renameClient(store, id, rawName) {
   if (!isUuid(id)) throw notFound('client');
   const row = await repoFor(store).renameClient(id, cleanClientName(rawName));
@@ -1133,6 +1232,70 @@ export async function listClientFiles(store, clientId) {
 }
 
 export const FILE_AREAS = new Set(['files', 'compliance', 'approvals']);
+
+/* ===================================================== team repository === */
+
+const teamFileOut = (row) => ({
+  id: row.id,
+  name: row.filename,
+  size: row.size_bytes,
+  addedByName: row.added_by_name || '',
+  addedByEmail: row.added_by_email || '',
+  createdAt: iso(row.created_at),
+});
+
+/** The shared drawer for master operators. Callers must already have checked the session is a master. */
+export async function listTeamFiles(store) {
+  return (await repoFor(store).listTeamFiles()).map(teamFileOut);
+}
+
+export async function addTeamFile(store, session, { filename, data }) {
+  if (!Buffer.isBuffer(data) || data.length === 0) {
+    throw new PortalError('That file is empty.', { code: 'file_empty' });
+  }
+  const name = sanitizeFilename(filename);
+  return teamFileOut(await repoFor(store).insertTeamFile({
+    filename: name,
+    contentType: contentTypeFor(name),
+    data,
+    addedByName: String(session.name ?? '').slice(0, 120),
+    addedByEmail: String(session.email ?? '').slice(0, 254),
+  }));
+}
+
+/** The row including its bytes, or null. */
+const teamNoteOut = (row) => ({
+  id: row.id,
+  body: row.body,
+  authorName: row.author_name || '',
+  authorEmail: row.author_email || '',
+  createdAt: iso(row.created_at),
+});
+
+export async function listTeamNotes(store) {
+  return (await repoFor(store).listTeamNotes()).map(teamNoteOut);
+}
+
+/** Append a note. The author is always the signed-in session, never anything the browser sends. */
+export async function addTeamNote(store, session, rawBody) {
+  const body = String(rawBody ?? '').replace(/\r\n?/g, '\n').trim();
+  if (!body) throw new PortalError('Write a note first.', { code: 'note_empty', field: 'body' });
+  if (body.length > 2000) throw new PortalError('Keep a note to 2,000 characters.', { code: 'note_long', field: 'body' });
+  return teamNoteOut(await repoFor(store).insertTeamNote({
+    body,
+    authorName: String(session.name ?? '').slice(0, 120),
+    authorEmail: String(session.email ?? '').slice(0, 254),
+  }));
+}
+
+export async function getTeamFile(store, id) {
+  if (!isUuid(id)) return null;
+  return repoFor(store).getTeamFile(id);
+}
+
+export async function deleteTeamFile(store, id) {
+  if (!isUuid(id) || !(await repoFor(store).deleteTeamFile(id))) throw notFound('file');
+}
 
 export async function addFile(store, clientId, { filename, data, area = 'files' }) {
   const repo = repoFor(store);
@@ -1391,9 +1554,10 @@ export async function deleteFile(store, id) {
 export default {
   PortalError, hashPassword, verifyPassword, generatePassword,
   signIn, signOut, sessionFor, setSessionCookie, clearSessionCookie,
-  adminOverview, createClient, renameClient, deleteClient,
+  adminOverview, createClient, createClientWithSetup, renameClient, deleteClient,
   createLogin, resetLoginPassword, deleteLogin, changeOwnPassword,
   listClientFiles, addFile, getFile, deleteFile, setFileArea,
+  listTeamFiles, addTeamFile, getTeamFile, deleteTeamFile, listTeamNotes, addTeamNote,
   addReport, listReports, getReport, deleteReport, saveApprovals, currentApprovals, adminApprovals, approvalHistory,
   setReportStatus, approvalsRecordCsv, loginClientId, isStaff, clientScope, canAccessClient, listOperators, createOperator, setOperatorRole, resetOperatorPassword,
   deleteOperator, setOperatorClients, changeOwnOperatorPassword,

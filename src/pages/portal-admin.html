@@ -1,197 +1,176 @@
 <section class="portal-main" data-portal-admin>
   <div class="portal-wrap portal-wrap--wide">
-    <header class="portal-head">
-      <div class="portal-head-text">
-        <p class="portal-kicker">Accessrank team</p>
-        <h1>Client portals</h1>
-        <p class="portal-meta" data-admin-meta>Create a client area, give people a login, and drop in their files.</p>
-      </div>
-      <div class="row-actions">
-        <a class="btn-ghost" href="/portal/operators" data-master-control>Operators</a>
-        <a class="btn-ghost" href="/portal/clients">Clients</a>
-        <button class="btn-ghost" type="button" data-portal-logout>Sign out</button>
-      </div>
-    </header>
+    {{> team-nav }}
+
+    <p class="back-link"><a href="/portal/clients">&larr; All clients</a></p>
 
     <p class="form-status portal-status" data-portal-status role="status" aria-live="polite"></p>
 
-    <section class="portal-section" aria-labelledby="approvals-heading">
-      <div class="portal-section-head">
-        <h2 id="approvals-heading" tabindex="-1">Approvals</h2>
-        <p class="portal-count" data-approvals-count></p>
-      </div>
-      <div class="portal-card">
-        <p class="portal-empty" data-approvals-empty>No reports published yet. Publish one from a client below and the answers will appear here as soon as the client submits them.</p>
-        <ul class="approval-list" data-approval-list hidden></ul>
-      </div>
-      <h3 class="approval-subhead" data-past-approvals-head hidden>Past approvals</h3>
-      <div class="portal-card" data-past-approvals-card hidden>
-        <ul class="approval-list" data-past-approval-list></ul>
-      </div>
-    </section>
+    <p class="portal-empty" data-detail-empty hidden>That client no longer exists. <a href="/portal/clients">Back to Clients</a>.</p>
 
-    <div class="admin-grid">
-      <section class="admin-rail" aria-labelledby="clients-heading">
-        <h2 id="clients-heading" tabindex="-1">Clients</h2>
-        <p class="portal-empty portal-empty--rail" data-clients-loading>Loading&hellip;</p>
-        <ul class="client-list" data-client-list></ul>
+    <div data-detail hidden>
+      <header class="portal-head">
+        <div class="portal-head-text">
+          <p class="portal-kicker">Client</p>
+          <h1 data-detail-name tabindex="-1"></h1>
+          <p class="portal-meta" data-admin-meta></p>
+        </div>
+        <div class="row-actions detail-actions">
+          <a class="btn-small btn-small--brand" href="/portal" data-view-as>View as client</a>
+          <span data-master-control hidden>
+            <button class="btn-small" type="button" data-rename-open>Rename</button>
+            <button class="btn-small btn-small--danger" type="button" data-delete-client>Delete client</button>
+          </span>
+        </div>
+      </header>
 
-        <form class="rail-form" data-add-client data-master-control novalidate>
-          <label for="new-client-name">Add a client</label>
-          <input type="text" id="new-client-name" name="name" placeholder="Company name" autocomplete="off" maxlength="120" required>
+      <form class="rename-form" data-rename-form hidden novalidate>
+        <label for="rename-name">Client name</label>
+        <div class="inline-row">
+          <input type="text" id="rename-name" name="name" autocomplete="off" maxlength="120" required>
+          <button class="btn-small btn-small--brand" type="submit">Save name</button>
+          <button class="btn-small" type="button" data-rename-cancel>Cancel</button>
+        </div>
+        <p class="form-status" data-form-status role="alert" aria-live="assertive"></p>
+      </form>
+
+
+      <div class="team-tabs workspace-tabs" role="tablist" aria-label="This client">
+        <button type="button" role="tab" id="tab-approvals" aria-controls="panel-approvals" aria-selected="true" data-tab-button="approvals">Approvals</button>
+        <button type="button" role="tab" id="tab-files" aria-controls="panel-files" aria-selected="false" tabindex="-1" data-tab-button="files">Files</button>
+        <button type="button" role="tab" id="tab-logins" aria-controls="panel-logins" aria-selected="false" tabindex="-1" data-tab-button="logins">Logins</button>
+      </div>
+
+      <div role="tabpanel" id="panel-approvals" aria-labelledby="tab-approvals" data-tab-panel="approvals">
+      <!-- ------------------------------------------- approvals --- -->
+      <section class="portal-section" aria-labelledby="admin-reports-heading">
+        <div class="portal-section-head">
+          <h3 id="admin-reports-heading" tabindex="-1">Approvals</h3>
+          <p class="portal-count" data-report-count></p>
+        </div>
+
+        <div class="portal-card">
+          <p class="portal-empty" data-reports-empty>No reports waiting for approval.</p>
+          <ul class="file-list" data-report-list hidden></ul>
+        </div>
+
+        <form class="login-form" data-add-report novalidate>
+          <h4>Publish a report for approval</h4>
+          <p class="field-hint">Upload the finished HTML report. The client opens it inside their portal, signed in, and their answers appear under Approvals. When you are done with it, close it to move it to Past approvals.</p>
+          <div class="login-form-row">
+            <div class="field">
+              <label for="new-report-title">Title</label>
+              <input type="text" id="new-report-title" name="title" autocomplete="off" maxlength="160" required>
+            </div>
+            <div class="field">
+              <label for="new-report-file">HTML file</label>
+              <input type="file" id="new-report-file" name="file" accept=".html,.htm,text/html" required>
+            </div>
+            <button class="btn-small btn-small--brand" type="submit">Publish report</button>
+          </div>
           <p class="form-status" data-form-status role="alert" aria-live="assertive"></p>
-          <button class="btn-small btn-small--brand" type="submit">Add client</button>
         </form>
       </section>
 
-      <div class="admin-detail">
-        <p class="portal-card portal-empty" data-detail-empty>
-          Add your first client on the left. You&rsquo;ll then be able to create their logins and upload their files here.
-        </p>
-
-        <div data-detail hidden>
-          <div class="detail-head">
-            <h2 data-detail-name tabindex="-1"></h2>
-            <div class="detail-actions" data-master-control>
-              <button class="btn-small" type="button" data-rename-open>Rename</button>
-              <button class="btn-small btn-small--danger" type="button" data-delete-client>Delete client</button>
-            </div>
-          </div>
-
-          <form class="rename-form" data-rename-form hidden novalidate>
-            <label for="rename-name">Client name</label>
-            <div class="inline-row">
-              <input type="text" id="rename-name" name="name" autocomplete="off" maxlength="120" required>
-              <button class="btn-small btn-small--brand" type="submit">Save name</button>
-              <button class="btn-small" type="button" data-rename-cancel>Cancel</button>
-            </div>
-            <p class="form-status" data-form-status role="alert" aria-live="assertive"></p>
-          </form>
-
-          <!-- ------------------------------------------- approvals --- -->
-          <section class="portal-section" aria-labelledby="admin-reports-heading">
-            <div class="portal-section-head">
-              <h3 id="admin-reports-heading" tabindex="-1">Approvals</h3>
-              <p class="portal-count" data-report-count></p>
-            </div>
-
-            <div class="portal-card">
-              <p class="portal-empty" data-reports-empty>No reports waiting for approval.</p>
-              <ul class="file-list" data-report-list hidden></ul>
-            </div>
-
-            <form class="login-form" data-add-report novalidate>
-              <h4>Publish a report for approval</h4>
-              <p class="field-hint">Upload the finished HTML report. The client opens it inside their portal, signed in, and their answers appear in the Approvals list above. When you are done with it, close it to move it to Past approvals.</p>
-              <div class="login-form-row">
-                <div class="field">
-                  <label for="new-report-title">Title</label>
-                  <input type="text" id="new-report-title" name="title" autocomplete="off" maxlength="160" required>
-                </div>
-                <div class="field">
-                  <label for="new-report-file">HTML file</label>
-                  <input type="file" id="new-report-file" name="file" accept=".html,.htm,text/html" required>
-                </div>
-                <button class="btn-small btn-small--brand" type="submit">Publish report</button>
-              </div>
-              <p class="form-status" data-form-status role="alert" aria-live="assertive"></p>
-            </form>
-          </section>
-
-          <section class="portal-section" aria-labelledby="admin-past-heading">
-            <div class="files-head">
-              <h3 id="admin-past-heading" tabindex="-1">Past approvals <span class="portal-count" data-past-count></span></h3>
-              <label class="btn-small upload-button" for="upload-approvals">Add files</label>
-              <input class="visually-hidden" type="file" id="upload-approvals" multiple data-upload-input="approvals">
-            </div>
-            <p class="field-hint files-hint">Closed reports and their recorded answers are kept here. Add completed approvals the client sent back, such as a signed PDF; the client sees them in their own Past approvals.</p>
-            <div class="portal-card drop-card" data-drop-area="approvals">
-              <p class="portal-empty" data-past-empty>No past approvals yet. Close a report, or drag a completed approval here.</p>
-              <ul class="file-list" data-past-list hidden></ul>
-              <ul class="file-list" data-approval-file-list hidden></ul>
-            </div>
-          </section>
-
-          <!-- ------------------------------------------------ files --- -->
-          <!-- ------------------------------------------------ files --- -->
-          <section class="portal-section" aria-labelledby="admin-files-heading">
-            <div class="portal-section-head">
-              <h3 id="admin-files-heading" tabindex="-1">Files</h3>
-              <p class="portal-count" data-file-count></p>
-            </div>
-
-            <p class="file-area-note field-hint">Each file lives in one list, and the client sees both lists in their portal. Add files with the buttons, or drag them onto a list. <strong>Move</strong> puts a file in the other list; <strong>Delete</strong> removes it.</p>
-            <ul class="upload-queue" data-upload-queue aria-label="Uploads in progress"></ul>
-
-            <div class="files-head">
-              <h4 class="files-subhead" id="admin-compliance-heading" tabindex="-1">Compliance files <span class="portal-count" data-compliance-count></span></h4>
-              <label class="btn-small upload-button" for="upload-compliance">Add files</label>
-              <input class="visually-hidden" type="file" id="upload-compliance" multiple data-upload-input="compliance">
-            </div>
-            <p class="field-hint files-hint">Accessibility Compliance Record, accessibility statement, VPAT and similar. Up to <span data-max-file>{{ maxFileMb }} MB</span> each.</p>
-            <div class="portal-card drop-card" data-drop-area="compliance">
-              <p class="portal-empty" data-compliance-empty>No compliance files yet. Drag files here or use Add files.</p>
-              <ul class="file-list" data-compliance-list hidden></ul>
-            </div>
-
-            <div class="files-head">
-              <h4 class="files-subhead">Other files</h4>
-              <label class="btn-small upload-button" for="upload-files">Add files</label>
-              <input class="visually-hidden" type="file" id="upload-files" multiple data-upload-input="files">
-            </div>
-            <div class="portal-card drop-card" data-drop-area="files">
-              <p class="portal-empty" data-files-empty>No files yet. Drag files here or use Add files.</p>
-              <ul class="file-list" data-file-list hidden></ul>
-            </div>
-          </section>
-
-          <!-- ----------------------------------------------- logins --- -->
-          <section class="portal-section" aria-labelledby="admin-logins-heading">
-            <div class="portal-section-head">
-              <h3 id="admin-logins-heading" tabindex="-1">Logins</h3>
-              <p class="portal-count" data-login-count></p>
-            </div>
-
-            <div class="credential" data-credential hidden tabindex="-1">
-              <p class="credential-title" data-credential-title></p>
-              <p class="credential-line">
-                <span class="credential-label">Email</span>
-                <code data-credential-email></code>
-              </p>
-              <p class="credential-line">
-                <span class="credential-label">Password</span>
-                <code data-credential-password></code>
-              </p>
-              <div class="credential-actions">
-                <button class="btn-small btn-small--brand" type="button" data-credential-copy>Copy sign-in details</button>
-                <button class="btn-small" type="button" data-credential-dismiss>Done</button>
-                <span class="credential-copied" data-credential-copied role="status" aria-live="polite"></span>
-              </div>
-              <p class="credential-note">This password is shown once and can&rsquo;t be looked up later. Send it to the client now; they can replace it with their own after signing in.</p>
-            </div>
-
-            <div class="portal-card">
-              <p class="portal-empty" data-logins-empty>No logins yet. Nobody at this client can sign in until you add one.</p>
-              <ul class="login-list" data-login-list hidden></ul>
-            </div>
-
-            <form class="login-form" data-add-login novalidate>
-              <h4>Add a login</h4>
-              <div class="login-form-row">
-                <div class="field">
-                  <label for="new-login-name">Name <span class="opt">(optional)</span></label>
-                  <input type="text" id="new-login-name" name="name" autocomplete="off" maxlength="120">
-                </div>
-                <div class="field">
-                  <label for="new-login-email">Email</label>
-                  <input type="email" id="new-login-email" name="email" autocomplete="off" autocapitalize="none" spellcheck="false" required>
-                </div>
-                <button class="btn-small btn-small--brand" type="submit">Create login</button>
-              </div>
-              <p class="form-status" data-form-status role="alert" aria-live="assertive"></p>
-            </form>
-          </section>
+      <section class="portal-section" aria-labelledby="admin-past-heading">
+        <div class="files-head">
+          <h3 id="admin-past-heading" tabindex="-1">Past approvals <span class="portal-count" data-past-count></span></h3>
+          <label class="btn-small upload-button" for="upload-approvals">Add files</label>
+          <input class="visually-hidden" type="file" id="upload-approvals" multiple data-upload-input="approvals">
         </div>
+        <p class="field-hint files-hint">Closed reports and their recorded answers are kept here. Add completed approvals the client sent back, such as a signed PDF; the client sees them in their own Past approvals.</p>
+        <div class="portal-card drop-card" data-drop-area="approvals">
+          <p class="portal-empty" data-past-empty>No past approvals yet. Close a report, or drag a completed approval here.</p>
+          <ul class="file-list" data-past-list hidden></ul>
+          <ul class="file-list" data-approval-file-list hidden></ul>
+        </div>
+      </section>
+
+      <!-- ------------------------------------------------ files --- -->
+      <!-- ------------------------------------------------ files --- -->
+      </div>
+
+      <div role="tabpanel" id="panel-files" aria-labelledby="tab-files" data-tab-panel="files" hidden>
+      <section class="portal-section" aria-labelledby="admin-files-heading">
+        <div class="portal-section-head">
+          <h3 id="admin-files-heading" tabindex="-1">Files</h3>
+          <p class="portal-count" data-file-count></p>
+        </div>
+
+        <p class="file-area-note field-hint">Each file lives in one list, and the client sees both lists in their portal. Add files with the buttons, or drag them onto a list. <strong>Move</strong> puts a file in the other list; <strong>Delete</strong> removes it.</p>
+        <ul class="upload-queue" data-upload-queue aria-label="Uploads in progress"></ul>
+
+        <div class="files-head">
+          <h4 class="files-subhead" id="admin-compliance-heading" tabindex="-1">Compliance files <span class="portal-count" data-compliance-count></span></h4>
+          <label class="btn-small upload-button" for="upload-compliance">Add files</label>
+          <input class="visually-hidden" type="file" id="upload-compliance" multiple data-upload-input="compliance">
+        </div>
+        <p class="field-hint files-hint">Accessibility Compliance Record, accessibility statement, VPAT and similar. Up to <span data-max-file>{{ maxFileMb }} MB</span> each.</p>
+        <div class="portal-card drop-card" data-drop-area="compliance">
+          <p class="portal-empty" data-compliance-empty>No compliance files yet. Drag files here or use Add files.</p>
+          <ul class="file-list" data-compliance-list hidden></ul>
+        </div>
+
+        <div class="files-head">
+          <h4 class="files-subhead">Other files</h4>
+          <label class="btn-small upload-button" for="upload-files">Add files</label>
+          <input class="visually-hidden" type="file" id="upload-files" multiple data-upload-input="files">
+        </div>
+        <div class="portal-card drop-card" data-drop-area="files">
+          <p class="portal-empty" data-files-empty>No files yet. Drag files here or use Add files.</p>
+          <ul class="file-list" data-file-list hidden></ul>
+        </div>
+      </section>
+
+      </div>
+
+      <div role="tabpanel" id="panel-logins" aria-labelledby="tab-logins" data-tab-panel="logins" hidden>
+      <!-- ----------------------------------------------- logins --- -->
+      <section class="portal-section" aria-labelledby="admin-logins-heading">
+        <div class="portal-section-head">
+          <h3 id="admin-logins-heading" tabindex="-1">Logins</h3>
+          <p class="portal-count" data-login-count></p>
+        </div>
+
+        <div class="credential" data-credential hidden tabindex="-1">
+          <p class="credential-title" data-credential-title></p>
+          <p class="credential-line">
+            <span class="credential-label">Email</span>
+            <code data-credential-email></code>
+          </p>
+          <p class="credential-line">
+            <span class="credential-label">Password</span>
+            <code data-credential-password></code>
+          </p>
+          <div class="credential-actions">
+            <button class="btn-small btn-small--brand" type="button" data-credential-copy>Copy sign-in details</button>
+            <button class="btn-small" type="button" data-credential-dismiss>Done</button>
+            <span class="credential-copied" data-credential-copied role="status" aria-live="polite"></span>
+          </div>
+          <p class="credential-note">This password is shown once and can&rsquo;t be looked up later. Send it to the client now; they can replace it with their own after signing in.</p>
+        </div>
+
+        <div class="portal-card">
+          <p class="portal-empty" data-logins-empty>No logins yet. Nobody at this client can sign in until you add one.</p>
+          <ul class="login-list" data-login-list hidden></ul>
+        </div>
+
+        <form class="login-form" data-add-login novalidate>
+          <h4>Add a login</h4>
+          <div class="login-form-row">
+            <div class="field">
+              <label for="new-login-name">Name <span class="opt">(optional)</span></label>
+              <input type="text" id="new-login-name" name="name" autocomplete="off" maxlength="120">
+            </div>
+            <div class="field">
+              <label for="new-login-email">Email</label>
+              <input type="email" id="new-login-email" name="email" autocomplete="off" autocapitalize="none" spellcheck="false" required>
+            </div>
+            <button class="btn-small btn-small--brand" type="submit">Create login</button>
+          </div>
+          <p class="form-status" data-form-status role="alert" aria-live="assertive"></p>
+        </form>
+      </section>
       </div>
     </div>
   </div>

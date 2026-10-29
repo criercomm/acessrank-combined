@@ -127,11 +127,11 @@ WHERE created_at < now() - interval '180 days'
 
 ### Client portal
 
-Everything routine is done in `/portal/admin` (add a client, upload, create or
-reset a login). The cases that are not:
+Everything routine is done in the team console, which opens on `/portal/approvals`
+(Create client, then Clients → a client → Files and Logins). The cases that are not:
 
-**"A client says they cannot sign in."** Open the client in `/portal/admin` and
-press *Reset password* on their login, then send them the new one. If the
+**"A client says they cannot sign in."** Open the client in *Clients* and
+press (under *Logins*) *Reset password* on their login, then send them the new one. If the
 message they see is "Too many sign-in attempts", the lockout clears by itself
 15 minutes after the last wrong attempt — a reset does not shorten it.
 

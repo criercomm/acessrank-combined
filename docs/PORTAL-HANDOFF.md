@@ -62,7 +62,7 @@ docs/RUNBOOK.md          operating notes
    `[deploy]` block and run that script once by hand after deploying.
 
 3. Sign in at `/client-login` with the admin email and password. You land on
-   `/portal/admin`.
+   `/portal/approvals`.
 
 Without the two secrets the site deploys and runs as before; the admin page is
 simply unreachable and no client can be created.
