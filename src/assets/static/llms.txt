@@ -41,10 +41,10 @@ Shopify, WordPress, WooCommerce, BigCommerce and custom builds.
 
 ## Key facts Accessrank cites (sources at https://accessrank.ai/citations)
 
-- 5,000+ ADA digital accessibility lawsuits were filed in 2025, up from 4,187 in 2024 (UsableNet).
-- About 77% of ADA website lawsuits target ecommerce sites (UsableNet 2024 Year-End Report).
+- More than 5,000 ADA digital accessibility lawsuits were filed in 2025, and UsableNet projects about 6,176 for 2026 (a projection based on filings through June 14, 2026).
+- Nearly 70% of 2025 digital accessibility lawsuits hit ecommerce (UsableNet, ADA web lawsuit trends for 2026).
 - 95.9% of the top one million home pages fail WCAG 2.2 (WebAIM Million 2026).
-- About one in four ADA digital accessibility lawsuits in 2024 targeted a site running an accessibility overlay or plug-in (UsableNet); in 2025 the FTC ordered overlay vendor accessiBe to pay $1 million over its compliance claims.
+- About one in four digital accessibility lawsuits involved a site running a third-party accessibility widget: 91 of 360 in September 2026, and over 1,000 businesses (more than 25% of cases) in 2024 (UsableNet); in 2025 the FTC ordered overlay vendor accessiBe to pay $1 million over its compliance claims.
 - Average cost of a claim: $30,000 or more in settlement and legal fees (Accessibility.build, 2026).
 
 ## Contact

@@ -14,7 +14,7 @@ export const copy = {
     stats: [
       { value: '95.9%', label: 'of the top 1M sites fail WCAG' },
       { value: '70M+', label: 'U.S. adults live with a disability' },
-      { value: '5,114', label: 'ADA website lawsuits filed in 2025' },
+      { value: '5,000+', label: 'ADA digital accessibility lawsuits filed in 2025' },
     ],
     notes: 'Open slow. "Ninety-five percent of websites fail accessibility standards. Most brands find out when a demand letter arrives. We open the store to the one in four American adults with a disability, and make it faster, better ranked and visible to AI." Then advance.',
   },
@@ -23,9 +23,9 @@ export const copy = {
     title: ['Every online store is one demand letter away', 'from a $30,000 problem.'],
     letterAlt: 'The first page of a real web-accessibility complaint filed in New York in March 2026, names and contact details blurred',
     stats: [
-      { value: '5,114', label: 'ADA website lawsuits filed in 2025', source: 'UsableNet 2025 year-end report' },
-      { value: '6,176', label: 'on pace for 2026, up about 20%', source: 'UsableNet 2026 midyear report' },
-      { value: '79%', label: 'of 2026 filings target ecommerce', source: 'UsableNet 2026 midyear report' },
+      { value: '5,000+', label: 'ADA digital accessibility lawsuits filed in 2025', source: 'UsableNet 2025 year-end report' },
+      { value: '~6,176', label: 'projected for 2026, a record pace', source: 'UsableNet 2026 midyear report (projection from filings through June 14)' },
+      { value: '79%', label: 'of 2026 filings so far target ecommerce', source: 'UsableNet 2026 midyear report' },
       { value: '45%', label: 'of 2025 federal suits hit companies already sued before', source: 'UsableNet 2025 year-end report' },
     ],
     micro: 'Average cost per claim: $30,000+ in settlement and legal fees. Accessible.org. The letter on screen is a real complaint filed in March 2026; names and contact details are blurred.',
@@ -35,10 +35,10 @@ export const copy = {
   s03: {
     title: ["Simply adding an accessibility plug-in isn't a fix.", 'It can trigger a lawsuit.'],
     lede: "The FTC fined accessiBe $1 million for misleading claims in 2025. Overlays don't fix the underlying code; they're a litigation signal. Accessrank fixes the source.",
-    pct: '38.5', pctSuffix: '%',
-    pctLabel: 'of businesses sued in 2025 already had an accessibility widget installed',
-    pctSource: 'AudioEye 2026 analysis · UsableNet 2026 midyear report',
-    notes: 'The wall is every store that bought a plug-in. Click: the red ones were sued anyway. "Thirty-eight percent of the companies sued already had a widget. The FTC fined the biggest vendor a million dollars. A widget is not a defense; it is a signal to the plaintiff\'s bar. We fix the source."',
+    pct: '25', pctSuffix: '%',
+    pctLabel: 'of September 2026 lawsuits involved a site already running an accessibility widget (91 of 360)',
+    pctSource: 'UsableNet monthly lawsuit tracker',
+    notes: 'The wall is every store that bought a plug-in. Click: the red ones were sued anyway. "About one in four of the lawsuits filed last month involved a site that already had a widget. The FTC fined the biggest vendor a million dollars. A widget is not a defense; it is a signal to the plaintiff\'s bar. We fix the source."',
   },
 
   s04: {

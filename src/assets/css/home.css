@@ -272,7 +272,7 @@ html.hero-fx .risk-title { visibility: hidden; animation: hero-failsafe 1ms line
 .risk-num { font-size: 38px; font-weight: 800; letter-spacing: -1.5px; color: var(--text); line-height: 1; margin-bottom: 8px; }
 .risk-num .small { font-size: 24px; color: var(--text); font-weight: 500; margin-left: 3px; }
 .risk-label { width: 100%; max-width: 210px; font-size: 15px; color: var(--text-soft); line-height: 1.4; margin: 0 auto 13px; }
-.risk-source { font-size: 10px; color: var(--brand-text); letter-spacing: 0.6px; text-transform: uppercase; } /* 1px made the Arial fallback 242px in a 239px card: it wrapped until Inter loaded, then snapped to one line and shifted the page 12px (CLS 0.10) */
+.risk-source { text-wrap: balance; font-size: 10px; color: var(--brand-text); letter-spacing: 0.6px; text-transform: uppercase; } /* 1px made the Arial fallback 242px in a 239px card: it wrapped until Inter loaded, then snapped to one line and shifted the page 12px (CLS 0.10) */
 
 
 /* ---- Risk strip: the two links under the subhead ----
@@ -597,4 +597,21 @@ html:not([data-theme="light"]) .overlay-content p strong { background: var(--bra
   .scan-btn { width: 100%; }
   .site .footer-cols { flex-wrap: wrap; gap: 22px 40px; } /* index.html-only override of the shared .footer-cols (layout.css); no auth.css equivalent at this breakpoint. Scoped with .site so it doesn't also apply to secondary pages now that home.css and pages.css are concatenated into one stylesheet by build.mjs */
   .price-toggle { width: 100%; justify-content: center; flex-wrap: wrap; }
+}
+
+/* Lawsuit proportion bars (warning section): open columns split by a hairline, no boxes. */
+.stat-pair { display: grid; grid-template-columns: 1fr 1fr; margin-top: 18px; }
+.stat-col { min-width: 0; padding: 0 20px 0 0; }
+.stat-col + .stat-col { padding: 0 0 0 20px; border-left: 1px solid var(--hairline); }
+.stat-fig { font-size: 30px; font-weight: 800; line-height: 1; letter-spacing: -0.5px; color: var(--text); margin: 0 0 10px; }
+.stat-bar { height: 4px; background: var(--hairline); margin: 0 0 10px; }
+.stat-fill { display: block; height: 100%; background: var(--brand-text); }
+.stat-fill-25 { width: 25%; }
+.stat-fill-24 { width: 24%; }
+.overlay-content .stat-cap { font-size: 14px; line-height: 1.45; color: var(--overlay-body); margin: 0 0 6px; }
+.overlay-content .stat-src { font-size: 12px; line-height: 1.4; color: var(--text-soft); margin: 0; }
+@media (max-width: 560px) {
+  .stat-pair { grid-template-columns: 1fr; row-gap: 20px; }
+  .stat-col, .stat-col + .stat-col { padding: 0; border-left: 0; }
+  .stat-col + .stat-col { padding-top: 20px; border-top: 1px solid var(--hairline); }
 }

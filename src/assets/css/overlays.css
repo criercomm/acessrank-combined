@@ -127,3 +127,12 @@
 .ov-sources-h{margin:0 0 10px;font-size:14px;font-weight:700;color:var(--ov-text)}
 .ov-sources-list{margin:0;padding-left:20px;font-size:14px;color:var(--ov-faint);display:flex;flex-direction:column;gap:4px}
 .ov-sources-list a{color:var(--ov-faint);text-decoration:underline}
+
+/* Lawsuit proportion bars (stats row). */
+.ov .ov-bar{height: 4px; background: var(--ov-hair); margin: 0 0 12px}
+.ov .ov-fill{display: block; height: 100%; background: var(--ov-ax)}
+.ov .ov-fill-25{width: 25%}
+.ov .ov-fill-24{width: 24%}
+.ov .ov-src{margin: 8px 0 0; font-size: 13px; color: var(--ov-faint)}
+.ov .ov-about{font-size: .4em; font-weight: 600; letter-spacing: 0}
+.ov .ov-s31{white-space: nowrap}
