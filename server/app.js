@@ -46,12 +46,12 @@ app.use((req, res, next) => {
 
 /* ------------------------------------------------------------- headers --- */
 
-const scriptSrc = ["'self'"];
+const scriptSrc = ["'self'", "https://www.googletagmanager.com"];
 // The homepage embeds the investor deck same-origin (site.js openDeck, the
 // #deck-overlay-frame iframe) — frame-src must allow 'self' or that overlay
 // is silently dead in every environment that enforces this CSP.
 const frameSrc = ["'self'"];
-const connectSrc = ["'self'"];
+const connectSrc = ["'self'", "https://www.google-analytics.com", "https://region1.google-analytics.com"];
 
 /**
  * The build inlines the stylesheet into every page's <head> to cut the

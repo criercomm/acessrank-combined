@@ -127,9 +127,10 @@ function structuredData(page) {
         '@type': 'OfferCatalog',
         name: 'Accessrank plans',
         itemListElement: [
-          { '@type': 'Offer', name: 'Starter', description: 'Single-line stores with up to 10 SKUs. One-time onboarding, then monthly monitoring.', price: '1500', priceCurrency: 'USD', url: `${SITE_URL}/#pricing` },
-          { '@type': 'Offer', name: 'Growth', description: 'Growing brands with 10 to 100 SKUs. One-time onboarding, then monthly monitoring.', price: '3500', priceCurrency: 'USD', url: `${SITE_URL}/#pricing` },
-          { '@type': 'Offer', name: 'Enterprise', description: 'Shopify Plus and multi-brand catalogs, 100+ SKUs. Custom pricing.', url: `${SITE_URL}/contact-sales` },
+          { '@type': 'Offer', name: 'Starter', description: 'Stock theme with a handful of apps. USD 1,500 one-time onboarding; monitoring USD 79/month or USD 690/year.', price: '1500', priceCurrency: 'USD', url: `${SITE_URL}/#pricing` },
+          { '@type': 'Offer', name: 'Growth', description: 'Customized theme with up to 15 apps and several page templates. USD 3,500 one-time onboarding; monitoring USD 249/month or USD 2,090/year.', price: '3500', priceCurrency: 'USD', url: `${SITE_URL}/#pricing` },
+          { '@type': 'Offer', name: 'Scale', description: 'Heavily customized themes with 15 or more apps. USD 6,500 one-time onboarding; monitoring USD 599/month or USD 4,990/year.', price: '6500', priceCurrency: 'USD', url: `${SITE_URL}/#pricing` },
+          { '@type': 'Offer', name: 'Enterprise', description: 'Shopify Plus, multiple storefronts or brands, and headless builds. Custom onboarding and monitoring plan.', url: `${SITE_URL}/contact-sales` },
           { '@type': 'Offer', name: 'Lawsuit response', description: 'For stores already served a demand letter or lawsuit. About 7-day delivery.', price: '5900', priceCurrency: 'USD', url: `${SITE_URL}/#lawsuit-response` },
         ],
       },
@@ -354,7 +355,7 @@ function build() {
     [
       // Named first so no one reading the file wonders whether AI crawlers are welcome; the wildcard below already admits them.
       ...['GPTBot', 'OAI-SearchBot', 'ChatGPT-User', 'ClaudeBot', 'Claude-SearchBot', 'anthropic-ai', 'PerplexityBot', 'Google-Extended', 'Applebot-Extended', 'Bytespider', 'CCBot', 'Amazonbot', 'meta-externalagent']
-        .flatMap((ua) => [`User-agent: ${ua}`, 'Allow: /', '']),
+        .flatMap((ua) => [`User-agent: ${ua}`, 'Allow: /', 'Disallow: /api/', 'Disallow: /portal', '']),
       'User-agent: *',
       'Allow: /',
       // The audit endpoint is a POST API; keep crawlers out of it entirely.

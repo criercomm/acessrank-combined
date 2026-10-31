@@ -53,6 +53,8 @@
   <script src="{{ jsHref }}" defer></script>
   {{#if page.portal}}<script src="{{ portalJsHref }}" defer></script>{{/if}}
   {{#if page.heroMotion}}<script src="{{ heroJsHref }}" defer></script>{{/if}}
+<link rel="stylesheet" href="/analytics-consent.css">
+<script defer src="/analytics-consent.js" data-measurement-id="G-870R91HD7W" data-pages="/|/beta|/overlays|/human-testing|/about|/methodology|/guide/ada-eaa|/resources|/careers|/contact-sales|/privacy|/terms|/disclosure|/citations" data-privacy="/privacy"></script>
 </head>
 <body class="site" data-page="{{ page.url }}"{{#if turnstileSiteKey}} data-turnstile-key="{{ turnstileSiteKey }}"{{/if}}>
   <a class="skip-link" href="#main-content">Skip to main content</a>

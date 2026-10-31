@@ -47,10 +47,7 @@ COPY db/          ./db/
 COPY scripts/     ./scripts/
 
 # The Playwright image ships Chromium outside the npm package.
-ENV CHROMIUM_PATH=/ms-playwright/chromium-*/chrome-linux/chrome
-RUN CHROME_BIN="$(ls -d /ms-playwright/chromium-*/chrome-linux/chrome | head -n1)" \
- && printf '%s' "$CHROME_BIN" > /app/.chromium-path \
- && echo "Chromium: $CHROME_BIN"
+RUN node -e "const fs = require('node:fs'); const executable = require('playwright-core').chromium.executablePath(); fs.accessSync(executable, fs.constants.X_OK); fs.writeFileSync('/app/.chromium-path', executable); console.log('Chromium:', executable);"
 
 # The base image provides an unprivileged `pwuser`. Running the browser as root
 # is both unnecessary and the reason --no-sandbox is often needed.
