@@ -468,18 +468,17 @@ select#new-op-role { min-height: 44px; }
 .task-main { min-width: 0; }
 .task-text { margin: 0; font-size: 14px; line-height: 1.4; color: var(--text); overflow-wrap: anywhere; }
 .task.is-done .task-text { color: var(--text-muted); text-decoration: line-through; }
-/* The punch list works like the file notes: the heading stays, and the tasks and the
-   add-task field open when the section is hovered or something inside has focus. The
-   add-task field starts under the task text and ends under the Delete buttons. */
-.task-fold { display: grid; grid-template-rows: 0fr; transition: grid-template-rows .16s ease; }
-.task-fold-inner { min-height: 0; overflow: hidden; }
-.task-section:hover .task-fold, .task-fold:focus-within { grid-template-rows: 1fr; }
+/* The punch list is always shown. Only the add-task field folds away until the list is hovered
+   or something inside has focus; it starts under the task text and ends under the Delete buttons. */
+.task-add-wrap { display: grid; grid-template-rows: 0fr; transition: grid-template-rows .16s ease; }
+.task-add-inner { min-height: 0; overflow: hidden; }
+.task-card:hover .task-add-wrap, .task-add-wrap:focus-within { grid-template-rows: 1fr; }
 .task-add { display: flex; align-items: center; gap: 8px; margin-top: 8px; padding: 10px 0 0 30px; border-top: 1px solid var(--hairline); }
 
 /* Keyboard users and touch screens never depend on hover. */
 @media (hover: none) {
   .note-actions, .task-actions { opacity: 1; }
-  .file-notes, .task-fold { grid-template-rows: 1fr; }
+  .file-notes, .task-add-wrap { grid-template-rows: 1fr; }
 }
 @media (max-width: 640px) {
   .file-list--notes .file-row { grid-template-columns: auto minmax(0, 1fr); }
