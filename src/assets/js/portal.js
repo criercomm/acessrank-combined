@@ -1413,7 +1413,7 @@
 
   /* ----------------------------------------------------------- repository --- */
 
-  /** The team repository: master operators add and delete files; nobody else sees it. */
+  /** The team repository: master operators keep files, notes under each file, and a punch list; nobody else sees it. */
   function initRepository(root) {
     var state = { files: [], maxFileBytes: 1024 * 1024 };
     var status = root.querySelector('[data-portal-status]');
@@ -1426,52 +1426,251 @@
     var drop = root.querySelector('[data-repo-drop]');
     var uploading = false;
     var notes = [];
-    var noteForm = root.querySelector('[data-note-form]');
-    var noteList = root.querySelector('[data-note-list]');
-    var noteEmpty = root.querySelector('[data-notes-empty]');
-    var noteCount = root.querySelector('[data-notes-count]');
+    var tasks = [];
+    var threads = {};
+    var taskList = root.querySelector('[data-task-list]');
+    var taskEmpty = root.querySelector('[data-tasks-empty]');
+    var taskCount = root.querySelector('[data-tasks-count]');
+    var taskForm = root.querySelector('[data-task-form]');
+    var taskInput = root.querySelector('[data-task-input]');
 
     bindLogout(root);
 
+    function fail(error) { setStatus(status, error.message, 'error'); throw error; }
+
+    /** A small button with a visible text label and a longer accessible name. */
+    function smallButton(label, name, extra) {
+      return h('button', { type: 'button', class: 'btn-small' + (extra ? ' ' + extra : ''), 'aria-label': name, text: label });
+    }
+
     function render() {
       clear(list);
+      threads = {};
       loading.hidden = true;
       empty.hidden = state.files.length > 0;
       list.hidden = state.files.length === 0;
       count.textContent = state.files.length ? '(' + state.files.length + ')' : '';
       state.files.forEach(function (file) {
-        var remove = h('button', { type: 'button', class: 'btn-small', 'aria-label': 'Delete ' + file.name, text: 'Delete' });
-        confirmable(remove, 'Delete for everyone', function () {
+        var remove = h('button', { type: 'button', class: 'btn-small', 'aria-label': 'Delete ' + file.name + ' and its notes', text: 'Delete' });
+        confirmable(remove, 'Delete file and notes', function () {
           return api('DELETE', '/api/portal/team-files/' + encodeURIComponent(file.id)).then(function () {
             state.files = state.files.filter(function (f) { return f.id !== file.id; });
+            notes = notes.filter(function (n) { return n.fileId !== file.id; });
             render();
-            setStatus(status, 'Deleted ' + file.name + '.', 'success');
-          }, function (error) { setStatus(status, error.message, 'error'); throw error; });
+            setStatus(status, 'Deleted ' + file.name + ' and its notes.', 'success');
+          }, fail);
         });
         list.appendChild(h('li', {}, [
-          h('span', { class: 'file-badge', 'aria-hidden': 'true', text: fileKind(file.name) }),
-          h('div', { class: 'file-text' }, [
-            h('p', { class: 'file-name', text: file.name }),
-            h('p', { class: 'file-meta' }, [
-              h('span', { text: formatBytes(file.size) }),
-              h('span', { text: 'Added ' + formatDate(file.createdAt) + (file.addedByName || file.addedByEmail ? ' by ' + (file.addedByName || file.addedByEmail) : '') })
+          h('div', { class: 'file-row' }, [
+            h('span', { class: 'file-badge', 'aria-hidden': 'true', text: fileKind(file.name) }),
+            h('div', { class: 'file-text' }, [
+              h('p', { class: 'file-name', text: file.name }),
+              h('p', { class: 'file-meta' }, [
+                h('span', { text: formatBytes(file.size) }),
+                h('span', { text: 'Added ' + formatDate(file.createdAt) + (file.addedByName || file.addedByEmail ? ' by ' + (file.addedByName || file.addedByEmail) : '') })
+              ])
+            ]),
+            h('div', { class: 'row-actions' }, [
+              h('a', { class: 'btn-small', href: '/api/portal/team-files/' + encodeURIComponent(file.id), 'aria-label': 'Download ' + file.name, text: 'Download' }),
+              remove
             ])
           ]),
-          h('div', { class: 'row-actions' }, [
-            h('a', { class: 'btn-small', href: '/api/portal/team-files/' + encodeURIComponent(file.id), 'aria-label': 'Download ' + file.name, text: 'Download' }),
-            remove
-          ])
+          threadFor(file)
         ]));
+        renderThread(file.id);
       });
     }
 
+    /* ---- notes under each file ---- */
+
+    function threadFor(file) {
+      var heading = h('span', { class: 'notes-count' });
+      var noteInput = h('input', {
+        type: 'text', class: 'note-add-input', maxlength: '2000', autocomplete: 'off',
+        placeholder: 'Add a note…', 'aria-label': 'Add a note to ' + file.name
+      });
+      var addButton = h('button', { type: 'submit', class: 'btn-small btn-small--brand', 'aria-label': 'Add note to ' + file.name, text: 'Add note' });
+      var form = h('form', { class: 'note-add', novalidate: true }, [noteInput, addButton]);
+      var noteList = h('ul', { class: 'note-list', 'aria-label': 'Notes on ' + file.name });
+      form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        var body = noteInput.value.trim();
+        if (!body) { setStatus(status, 'Write a note first.', 'error'); noteInput.focus(); return; }
+        addButton.disabled = true;
+        api('POST', '/api/portal/team-notes', { fileId: file.id, body: body }).then(function (data) {
+          notes.push(data.note);
+          noteInput.value = '';
+          renderThread(file.id);
+          setStatus(status, 'Note added to ' + file.name + '.', 'success');
+        }, function (error) { setStatus(status, error.message, 'error'); }).then(function () { addButton.disabled = false; noteInput.focus(); });
+      });
+      threads[file.id] = { heading: heading, list: noteList, file: file };
+      return h('div', { class: 'file-notes' }, [h('div', { class: 'notes-head' }, [heading, form]), noteList]);
+    }
+
+    function renderThread(fileId) {
+      var thread = threads[fileId];
+      if (!thread) return;
+      var mine = notes.filter(function (n) { return n.fileId === fileId; });
+      thread.heading.textContent = mine.length ? 'Notes (' + mine.length + ')' : 'Notes (none yet)';
+      clear(thread.list);
+      mine.forEach(function (n) { thread.list.appendChild(noteRow(n)); });
+    }
+
+    function noteMeta(note) {
+      var who = note.authorName || note.authorEmail;
+      var when = formatDateTime(note.createdAt) + (note.updatedAt ? ' (edited)' : '');
+      return h('p', { class: 'note-meta', title: note.updatedAt ? 'Edited ' + formatDateTime(note.updatedAt) : null, text: who + ' · ' + when });
+    }
+
+    function noteRow(note) {
+      var li = h('li', { class: 'note' });
+      var edit = smallButton('Edit', 'Edit note');
+      var remove = smallButton('Delete', 'Delete note');
+
+      confirmable(remove, 'Delete note', function () {
+        return api('DELETE', '/api/portal/team-notes/' + encodeURIComponent(note.id)).then(function () {
+          notes = notes.filter(function (n) { return n.id !== note.id; });
+          renderThread(note.fileId);
+          setStatus(status, 'Note deleted.', 'success');
+        }, fail);
+      });
+
+      edit.addEventListener('click', function () {
+        clear(li);
+        li.classList.add('is-editing');
+        var area = h('textarea', { class: 'note-edit', rows: '1', maxlength: '2000', 'aria-label': 'Edit note' });
+        area.value = note.body;
+        var save = smallButton('Save', 'Save note', 'btn-small--brand');
+        var cancel = smallButton('Cancel', 'Cancel editing');
+        function grow() { area.style.height = 'auto'; area.style.height = area.scrollHeight + 'px'; }
+        function done() { renderThread(note.fileId); }
+        function commit() {
+          var body = area.value.trim();
+          if (!body) { setStatus(status, 'Write a note first, or use Delete.', 'error'); area.focus(); return; }
+          save.disabled = true;
+          api('PATCH', '/api/portal/team-notes/' + encodeURIComponent(note.id), { body: body }).then(function (data) {
+            notes = notes.map(function (n) { return n.id === note.id ? data.note : n; });
+            done();
+            setStatus(status, 'Note saved.', 'success');
+          }, function (error) { setStatus(status, error.message, 'error'); save.disabled = false; area.focus(); });
+        }
+        area.addEventListener('input', grow);
+        area.addEventListener('keydown', function (e) {
+          if (e.key === 'Escape') { e.preventDefault(); done(); }
+          else if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) { e.preventDefault(); commit(); }
+        });
+        save.addEventListener('click', commit);
+        cancel.addEventListener('click', done);
+        li.appendChild(area);
+        li.appendChild(h('div', { class: 'note-edit-actions' }, [save, cancel]));
+        grow();
+        area.focus();
+        area.setSelectionRange(area.value.length, area.value.length);
+      });
+
+      li.appendChild(h('div', { class: 'note-main' }, [h('p', { class: 'note-body', text: note.body }), noteMeta(note)]));
+      li.appendChild(h('div', { class: 'note-actions' }, [edit, remove]));
+      return li;
+    }
+
+    /* ---- punch list ---- */
+
+    function renderTasks() {
+      clear(taskList);
+      var open = tasks.filter(function (t) { return !t.done; }).length;
+      taskEmpty.hidden = tasks.length > 0;
+      taskList.hidden = tasks.length === 0;
+      taskCount.textContent = tasks.length ? '(' + open + ' open of ' + tasks.length + ')' : '';
+      tasks.forEach(function (t) { taskList.appendChild(taskRow(t)); });
+    }
+
+    function replaceTask(task) { tasks = tasks.map(function (t) { return t.id === task.id ? task : t; }); }
+
+    function taskRow(task) {
+      var li = h('li', { class: 'task' + (task.done ? ' is-done' : '') });
+      var check = h('input', { type: 'checkbox', class: 'task-check', 'aria-label': (task.done ? 'Mark not done: ' : 'Mark done: ') + task.text });
+      check.checked = task.done;
+      check.addEventListener('change', function () {
+        check.disabled = true;
+        api('PATCH', '/api/portal/team-tasks/' + encodeURIComponent(task.id), { done: check.checked }).then(function (data) {
+          replaceTask(data.task);
+          renderTasks();
+        }, function (error) { setStatus(status, error.message, 'error'); check.checked = !check.checked; check.disabled = false; });
+      });
+
+      var edit = smallButton('Edit', 'Edit task: ' + task.text);
+      var remove = smallButton('Delete', 'Delete task: ' + task.text);
+      confirmable(remove, 'Delete task', function () {
+        return api('DELETE', '/api/portal/team-tasks/' + encodeURIComponent(task.id)).then(function () {
+          tasks = tasks.filter(function (t) { return t.id !== task.id; });
+          renderTasks();
+          setStatus(status, 'Task deleted.', 'success');
+        }, fail);
+      });
+
+      edit.addEventListener('click', function () {
+        clear(li);
+        var field = h('input', { type: 'text', class: 'task-edit', maxlength: '300', autocomplete: 'off', 'aria-label': 'Edit task' });
+        field.value = task.text;
+        var save = smallButton('Save', 'Save task', 'btn-small--brand');
+        var cancel = smallButton('Cancel', 'Cancel editing');
+        function commit() {
+          var text = field.value.trim();
+          if (!text) { setStatus(status, 'Write the task first, or use Delete.', 'error'); field.focus(); return; }
+          save.disabled = true;
+          api('PATCH', '/api/portal/team-tasks/' + encodeURIComponent(task.id), { text: text }).then(function (data) {
+            replaceTask(data.task);
+            renderTasks();
+            setStatus(status, 'Task saved.', 'success');
+          }, function (error) { setStatus(status, error.message, 'error'); save.disabled = false; field.focus(); });
+        }
+        field.addEventListener('keydown', function (e) {
+          if (e.key === 'Escape') { e.preventDefault(); renderTasks(); }
+          else if (e.key === 'Enter') { e.preventDefault(); commit(); }
+        });
+        save.addEventListener('click', commit);
+        cancel.addEventListener('click', renderTasks);
+        li.appendChild(h('span', { class: 'task-check-spacer', 'aria-hidden': 'true' }));
+        li.appendChild(field);
+        li.appendChild(h('div', { class: 'task-actions is-editing' }, [save, cancel]));
+        field.focus();
+        field.setSelectionRange(field.value.length, field.value.length);
+      });
+
+      var who = task.authorName || task.authorEmail;
+      li.appendChild(check);
+      li.appendChild(h('div', { class: 'task-main' }, [
+        h('p', { class: 'task-text', text: task.text }),
+        h('p', { class: 'note-meta', text: 'Added' + (who ? ' by ' + who : '') + ' ' + formatDate(task.createdAt) + (task.updatedAt ? ' (edited)' : '') })
+      ]));
+      li.appendChild(h('div', { class: 'task-actions' }, [edit, remove]));
+      return li;
+    }
+
+    taskForm.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var text = taskInput.value.trim();
+      if (!text) { setStatus(status, 'Write the task first.', 'error'); taskInput.focus(); return; }
+      var button = taskForm.querySelector('[type="submit"]');
+      button.disabled = true;
+      api('POST', '/api/portal/team-tasks', { text: text }).then(function (data) {
+        tasks.push(data.task);
+        taskInput.value = '';
+        renderTasks();
+        setStatus(status, 'Task added.', 'success');
+      }, function (error) { setStatus(status, error.message, 'error'); }).then(function () { button.disabled = false; taskInput.focus(); });
+    });
+
+    /* ---- uploads ---- */
+
     function uploadOne(file) {
-      var note = h('span', { class: 'upload-state', text: 'Uploading\u2026' });
+      var note = h('span', { class: 'upload-state', text: 'Uploading…' });
       var row = h('li', {}, [h('span', { class: 'upload-name', text: file.name }), note]);
       queue.appendChild(row);
       var reject = function (message) { row.className = 'is-error'; note.textContent = message; return false; };
-      if (file.size === 0) return Promise.resolve(reject('Empty file \u2014 skipped'));
-      if (file.size > state.maxFileBytes) return Promise.resolve(reject('Over the ' + formatBytes(state.maxFileBytes) + ' limit \u2014 skipped'));
+      if (file.size === 0) return Promise.resolve(reject('Empty file — skipped'));
+      if (file.size > state.maxFileBytes) return Promise.resolve(reject('Over the ' + formatBytes(state.maxFileBytes) + ' limit — skipped'));
       return api('POST', '/api/portal/team-files?name=' + encodeURIComponent(file.name), null, file).then(function (data) {
         state.files.unshift(data.file);
         row.remove();
@@ -1493,39 +1692,9 @@
         uploading = false;
         input.value = '';
         var skipped = batch.length - added;
-        setStatus(status, 'Added ' + plural(added, 'file') + (skipped ? '. ' + plural(skipped, 'file') + ' could not be added \u2014 see the list above.' : '.'), skipped ? 'error' : 'success');
+        setStatus(status, 'Added ' + plural(added, 'file') + (skipped ? '. ' + plural(skipped, 'file') + ' could not be added — see the list above.' : '.'), skipped ? 'error' : 'success');
       });
     }
-
-    /* ---- notes ---- */
-
-    function noteRow(note) {
-      return h('li', { class: 'note' }, [
-        h('p', { class: 'note-body', text: note.body }),
-        h('p', { class: 'file-meta' }, [
-          h('span', { text: note.authorName || note.authorEmail }),
-          note.authorName ? h('span', { text: note.authorEmail }) : null,
-          h('span', { text: formatDateTime(note.createdAt) })
-        ])
-      ]);
-    }
-
-    function renderNotes() {
-      clear(noteList);
-      notes.forEach(function (n) { noteList.appendChild(noteRow(n)); });
-      noteEmpty.hidden = notes.length > 0;
-      noteList.hidden = notes.length === 0;
-      noteCount.textContent = notes.length ? '(' + notes.length + ')' : '';
-    }
-
-    bindForm(noteForm, 'Posting…', function (values) {
-      return api('POST', '/api/portal/team-notes', { body: values.body }).then(function (data) {
-        notes.unshift(data.note);
-        noteForm.reset();
-        renderNotes();
-        return 'Note posted.';
-      });
-    });
 
     input.addEventListener('change', function () { uploadFiles(input.files); });
     ['dragenter', 'dragover'].forEach(function (type) {
@@ -1538,22 +1707,19 @@
 
     return {
       load: function () {
-        api('GET', '/api/portal/me').then(function (me) {
-          root.querySelector('[data-note-as]').textContent = 'Posting as ' + (me.user.name || me.user.email) + (me.user.name ? ' (' + me.user.email + ')' : '');
-        }, function () {});
-        api('GET', '/api/portal/team-notes').then(function (data) { notes = data.notes; renderNotes(); }, function (error) {
-          if (error.code !== 'signed_out') setStatus(status, error.message, 'error');
-        });
-        return api('GET', '/api/portal/team-files').then(function (data) {
-          state.files = data.files;
-          state.maxFileBytes = data.maxFileBytes || state.maxFileBytes;
+        function quiet(error) { if (error.code !== 'signed_out') setStatus(status, error.message, 'error'); }
+        api('GET', '/api/portal/team-tasks').then(function (data) { tasks = data.tasks; renderTasks(); }, quiet);
+        return Promise.all([api('GET', '/api/portal/team-files'), api('GET', '/api/portal/team-notes')]).then(function (results) {
+          state.files = results[0].files;
+          state.maxFileBytes = results[0].maxFileBytes || state.maxFileBytes;
+          notes = results[1].notes;
           root.querySelector('[data-max-file]').textContent = formatBytes(state.maxFileBytes);
           render();
         }, function (error) {
           loading.hidden = true;
           // Anyone who is not a master gets a 404 here: send them back to the console.
           if (error.status === 404) { go('/portal/approvals'); return; }
-          if (error.code !== 'signed_out') setStatus(status, error.message, 'error');
+          quiet(error);
         });
       }
     };

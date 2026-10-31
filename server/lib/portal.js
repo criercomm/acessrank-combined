@@ -381,14 +381,53 @@ function pgRepo(store) {
     },
 
     async listTeamNotes() {
-      return (await q('SELECT id, body, author_name, author_email, created_at FROM portal_team_notes ORDER BY created_at DESC LIMIT 500')).rows;
+      return (await q('SELECT id, file_id, body, author_name, author_email, created_at, updated_at FROM portal_team_notes WHERE file_id IS NOT NULL ORDER BY created_at ASC LIMIT 2000')).rows;
     },
-    async insertTeamNote({ body, authorName, authorEmail }) {
+    /** Null when the file no longer exists. */
+    async insertTeamNote({ fileId, body, authorName, authorEmail }) {
       return (await q(
-        `INSERT INTO portal_team_notes (body, author_name, author_email) VALUES ($1, $2, $3)
-         RETURNING id, body, author_name, author_email, created_at`,
-        [body, authorName, authorEmail],
+        `INSERT INTO portal_team_notes (file_id, body, author_name, author_email)
+         SELECT $1, $2, $3, $4 WHERE EXISTS (SELECT 1 FROM portal_team_files WHERE id = $1)
+         RETURNING id, file_id, body, author_name, author_email, created_at, updated_at`,
+        [fileId, body, authorName, authorEmail],
+      )).rows[0] ?? null;
+    },
+    async updateTeamNote(id, body) {
+      return (await q(
+        `UPDATE portal_team_notes SET body = $2, updated_at = now() WHERE id = $1 AND file_id IS NOT NULL
+         RETURNING id, file_id, body, author_name, author_email, created_at, updated_at`,
+        [id, body],
+      )).rows[0] ?? null;
+    },
+    async deleteTeamNote(id) {
+      return (await q('DELETE FROM portal_team_notes WHERE id = $1 AND file_id IS NOT NULL', [id])).rowCount > 0;
+    },
+
+    async listTeamTasks() {
+      return (await q('SELECT id, text, done, done_at, author_name, author_email, created_at, updated_at FROM portal_team_tasks ORDER BY created_at ASC LIMIT 500')).rows;
+    },
+    async insertTeamTask({ text, authorName, authorEmail }) {
+      return (await q(
+        `INSERT INTO portal_team_tasks (text, author_name, author_email) VALUES ($1, $2, $3)
+         RETURNING id, text, done, done_at, author_name, author_email, created_at, updated_at`,
+        [text, authorName, authorEmail],
       )).rows[0];
+    },
+    /** `text` and `done` are each null when unchanged. */
+    async updateTeamTask(id, { text, done }) {
+      return (await q(
+        `UPDATE portal_team_tasks
+            SET text = COALESCE($2::text, text),
+                done = COALESCE($3::boolean, done),
+                done_at = CASE WHEN $3::boolean IS NULL THEN done_at WHEN $3::boolean THEN COALESCE(done_at, now()) ELSE NULL END,
+                updated_at = CASE WHEN $2::text IS NULL THEN updated_at ELSE now() END
+          WHERE id = $1
+         RETURNING id, text, done, done_at, author_name, author_email, created_at, updated_at`,
+        [id, text, done],
+      )).rows[0] ?? null;
+    },
+    async deleteTeamTask(id) {
+      return (await q('DELETE FROM portal_team_tasks WHERE id = $1', [id])).rowCount > 0;
     },
 
     async listOperators() {
@@ -511,6 +550,7 @@ function memRepo(store) {
   store._portal.approvals ??= [];
   store._portal.teamFiles ??= new Map();
   store._portal.teamNotes ??= [];
+  store._portal.teamTasks ??= [];
   const db = store._portal;
   let last = 0;
   // Strictly increasing, so "newest first" is stable for rows made in the same millisecond.
@@ -644,13 +684,52 @@ function memRepo(store) {
       return row;
     },
     async getTeamFile(id) { return db.teamFiles.get(id) ?? null; },
-    async deleteTeamFile(id) { return db.teamFiles.delete(id); },
+    async deleteTeamFile(id) {
+      const removed = db.teamFiles.delete(id);
+      // Notes go with their file, as ON DELETE CASCADE does in Postgres.
+      if (removed) for (let i = db.teamNotes.length - 1; i >= 0; i -= 1) if (db.teamNotes[i].file_id === id) db.teamNotes.splice(i, 1);
+      return removed;
+    },
 
-    async listTeamNotes() { return [...db.teamNotes].sort((a, b) => byCreated(b, a)); },
-    async insertTeamNote({ body, authorName, authorEmail }) {
-      const row = { id: crypto.randomUUID(), created_at: now(), body, author_name: authorName, author_email: authorEmail };
+    async listTeamNotes() { return db.teamNotes.filter((n) => n.file_id).sort((a, b) => byCreated(a, b)); },
+    async insertTeamNote({ fileId, body, authorName, authorEmail }) {
+      if (!db.teamFiles.has(fileId)) return null;
+      const row = { id: crypto.randomUUID(), file_id: fileId, created_at: now(), updated_at: null, body, author_name: authorName, author_email: authorEmail };
       db.teamNotes.push(row);
       return row;
+    },
+    async updateTeamNote(id, body) {
+      const row = db.teamNotes.find((n) => n.id === id && n.file_id);
+      if (!row) return null;
+      row.body = body;
+      row.updated_at = now();
+      return row;
+    },
+    async deleteTeamNote(id) {
+      const i = db.teamNotes.findIndex((n) => n.id === id && n.file_id);
+      if (i < 0) return false;
+      db.teamNotes.splice(i, 1);
+      return true;
+    },
+
+    async listTeamTasks() { return [...db.teamTasks].sort((a, b) => byCreated(a, b)); },
+    async insertTeamTask({ text, authorName, authorEmail }) {
+      const row = { id: crypto.randomUUID(), created_at: now(), updated_at: null, text, done: false, done_at: null, author_name: authorName, author_email: authorEmail };
+      db.teamTasks.push(row);
+      return row;
+    },
+    async updateTeamTask(id, { text, done }) {
+      const row = db.teamTasks.find((t) => t.id === id);
+      if (!row) return null;
+      if (text !== null) { row.text = text; row.updated_at = now(); }
+      if (done !== null) { row.done_at = done ? (row.done_at ?? now()) : null; row.done = done; }
+      return row;
+    },
+    async deleteTeamTask(id) {
+      const i = db.teamTasks.findIndex((t) => t.id === id);
+      if (i < 0) return false;
+      db.teamTasks.splice(i, 1);
+      return true;
     },
 
     async listOperators() {
@@ -1263,29 +1342,96 @@ export async function addTeamFile(store, session, { filename, data }) {
   }));
 }
 
-/** The row including its bytes, or null. */
 const teamNoteOut = (row) => ({
   id: row.id,
+  fileId: row.file_id,
   body: row.body,
   authorName: row.author_name || '',
   authorEmail: row.author_email || '',
   createdAt: iso(row.created_at),
+  updatedAt: row.updated_at ? iso(row.updated_at) : null,
 });
 
+const teamTaskOut = (row) => ({
+  id: row.id,
+  text: row.text,
+  done: Boolean(row.done),
+  doneAt: row.done_at ? iso(row.done_at) : null,
+  authorName: row.author_name || '',
+  authorEmail: row.author_email || '',
+  createdAt: iso(row.created_at),
+  updatedAt: row.updated_at ? iso(row.updated_at) : null,
+});
+
+/** Every note that belongs to a file, oldest first; the page groups them by `fileId`. */
 export async function listTeamNotes(store) {
   return (await repoFor(store).listTeamNotes()).map(teamNoteOut);
 }
 
-/** Append a note. The author is always the signed-in session, never anything the browser sends. */
-export async function addTeamNote(store, session, rawBody) {
+function cleanNoteBody(rawBody) {
   const body = String(rawBody ?? '').replace(/\r\n?/g, '\n').trim();
   if (!body) throw new PortalError('Write a note first.', { code: 'note_empty', field: 'body' });
   if (body.length > 2000) throw new PortalError('Keep a note to 2,000 characters.', { code: 'note_long', field: 'body' });
-  return teamNoteOut(await repoFor(store).insertTeamNote({
+  return body;
+}
+
+/** Add a note under a file. The author is always the signed-in session, never anything the browser sends. */
+export async function addTeamNote(store, session, fileId, rawBody) {
+  const body = cleanNoteBody(rawBody);
+  if (!isUuid(fileId)) throw notFound('file');
+  const row = await repoFor(store).insertTeamNote({
+    fileId,
     body,
     authorName: String(session.name ?? '').slice(0, 120),
     authorEmail: String(session.email ?? '').slice(0, 254),
+  });
+  if (!row) throw notFound('file');
+  return teamNoteOut(row);
+}
+
+/** Change a note's text. The author and original time stay; `updatedAt` marks the edit. */
+export async function updateTeamNote(store, id, rawBody) {
+  const body = cleanNoteBody(rawBody);
+  const row = isUuid(id) ? await repoFor(store).updateTeamNote(id, body) : null;
+  if (!row) throw notFound('note');
+  return teamNoteOut(row);
+}
+
+export async function deleteTeamNote(store, id) {
+  if (!isUuid(id) || !(await repoFor(store).deleteTeamNote(id))) throw notFound('note');
+}
+
+function cleanTaskText(raw) {
+  const text = String(raw ?? '').replace(/\s+/g, ' ').trim();
+  if (!text) throw new PortalError('Write the task first.', { code: 'task_empty', field: 'text' });
+  if (text.length > 300) throw new PortalError('Keep a task to 300 characters.', { code: 'task_long', field: 'text' });
+  return text;
+}
+
+export async function listTeamTasks(store) {
+  return (await repoFor(store).listTeamTasks()).map(teamTaskOut);
+}
+
+export async function addTeamTask(store, session, rawText) {
+  return teamTaskOut(await repoFor(store).insertTeamTask({
+    text: cleanTaskText(rawText),
+    authorName: String(session.name ?? '').slice(0, 120),
+    authorEmail: String(session.email ?? '').slice(0, 254),
   }));
+}
+
+/** `changes` may hold `text` and/or `done`; anything left out stays as it was. */
+export async function updateTeamTask(store, id, changes) {
+  const text = changes.text === undefined ? null : cleanTaskText(changes.text);
+  const done = changes.done === undefined ? null : Boolean(changes.done);
+  if (text === null && done === null) throw new PortalError('Nothing to change.', { code: 'task_nochange' });
+  const row = isUuid(id) ? await repoFor(store).updateTeamTask(id, { text, done }) : null;
+  if (!row) throw notFound('task');
+  return teamTaskOut(row);
+}
+
+export async function deleteTeamTask(store, id) {
+  if (!isUuid(id) || !(await repoFor(store).deleteTeamTask(id))) throw notFound('task');
 }
 
 export async function getTeamFile(store, id) {
@@ -1557,7 +1703,8 @@ export default {
   adminOverview, createClient, createClientWithSetup, renameClient, deleteClient,
   createLogin, resetLoginPassword, deleteLogin, changeOwnPassword,
   listClientFiles, addFile, getFile, deleteFile, setFileArea,
-  listTeamFiles, addTeamFile, getTeamFile, deleteTeamFile, listTeamNotes, addTeamNote,
+  listTeamFiles, addTeamFile, getTeamFile, deleteTeamFile, listTeamNotes, addTeamNote, updateTeamNote, deleteTeamNote,
+  listTeamTasks, addTeamTask, updateTeamTask, deleteTeamTask,
   addReport, listReports, getReport, deleteReport, saveApprovals, currentApprovals, adminApprovals, approvalHistory,
   setReportStatus, approvalsRecordCsv, loginClientId, isStaff, clientScope, canAccessClient, listOperators, createOperator, setOperatorRole, resetOperatorPassword,
   deleteOperator, setOperatorClients, changeOwnOperatorPassword,

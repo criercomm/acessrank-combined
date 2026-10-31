@@ -5,7 +5,7 @@
     <header class="portal-head">
       <div class="portal-head-text">
         <h1>Repository</h1>
-        <p class="portal-meta">Files for the team only. Every master operator can add and delete them. Clients never see anything kept here.</p>
+        <p class="portal-meta">Files and the team punch list. Every master operator can add, edit and delete them. Clients never see anything kept here.</p>
       </div>
     </header>
 
@@ -17,34 +17,26 @@
         <label class="btn-small btn-small--brand upload-button" for="repo-upload">Add files</label>
         <input class="visually-hidden" type="file" id="repo-upload" multiple data-repo-input>
       </div>
-      <p class="field-hint files-hint">Up to <span data-max-file>1 MB</span> each. Drag files onto the list or use Add files.</p>
+      <p class="field-hint files-hint">Up to <span data-max-file>1 MB</span> each. Drag files onto the list or use Add files. Notes sit under each file; hover a file to add one.</p>
       <ul class="upload-queue" data-upload-queue aria-live="polite"></ul>
       <div class="portal-card drop-card" data-repo-drop>
         <p class="portal-empty" data-repo-loading>Loading&hellip;</p>
         <p class="portal-empty" data-repo-empty hidden>Nothing here yet. Add the first file.</p>
-        <ul class="file-list" data-repo-list hidden></ul>
+        <ul class="file-list file-list--notes" data-repo-list hidden></ul>
       </div>
     </section>
 
-    <section class="portal-section" aria-labelledby="notes-heading">
+    <section class="portal-section" aria-labelledby="tasks-heading">
       <div class="portal-section-head">
-        <h2 id="notes-heading" tabindex="-1">Team notes <span class="portal-count" data-notes-count></span></h2>
+        <h2 id="tasks-heading" tabindex="-1">Punch list <span class="portal-count" data-tasks-count></span></h2>
       </div>
-      <p class="field-hint files-hint">Shared by every master operator. Each note records who wrote it and when. Notes can&rsquo;t be edited or removed once posted.</p>
-      <form class="login-form" data-note-form novalidate>
-        <div class="field">
-          <label for="note-body">Add a note</label>
-          <textarea id="note-body" name="body" rows="3" maxlength="2000" required></textarea>
-        </div>
-        <p class="form-status" data-form-status role="alert" aria-live="assertive"></p>
-        <div class="row-actions">
-          <button class="btn-small btn-small--brand" type="submit">Post note</button>
-          <span class="field-hint" data-note-as></span>
-        </div>
-      </form>
-      <div class="portal-card note-card">
-        <p class="portal-empty" data-notes-empty hidden>No notes yet.</p>
-        <ul class="note-list" data-note-list hidden></ul>
+      <div class="portal-card task-card">
+        <p class="portal-empty" data-tasks-empty hidden>Nothing on the list yet.</p>
+        <ul class="task-list" data-task-list hidden></ul>
+        <form class="task-add" data-task-form novalidate>
+          <input type="text" class="task-add-input" data-task-input maxlength="300" autocomplete="off" placeholder="Add a task&hellip;" aria-label="Add a task">
+          <button class="btn-small btn-small--brand" type="submit">Add task</button>
+        </form>
       </div>
     </section>
   </div>

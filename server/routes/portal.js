@@ -10,7 +10,8 @@ import {
   adminOverview, createClient, renameClient, deleteClient,
   createLogin, createClientWithSetup, resetLoginPassword, deleteLogin, changeOwnPassword,
   listClientFiles, addFile, getFile, deleteFile, setFileArea, contentDisposition, PASSWORD_MAX,
-  listTeamFiles, addTeamFile, getTeamFile, deleteTeamFile, listTeamNotes, addTeamNote,
+  listTeamFiles, addTeamFile, getTeamFile, deleteTeamFile, listTeamNotes, addTeamNote, updateTeamNote, deleteTeamNote,
+  listTeamTasks, addTeamTask, updateTeamTask, deleteTeamTask,
   addReport, listReports, getReport, deleteReport, saveApprovals, currentApprovals, adminApprovals, approvalHistory,
   setReportStatus, approvalsRecordCsv, loginClientId, isStaff, clientScope, canAccessClient, listOperators, createOperator, setOperatorRole, resetOperatorPassword,
   deleteOperator, setOperatorClients, changeOwnOperatorPassword,
@@ -501,7 +502,7 @@ teamFiles.delete('/:id', wrap(async (req, res) => {
 
 router.use('/team-files', teamFiles);
 
-/** Team notes: a master-only, append-only record. There is deliberately no edit or delete. */
+/** Team notes: master-only notes that sit under a file. Any master can edit or delete one. */
 const teamNotes = express.Router();
 teamNotes.use(requireSession('master'));
 
@@ -510,13 +511,56 @@ teamNotes.get('/', wrap(async (req, res) => {
 }));
 
 teamNotes.post('/', wrap(async (req, res) => {
-  const input = parseOrThrow(z.object({ body: z.string().max(4000) }), req.body);
-  const note = await addTeamNote(await getStore(), req.portal, input.body);
-  log.info('portal team note added', { noteId: note.id, by: req.portal.email });
+  const input = parseOrThrow(z.object({ fileId: z.string().max(64), body: z.string().max(4000) }), req.body);
+  const note = await addTeamNote(await getStore(), req.portal, input.fileId, input.body);
+  log.info('portal team note added', { noteId: note.id, fileId: note.fileId, by: req.portal.email });
   res.status(201).json({ ok: true, note });
 }));
 
+teamNotes.patch('/:id', wrap(async (req, res) => {
+  const input = parseOrThrow(z.object({ body: z.string().max(4000) }), req.body);
+  const note = await updateTeamNote(await getStore(), req.params.id, input.body);
+  log.info('portal team note edited', { noteId: note.id, by: req.portal.email });
+  res.json({ ok: true, note });
+}));
+
+teamNotes.delete('/:id', wrap(async (req, res) => {
+  await deleteTeamNote(await getStore(), req.params.id);
+  log.info('portal team note deleted', { noteId: req.params.id, by: req.portal.email });
+  res.json({ ok: true });
+}));
+
 router.use('/team-notes', teamNotes);
+
+/** The punch list: master-only tasks that anyone with that role can add, edit, tick off and delete. */
+const teamTasks = express.Router();
+teamTasks.use(requireSession('master'));
+
+teamTasks.get('/', wrap(async (req, res) => {
+  res.json({ ok: true, tasks: await listTeamTasks(await getStore()) });
+}));
+
+teamTasks.post('/', wrap(async (req, res) => {
+  const input = parseOrThrow(z.object({ text: z.string().max(1000) }), req.body);
+  const task = await addTeamTask(await getStore(), req.portal, input.text);
+  log.info('portal team task added', { taskId: task.id, by: req.portal.email });
+  res.status(201).json({ ok: true, task });
+}));
+
+teamTasks.patch('/:id', wrap(async (req, res) => {
+  const input = parseOrThrow(z.object({ text: z.string().max(1000).optional(), done: z.boolean().optional() }), req.body);
+  const task = await updateTeamTask(await getStore(), req.params.id, input);
+  log.info('portal team task updated', { taskId: task.id, by: req.portal.email });
+  res.json({ ok: true, task });
+}));
+
+teamTasks.delete('/:id', wrap(async (req, res) => {
+  await deleteTeamTask(await getStore(), req.params.id);
+  log.info('portal team task deleted', { taskId: req.params.id, by: req.portal.email });
+  res.json({ ok: true });
+}));
+
+router.use('/team-tasks', teamTasks);
 
 router.use('/admin', admin);
 
