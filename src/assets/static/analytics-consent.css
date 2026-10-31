@@ -1,4 +1,4 @@
-.analytics-choice,.analytics-settings{font:14px/1.5 system-ui,sans-serif;color:#182b2a;background:#fff;border:1px solid #526664;border-radius:10px;box-shadow:0 4px 20px #0002;z-index:2147483000}
+.analytics-choice,.analytics-settings{font:14px/1.5 system-ui,sans-serif;color:#182b2a;background:#fff;border:1px solid #526664;border-radius:10px;box-shadow:0 4px 20px #0002;z-index:9999;transform:translateZ(0)}
 .analytics-choice{position:fixed;bottom:64px;left:20px;max-width:510px;padding:20px;box-sizing:border-box}
 .analytics-choice[hidden]{display:none!important}.analytics-choice p{margin:0 0 14px;color:inherit}.analytics-choice strong{font-size:17px}
 .analytics-actions{display:flex;flex-wrap:wrap;gap:10px;align-items:center}.analytics-choice button,.analytics-settings{padding:10px 14px;cursor:pointer;font:inherit}
