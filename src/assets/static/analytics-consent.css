@@ -5,4 +5,6 @@
 .analytics-choice button{border:1px solid #214f4b;background:#fff;color:#173c39;border-radius:6px;font-weight:600;min-height:44px}
 .analytics-choice button:hover,.analytics-settings:hover{background:#eaf3f1}.analytics-choice a{color:#173c39;text-decoration:underline}.analytics-choice :focus-visible,.analytics-settings:focus-visible{outline:3px solid #147e70;outline-offset:3px}
 .analytics-settings{position:fixed;left:20px;bottom:12px;min-height:40px}
-@media(max-width:600px){.analytics-choice{left:12px;right:12px;max-width:none;bottom:62px;padding:16px;max-height:65vh;overflow:auto}.analytics-settings{left:12px}.analytics-actions button{flex:1}}
+html.has-consent-ui{scroll-padding-bottom:72px}
+@media(min-width:601px){html.has-consent-ui .site-footer,html.has-consent-ui .footer{padding-bottom:112px}}
+@media(max-width:600px){.analytics-choice{left:12px;right:12px;max-width:none;bottom:12px;padding:12px 14px;max-height:60vh;overflow:auto;font-size:13px;line-height:1.45}.analytics-choice p{margin:0 0 10px}.analytics-choice strong{font-size:15px}.analytics-actions{gap:8px}.analytics-actions button{flex:1}.analytics-settings{position:static;display:block;margin:12px 12px 16px}}

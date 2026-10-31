@@ -43,7 +43,7 @@ function collectPages(dir = DIST, prefix = '') {
       out.push(...collectPages(path.join(dir, entry.name), `${prefix}/${entry.name}`));
     } else if (entry.name === 'index.html') {
       out.push(prefix === '' ? '/' : prefix);
-    } else if (entry.name.endsWith('.html')) {
+    } else if (entry.name.endsWith('.html') && !/^google[0-9a-f]+\.html$/.test(entry.name)) { // Search Console verification file, not a page
       out.push(`${prefix}/${entry.name}`);
     }
   }

@@ -1,0 +1,4 @@
+{
+  "_help": "Accepted exceptions for scripts/test-mobile.mjs. Each entry hides one finding from the pass/fail result (it is still counted as known in the report). Keep this list short, and always say why. Fields: check (required), route (optional), selector (optional, substring match), reason (required).",
+  "ignore": []
+}

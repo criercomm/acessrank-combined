@@ -25,7 +25,7 @@
  * (vendor/gsap.min.js) into one file by build.mjs.
  *
  * - No colours are read or set here, so the dark and light themes both work unchanged.
- * - Nothing animates under prefers-reduced-motion: the plain headline just shows.
+ * - Nothing animates under prefers-reduced-motion or on phone-width screens (under 768px): the plain headline just shows.
  * - The headline is split into words only while it animates. When the timeline
  *   ends, the original markup is put back, so the finished page is exactly the
  *   static HTML in src/pages/index.html.
@@ -62,7 +62,8 @@
   function init() {
     var gsap = window.gsap;
     var lines = title ? Array.prototype.slice.call(title.querySelectorAll('.h-line')) : [];
-    var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    // Same condition as theme.js: no animation under reduced motion or on phone-width screens.
+    var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches || window.matchMedia('(max-width: 767px)').matches;
     if (!gsap || !title || !sub || !lines.length || reduced) { show(); return; }
 
     var words = [], bars = [], letters = [];

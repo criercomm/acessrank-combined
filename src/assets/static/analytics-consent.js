@@ -63,10 +63,11 @@
         window[disabled] = true; save(choice); clearCookies(); panel.hidden = true;
         if (loaded) { location.reload(); return; }
       } else { save(choice); panel.hidden = true; start(); }
-      settings.focus();
+      settings.focus({ preventScroll: true }); // on phones the button sits at the end of the page; do not jump there
     });
     panel.hidden = state === 'accepted' || state === 'rejected';
     document.body.append(panel, settings);
+    document.documentElement.classList.add('has-consent-ui');
     if (state === 'rejected') clearCookies();
     start();
   }

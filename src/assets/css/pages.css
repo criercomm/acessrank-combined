@@ -151,11 +151,11 @@ select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmln
 .success-mark svg { width: 26px; height: 26px; }
 
 @media (max-width: 940px) {
-  .auth-grid, .auth-grid.wide { grid-template-columns: 1fr; gap: 32px; max-width: 560px; justify-items: center; }
+  .auth-grid, .auth-grid.wide { grid-template-columns: minmax(0, 1fr); gap: 32px; max-width: 560px; justify-items: center; }
   .auth-copy { text-align: center; }
   .intro { align-items: center; text-align: center; margin: 0; max-width: 560px; }
   .trust-row { align-items: center; }
-  .form-card, .form-card.wide { max-width: 560px; }
+  .form-card, .form-card.wide { max-width: 560px; width: 100%; min-width: 0; }
 }
 
 /* ---- Legal / content pages ---- */
@@ -309,3 +309,52 @@ select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmln
 .beta-prompt-close:hover { color: var(--text); }
 .beta-note { margin: 18px 0 0; font-size: 13px; line-height: 1.5; color: var(--text-muted); }
 .form-sub-beta { text-align: center; margin: 4px 0 28px; }
+
+/* ---- Phones: header fit, floating widgets clear of content, tidy hero eyebrow, scrollable tables ---- */
+/* The menu button and the Beta badge never shrink; the logo gives way instead (below ~370px the
+   header used to need 319px and the Beta badge sat on top of the menu button). */
+.nav-toggle, .beta-badge { flex: none; }
+@media (max-width: 370px) {
+  .site .site-nav .logo { font-size: 22px; gap: 8px; }
+  .site .site-nav .logo-mark { width: 29px; height: 29px; }
+  .nav-brand { gap: 12px; }
+  .site-nav { gap: 16px; }
+}
+@media (max-width: 340px) {
+  .site .site-nav .logo { font-size: 20px; }
+  .site .site-nav .logo-mark { width: 26px; height: 26px; }
+  .nav-brand { gap: 10px; }
+  .beta-badge { padding: 4px 8px; }
+  .site-nav { gap: 12px; }
+}
+@media (max-width: 299px) { .beta-badge { display: none; } }
+
+@media (max-width: 767px) {
+  /* The eyebrow becomes two centered lines. No dot to strand beside wrapped text, no stray "·". */
+  .risk-eyebrow-beta { display: block; }
+  .risk-eyebrow-beta .pulse-dot, .lawsuit-eyebrow .pulse-dot { display: none; }
+  .eb-text, .eb-part { display: block; }
+  .eb-sep { display: none; }
+  .lawsuit-eyebrow { display: block; }
+  /* Hero links: a thumb-sized target each instead of 20px lines. */
+  .risk-links { gap: 0; }
+  .risk-link { display: inline-flex; align-items: center; gap: 0.4em; min-height: 44px; }
+}
+
+/* Floating prompt: full width above the page edge on phones, and the footer makes room for it while it is open. */
+@media (max-width: 600px) {
+  .beta-prompt { left: 12px; right: 12px; width: auto; bottom: 12px; padding: 14px 16px; }
+}
+body { padding-bottom: var(--float-space, 0px); } /* room for the open beta prompt at the end of the page */
+
+/* Wide data tables scroll inside their own box instead of widening the whole page. */
+.table-hint { display: none; }
+@media (max-width: 767px) {
+  .table-scroll { overflow-x: auto; max-width: 100%; -webkit-overflow-scrolling: touch; }
+  .table-hint { display: block; margin: 0 0 8px; font-size: 13px; color: var(--text-muted); }
+}
+
+/* Safari lets a dropdown's text spill past the dropdown and counts the spill as page width (the signup
+   plan menu made the page 334px wide on a 320px phone). Clip the text to the box and end it with an ellipsis. */
+.field { min-width: 0; }
+select { min-width: 0; max-width: 100%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }

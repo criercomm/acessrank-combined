@@ -108,3 +108,9 @@ a:focus-visible, button:focus-visible, input:focus-visible { outline: 3px solid 
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
 }
+
+/* iOS Safari zooms the whole page when a field under 16px takes focus, and does not zoom back. */
+@media (max-width: 767px) {
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="submit"]):not([type="button"]):not([type="hidden"]),
+  select:not([hidden]), textarea:not([hidden]) { font-size: 16px; }
+}

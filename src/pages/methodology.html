@@ -48,6 +48,8 @@
       <h2>How the accessibility score is calculated</h2>
       <p>We open every page in a real web browser (the same engine as Chrome, running on our servers without a screen), so the page is fully loaded exactly as a shopper would see it before we test it. We then run <strong>axe-core</strong>, the open-source testing engine most accessibility tools are built on. It checks the page against the requirements of WCAG 2.2, the standard. A requirement counts as met only if every check for it passes everywhere on the page; one failure anywhere and that requirement is not met. Each requirement then carries a weight, because some matter more than others.</p>
 
+      <p class="table-hint">Swipe sideways to see every column.</p>
+      <div class="table-scroll" role="region" aria-label="Score weighting table" tabindex="0">
       <table class="weight-table">
         <caption class="visually-hidden">Weight applied to each conformance level</caption>
         <thead>
@@ -63,6 +65,7 @@
           <tr><td><strong>Best practice</strong> (recommended, not required)</td><td class="num-col">1</td><td>Extra checks that are good practice but not part of the standard</td></tr>
         </tbody>
       </table>
+      </div>
 
       <p class="formula-label">The score is then calculated as</p>
       <div class="formula" role="img" aria-label="Accessibility score equals weighted requirements met, divided by weighted requirements checked, times 100">
@@ -75,6 +78,8 @@
 
       <h3>Worked example</h3>
       <p>The same sample store, before and after the fixes.</p>
+      <p class="table-hint">Swipe sideways to see every column.</p>
+      <div class="table-scroll" role="region" aria-label="Worked example table" tabindex="0">
       <table class="example-table">
         <thead><tr><th scope="col"><span class="visually-hidden">Step</span></th><th scope="col" class="num-col">Before the fixes</th><th scope="col" class="num-col">After fixes</th></tr></thead>
         <tbody>
@@ -84,6 +89,7 @@
           <tr class="total"><td>Accessibility score</td><td class="num-col">103 &divide; 141 &times; 100 = 73</td><td class="num-col">141 &divide; 141 &times; 100 = 100</td></tr>
         </tbody>
       </table>
+      </div>
       <p>The sample store had 76 individual problems behind those 15 unmet requirements before the fixes. The problem count tells you the size of the fix; the score tells you how close the store is to meeting the standard. Both are reported, and they are never mixed.</p>
 
       <details class="more">

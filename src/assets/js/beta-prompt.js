@@ -12,8 +12,21 @@
   var shown = false;
   function remember() { try { window.localStorage.setItem(KEY, '1'); } catch (e) {} }
 
+  var waiting = false;
+  function consentOpen() { var c = document.getElementById('analytics-choice'); return !!(c && !c.hidden); }
+
   function show() {
     if (shown || document.getElementById('scan-modal') && !document.getElementById('scan-modal').hidden) return;
+    // Never stack on top of the analytics choice: wait until the visitor has answered it.
+    if (consentOpen()) {
+      if (!waiting) {
+        waiting = true;
+        var poll = window.setInterval(function () {
+          if (!consentOpen()) { window.clearInterval(poll); waiting = false; show(); }
+        }, 1000);
+      }
+      return;
+    }
     shown = true;
     var box = document.createElement('div');
     box.className = 'beta-prompt';
@@ -38,6 +51,7 @@
 
     function dismiss() {
       remember();
+      document.documentElement.style.removeProperty('--float-space');
       document.removeEventListener('keydown', onKey);
       if (box.parentNode) box.parentNode.removeChild(box);
     }
@@ -51,9 +65,16 @@
     box.appendChild(text);
     box.appendChild(cta);
     document.body.appendChild(box);
+    // Lets the footer reserve room for the prompt so nothing at the end of the page sits underneath it.
+    document.documentElement.style.setProperty('--float-space', (box.offsetHeight + 24) + 'px');
   }
 
-  window.setTimeout(show, 20000);
+  // The timed path: on a phone, only once the visitor has scrolled, so it never lands on the first screen.
+  function showWhenSettled() {
+    if (window.innerWidth > 600 || window.scrollY > 0) show();
+    else window.setTimeout(showWhenSettled, 3000);
+  }
+  window.setTimeout(showWhenSettled, 20000);
   window.addEventListener('scroll', function onScroll() {
     var h = document.documentElement;
     if (h.scrollTop / Math.max(1, h.scrollHeight - h.clientHeight) > 0.5) {

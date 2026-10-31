@@ -217,6 +217,9 @@ legacy/                the original hand-written site, kept for reference
 | `npm test` | Unit + integration tests |
 | `npm run test:a11y` | **Audit our own site with axe-core; fails on any violation** |
 | `npm run test:links` | Fail if any internal link is dead |
+| `npm run test:mobile` | Build, then test every page on 4 phone sizes in Chromium and WebKit: overflow, tap targets, iOS zoom, overlays, menu, slow-phone headline, reduced motion. See `docs/mobile-testing.md` |
+| `npm run test:mobile:full` | Same, plus landscape, tablet, light theme, and WebKit (Safari's engine) |
+| `npm run test:mobile:live` | Same checks against the live site, which sees anything added outside this repo |
 | `npm run verify` | All of the above |
 | `npm run migrate` | Apply SQL migrations |
 | `npm run fonts` / `npm run images` | Regenerate self-hosted fonts / brand images |
