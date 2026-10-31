@@ -55,7 +55,6 @@
 }
 .portal-card--form { padding: 22px 22px 24px; }
 .portal-empty { font-size: 14.5px; line-height: 1.55; color: var(--text-muted); margin: 0; padding: 26px 22px; }
-.portal-empty--rail { padding: 4px 0 12px; }
 
 .portal-notice {
   font-size: 14px; line-height: 1.5; color: var(--text-soft); margin: 22px 0 0; padding: 13px 16px;
@@ -104,7 +103,7 @@
 .password-form .field-hint { margin: 0; }
 
 /* ---- File list (client portal and admin) ---- */
-.file-list, .login-list, .client-list, .upload-queue { list-style: none; margin: 0; padding: 0; }
+.file-list, .login-list, .upload-queue { list-style: none; margin: 0; padding: 0; }
 
 .file-list > li, .login-list > li {
   display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 12px 16px;
@@ -128,28 +127,6 @@
 .file-list > li.stack-actions > .row-actions { grid-column: 1 / -1; justify-content: flex-start; }
 .row-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
 
-/* ---- Admin layout ---- */
-.admin-grid { display: grid; grid-template-columns: 280px minmax(0, 1fr); gap: 40px; align-items: start; margin-top: 30px; }
-.admin-rail h2 { margin-bottom: 12px; }
-.admin-detail > .portal-card { margin-top: 38px; }
-
-.client-list { display: flex; flex-direction: column; gap: 4px; margin-bottom: 22px; }
-.client-list:empty { margin-bottom: 0; }
-.client-button {
-  display: block; width: 100%; text-align: left; padding: 11px 13px; border-radius: 10px;
-  border: 1px solid transparent; color: var(--text-soft);
-  transition: background .15s ease, border-color .15s ease;
-}
-.client-button:hover { background: rgba(255, 255, 255, 0.05); }
-.client-button[aria-current="true"] { background: var(--brand-soft); border-color: var(--brand-border); }
-.client-button-name { display: block; font-size: 14.5px; font-weight: 600; line-height: 1.3; color: var(--text); overflow-wrap: anywhere; }
-.client-button-meta { display: block; font-size: 12.5px; line-height: 1.4; color: var(--text-muted); margin-top: 2px; font-variant-numeric: tabular-nums; }
-
-.rail-form { padding-top: 20px; border-top: 1px solid var(--hairline); display: flex; flex-direction: column; gap: 8px; align-items: flex-start; }
-.rail-form .form-status:not(:empty) { margin: 0; }
-
-.detail-head { display: flex; align-items: center; justify-content: space-between; gap: 12px 20px; flex-wrap: wrap; }
-.detail-head h2 { font-size: 24px; letter-spacing: -0.6px; overflow-wrap: anywhere; min-width: 0; }
 .detail-actions { display: flex; flex-wrap: wrap; gap: 8px; }
 
 .rename-form { margin-top: 16px; display: flex; flex-direction: column; gap: 8px; }
@@ -157,26 +134,6 @@
 .inline-row input { flex: 1 1 220px; width: auto; }
 
 /* ---- Upload ---- */
-.dropzone {
-  display: flex; flex-direction: column; align-items: center; text-align: center;
-  padding: 28px 22px 26px; margin-bottom: 14px;
-  border: 1.5px dashed var(--hairline-strong); border-radius: 14px;
-  background: rgba(255, 255, 255, 0.025);
-  transition: background .15s ease, border-color .15s ease;
-}
-.dropzone.is-over { border-color: var(--brand); background: var(--brand-soft); }
-.dropzone-icon { color: var(--brand); margin-bottom: 10px; }
-.dropzone-title { font-size: 15.5px; font-weight: 600; line-height: 1.4; color: var(--text); margin: 0 0 5px; overflow-wrap: anywhere; }
-.dropzone-hint { font-size: 13.5px; line-height: 1.55; color: var(--text-muted); margin: 0; max-width: 46ch; }
-.dropzone-choose {
-  font-size: inherit; font-weight: 600; letter-spacing: 0; color: var(--brand);
-  text-decoration: underline; text-underline-offset: 0.18em; cursor: pointer;
-  display: inline-block; padding: 4px 0; /* 24px target */
-}
-.dropzone-choose:hover { text-decoration-thickness: 2px; }
-/* The real <input type=file> is visually hidden, so its focus ring is drawn on the label that stands in for it. */
-.dropzone:has(input:focus-visible) .dropzone-choose { outline: 3px solid var(--brand); outline-offset: 3px; border-radius: 4px; }
-
 .upload-queue { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
 .upload-queue:empty { margin-bottom: 0; }
 .upload-queue li {
@@ -213,8 +170,7 @@
 
 /* ---- Narrow screens ---- */
 @media (max-width: 900px) {
-  .admin-grid { grid-template-columns: 1fr; gap: 30px; }
-}
+  }
 @media (max-width: 640px) {
   .file-list > li { grid-template-columns: auto minmax(0, 1fr); }
   .file-list > li > .row-actions, .login-list > li > .row-actions { grid-column: 1 / -1; justify-content: flex-start; }
@@ -262,14 +218,8 @@ select#new-op-role { min-height: 44px; }
   .operator-main .row-actions { justify-content: flex-start; }
 }
 .login-form > .field-hint { margin: 0 0 16px; }
-.approval-subhead { margin: 28px 0 12px; font-size: 18px; }
-.approval-record { margin: 10px 0 0; font-size: 14px; }
 .files-subhead { margin: 26px 0 10px; font-size: 16px; }
-.upload-area { max-width: 360px; margin-bottom: 14px; }
 
-.approval-entry { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 8px 16px; }
-.approval-entry > details { flex: 1 1 360px; min-width: 0; }
-.approval-actions { flex: 0 0 auto; padding-top: 4px; }
 .file-area-note { margin: 0 0 10px; font-size: 14px; }
 
 .files-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 26px 0 4px; }
@@ -280,10 +230,7 @@ select#new-op-role { min-height: 44px; }
 .drop-card.is-over { border-color: var(--brand); background: var(--brand-soft); }
 .files-head:has(input:focus-visible) .upload-button { outline: 3px solid var(--brand); outline-offset: 2px; }
 
-.client-picker { max-width: 360px; margin: 0 0 12px; }
-
-/* Create-client dialog and the button that opens it. */
-.rail-create { margin-top: 14px; }
+/* Create-client dialog. */
 .team-dialog {
   width: min(560px, calc(100vw - 32px)); max-height: calc(100vh - 48px); overflow: auto;
   padding: 24px 24px 22px; border: 1px solid var(--hairline-strong); border-radius: 14px;
@@ -485,3 +432,12 @@ select#new-op-role { min-height: 44px; }
   .file-list--notes .file-row .row-actions { grid-column: 1 / -1; }
   .file-notes-inner { padding-left: 16px; }
 }
+
+/* ---- Background glow on the operator and client portals ----
+   The site-wide glow is two page-tall layers with a 70px blur, animated. Any repaint on the page (a hover, an
+   expanding row) re-rasterized both, so hovering a file took ~130-170 ms a frame. Measured in headless Chromium:
+   pinning the layers to the viewport and dropping only the blur (the gradients already fade softly) keeps the
+   drift animation and brings a hover back to a full 60 fps (16.5 ms), the same as no glow at all. This file is
+   only loaded on portal pages, so the marketing site is unchanged. `.site` raises specificity above base.css. */
+.site .aurora { position: fixed; height: 100vh; }
+.site .aurora span { filter: none; }

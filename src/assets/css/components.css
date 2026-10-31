@@ -737,10 +737,8 @@ body.deck-open { overflow: hidden; }
 
 /* Client portal, light theme. portal.css is deliberately left as shipped, so the
    few dark-page literals in it are answered here rather than edited there. */
-[data-theme="light"] :is(.portal-kicker, .dropzone-icon, .dropzone-choose) { color: var(--brand-text); }
-[data-theme="light"] .dropzone { background: var(--surface); }
-[data-theme="light"] .dropzone:has(input:focus-visible) .dropzone-choose { outline-color: var(--focus); }
-[data-theme="light"] :is(.btn-small:hover, a.btn-small:hover, .password-toggle:hover, .client-button:hover) { background: var(--hairline); }
+[data-theme="light"] .portal-kicker { color: var(--brand-text); }
+[data-theme="light"] :is(.btn-small:hover, a.btn-small:hover, .password-toggle:hover) { background: var(--hairline); }
 [data-theme="light"] :is(.btn-small:hover, a.btn-small:hover) { border-color: var(--text); }
 [data-theme="light"] :is(.btn-small--brand, .btn-small--brand:hover) { background: var(--brand); border-color: var(--brand-border); }
 [data-theme="light"] .btn-small--danger { color: var(--error); border-color: var(--error); }
