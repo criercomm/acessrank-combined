@@ -253,6 +253,7 @@
     {
       "file": "client-login.html",
       "url": "/client-login",
+      "excludeFromSitemap": true,
       "layout": "page",
       "title": "Client login — Accessrank",
       "description": "Sign in to your Accessrank client portal to download your audit reports and conformance documents.",
