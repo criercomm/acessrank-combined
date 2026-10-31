@@ -57,6 +57,12 @@ const config = Object.freeze({
     salesInbox: env.SALES_INBOX || 'info@accessrank.ai',
     /** Internal address told whenever a client submits answers on a portal report. */
     portalNotify: env.PORTAL_NOTIFY_EMAIL || 'info@accessrank.ai',
+    /**
+     * Postal address shown in the email footer. Optional and deliberately NOT in the repo: set it with
+     * `fly secrets set MAILING_ADDRESS="..."` (a business mailbox, not a home address) when marketing email
+     * starts, since CAN-SPAM requires a valid postal address there. Unset, emails show the city only.
+     */
+    mailingAddress: env.MAILING_ADDRESS || '',
   },
 
   turnstile: {

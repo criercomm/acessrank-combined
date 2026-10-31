@@ -6,7 +6,7 @@
   "reportFrom": "reports@accessrank.ai",
   "legalName": "Accessrank, Inc.",
   "phone": "+1-310-408-1881",
-  "address": { "street": "2722 N. Beverly Glen Blvd", "city": "Los Angeles", "region": "CA", "postalCode": "90077" },
+  "address": { "city": "Los Angeles", "region": "CA" },
   "foundingYear": 2026,
   "locale": "en",
 

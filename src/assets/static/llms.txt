@@ -2,7 +2,7 @@
 
 > Accessrank fixes accessibility in the source code of US ecommerce stores: WCAG 2.2 Level A and AA remediation in the theme code, documented in an Accessibility Compliance Record and kept in place by ongoing monitoring. The same structural fixes improve on-page SEO and how well AI shopping agents can read a store. No overlay or plug-in widgets. US only; Accessrank does not offer European Accessibility Act (EAA) conformance work.
 
-Accessrank, Inc. is based in Los Angeles, California (2722 N. Beverly Glen Blvd, Los Angeles, CA 90077; +1 310-408-1881; info@accessrank.ai), founded in 2026, remote-first and US-based. Co-Founder & CEO: JP Lincoln. Accessrank is not a law firm and nothing it publishes is legal advice.
+Accessrank, Inc. is based in Los Angeles, California (+1 310-408-1881; info@accessrank.ai), founded in 2026, remote-first and US-based. Co-Founder & CEO: JP Lincoln. Accessrank is not a law firm and nothing it publishes is legal advice.
 
 ## What Accessrank does
 

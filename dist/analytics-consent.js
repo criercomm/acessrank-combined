@@ -63,11 +63,21 @@
         window[disabled] = true; save(choice); clearCookies(); panel.hidden = true;
         if (loaded) { location.reload(); return; }
       } else { save(choice); panel.hidden = true; start(); }
-      settings.focus({ preventScroll: true }); // on phones the button sits at the end of the page; do not jump there
+      settings.focus({ preventScroll: true }); // the control is in the footer, far from the banner; do not scroll there
     });
     panel.hidden = state === 'accepted' || state === 'rejected';
-    document.body.append(panel, settings);
-    document.documentElement.classList.add('has-consent-ui');
+    document.body.append(panel);
+    // The "Analytics settings" control lives in the footer as a plain link, so it never floats over content and
+    // stays available for as long as the privacy page promises ("change your choice at any time").
+    const legal = document.querySelector('.footer-legal');
+    if (legal) {
+      const row = document.createElement('p');
+      row.className = 'footer-copy footer-choices';
+      row.append(settings);
+      legal.append(row);
+    } else {
+      document.body.append(settings);
+    }
     if (state === 'rejected') clearCookies();
     start();
   }
