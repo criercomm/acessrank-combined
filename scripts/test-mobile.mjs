@@ -119,6 +119,16 @@ const MIME = {
   '.woff2': 'font/woff2', '.xml': 'application/xml', '.txt': 'text/plain', '.ico': 'image/x-icon',
 };
 
+/** The same Content-Security-Policy the live server sends (server/app.js), so a violation shows up here first. */
+let CSP = '';
+try {
+  const { styleHash } = JSON.parse(fs.readFileSync(path.join(DIST, 'csp.json'), 'utf8'));
+  CSP = ["default-src 'self'", "base-uri 'self'", "font-src 'self'", `style-src 'self' '${styleHash}'`,
+    "script-src 'self' https://www.googletagmanager.com https://challenges.cloudflare.com", "script-src-attr 'none'",
+    "img-src 'self' data:", "connect-src 'self' https://www.google-analytics.com https://region1.google-analytics.com https://challenges.cloudflare.com",
+    "frame-src 'self' https://challenges.cloudflare.com", "form-action 'self'", "object-src 'none'", "manifest-src 'self'"].join('; ');
+} catch { /* no csp.json: serve without a policy */ }
+
 function startStaticServer() {
   const server = http.createServer((req, res) => {
     const url = new URL(req.url, 'http://localhost');
@@ -126,7 +136,7 @@ function startStaticServer() {
     if (!file.startsWith(DIST)) { res.writeHead(403); res.end(); return; }
     if (fs.existsSync(file) && fs.statSync(file).isDirectory()) file = path.join(file, 'index.html');
     if (!fs.existsSync(file)) { res.writeHead(404); res.end('not found'); return; }
-    res.writeHead(200, { 'Content-Type': MIME[path.extname(file)] ?? 'application/octet-stream', 'Cache-Control': 'no-store' });
+    res.writeHead(200, { 'Content-Type': MIME[path.extname(file)] ?? 'application/octet-stream', 'Cache-Control': 'no-store', ...(CSP ? { 'Content-Security-Policy': CSP } : {}) });
     res.end(fs.readFileSync(file));
   });
   return new Promise((resolve) => server.listen(0, '127.0.0.1', () => resolve(server)));
@@ -462,8 +472,15 @@ async function layoutJob(job, browsers, base) {
   await ctx.addInitScript(themeScript(theme));
   const page = await ctx.newPage();
   const noise = new Set();
+  // WebKit's screenshot tool adds a style rule of its own, which a strict Content-Security-Policy (ours) refuses and
+  // logs. That is the test's doing, not the site's, so console messages are not recorded while a screenshot is taken.
+  let quiet = false;
+  const shoot = async (opts) => {
+    quiet = true;
+    try { await page.screenshot(opts); } finally { await page.waitForTimeout(300); quiet = false; }
+  };
   if (diagnostics) {
-    page.on('console', (m) => { if (m.type() === 'error' && !/Failed to load resource/.test(m.text())) noise.add(`console error: ${m.text().slice(0, 140)}`); });
+    page.on('console', (m) => { if (!quiet && m.type() === 'error' && !/Failed to load resource/.test(m.text())) noise.add(`console error: ${m.text().slice(0, 140)}`); });
     page.on('pageerror', (e) => noise.add(`script error: ${String(e.message).slice(0, 140)}`));
     page.on('response', (r) => { if (r.status() >= 400 && !new URL(r.url()).pathname.startsWith('/api/')) noise.add(`HTTP ${r.status()}: ${r.url().replace(base, '')}`); });
     page.on('requestfailed', (r) => noise.add(`request failed: ${r.url().replace(base, '')}`));
@@ -486,7 +503,7 @@ async function layoutJob(job, browsers, base) {
     if (SHOTS) {
       shot = path.join(slug(`${engine}-${device.name}-${theme}`), `${slug(route)}.png`);
       fs.mkdirSync(path.join(OUT, path.dirname(shot)), { recursive: true });
-      await page.screenshot({ path: path.join(OUT, shot) });
+      await shoot({ path: path.join(OUT, shot) });
     }
 
     const yBefore = await page.evaluate(() => window.scrollY);
@@ -519,7 +536,7 @@ async function layoutJob(job, browsers, base) {
 
     if (SHOTS && route === '/') {
       const full = path.join(slug(`${engine}-${device.name}-${theme}`), 'home-full.png');
-      await page.screenshot({ path: path.join(OUT, full), fullPage: true }).catch(() => {});
+      await shoot({ path: path.join(OUT, full), fullPage: true }).catch(() => {});
     }
   } catch (e) {
     add({ check: 'load', severity: 'error', selector: route, message: `Page could not be tested: ${String(e.message).split('\n')[0]}` });
