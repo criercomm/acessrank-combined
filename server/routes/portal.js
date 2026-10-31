@@ -502,7 +502,7 @@ teamFiles.delete('/:id', wrap(async (req, res) => {
 
 router.use('/team-files', teamFiles);
 
-/** Team notes: master-only notes that sit under a file. Any master can edit or delete one. */
+/** Team notes: master-only notes that sit under a file or a punch list task. Any master can edit or delete one. */
 const teamNotes = express.Router();
 teamNotes.use(requireSession('master'));
 
@@ -511,9 +511,9 @@ teamNotes.get('/', wrap(async (req, res) => {
 }));
 
 teamNotes.post('/', wrap(async (req, res) => {
-  const input = parseOrThrow(z.object({ fileId: z.string().max(64), body: z.string().max(4000) }), req.body);
-  const note = await addTeamNote(await getStore(), req.portal, input.fileId, input.body);
-  log.info('portal team note added', { noteId: note.id, fileId: note.fileId, by: req.portal.email });
+  const input = parseOrThrow(z.object({ fileId: z.string().max(64).optional(), taskId: z.string().max(64).optional(), body: z.string().max(4000) }), req.body);
+  const note = await addTeamNote(await getStore(), req.portal, { fileId: input.fileId, taskId: input.taskId }, input.body);
+  log.info('portal team note added', { noteId: note.id, fileId: note.fileId, taskId: note.taskId, by: req.portal.email });
   res.status(201).json({ ok: true, note });
 }));
 

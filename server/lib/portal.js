@@ -381,26 +381,28 @@ function pgRepo(store) {
     },
 
     async listTeamNotes() {
-      return (await q('SELECT id, file_id, body, author_name, author_email, created_at, updated_at FROM portal_team_notes WHERE file_id IS NOT NULL ORDER BY created_at ASC LIMIT 2000')).rows;
+      return (await q('SELECT id, file_id, task_id, body, author_name, author_email, created_at, updated_at FROM portal_team_notes WHERE file_id IS NOT NULL OR task_id IS NOT NULL ORDER BY created_at ASC LIMIT 4000')).rows;
     },
-    /** Null when the file no longer exists. */
-    async insertTeamNote({ fileId, body, authorName, authorEmail }) {
+    /** Null when the file or task no longer exists. Exactly one of `fileId` / `taskId` is set. */
+    async insertTeamNote({ fileId = null, taskId = null, body, authorName, authorEmail }) {
       return (await q(
-        `INSERT INTO portal_team_notes (file_id, body, author_name, author_email)
-         SELECT $1, $2, $3, $4 WHERE EXISTS (SELECT 1 FROM portal_team_files WHERE id = $1)
-         RETURNING id, file_id, body, author_name, author_email, created_at, updated_at`,
-        [fileId, body, authorName, authorEmail],
+        `INSERT INTO portal_team_notes (file_id, task_id, body, author_name, author_email)
+         SELECT $1::uuid, $2::uuid, $3, $4, $5
+          WHERE ($1::uuid IS NOT NULL AND EXISTS (SELECT 1 FROM portal_team_files WHERE id = $1::uuid))
+             OR ($2::uuid IS NOT NULL AND EXISTS (SELECT 1 FROM portal_team_tasks WHERE id = $2::uuid))
+         RETURNING id, file_id, task_id, body, author_name, author_email, created_at, updated_at`,
+        [fileId, taskId, body, authorName, authorEmail],
       )).rows[0] ?? null;
     },
     async updateTeamNote(id, body) {
       return (await q(
-        `UPDATE portal_team_notes SET body = $2, updated_at = now() WHERE id = $1 AND file_id IS NOT NULL
-         RETURNING id, file_id, body, author_name, author_email, created_at, updated_at`,
+        `UPDATE portal_team_notes SET body = $2, updated_at = now() WHERE id = $1 AND (file_id IS NOT NULL OR task_id IS NOT NULL)
+         RETURNING id, file_id, task_id, body, author_name, author_email, created_at, updated_at`,
         [id, body],
       )).rows[0] ?? null;
     },
     async deleteTeamNote(id) {
-      return (await q('DELETE FROM portal_team_notes WHERE id = $1 AND file_id IS NOT NULL', [id])).rowCount > 0;
+      return (await q('DELETE FROM portal_team_notes WHERE id = $1 AND (file_id IS NOT NULL OR task_id IS NOT NULL)', [id])).rowCount > 0;
     },
 
     async listTeamTasks() {
@@ -691,22 +693,22 @@ function memRepo(store) {
       return removed;
     },
 
-    async listTeamNotes() { return db.teamNotes.filter((n) => n.file_id).sort((a, b) => byCreated(a, b)); },
-    async insertTeamNote({ fileId, body, authorName, authorEmail }) {
-      if (!db.teamFiles.has(fileId)) return null;
-      const row = { id: crypto.randomUUID(), file_id: fileId, created_at: now(), updated_at: null, body, author_name: authorName, author_email: authorEmail };
+    async listTeamNotes() { return db.teamNotes.filter((n) => n.file_id || n.task_id).sort((a, b) => byCreated(a, b)); },
+    async insertTeamNote({ fileId = null, taskId = null, body, authorName, authorEmail }) {
+      if (fileId ? !db.teamFiles.has(fileId) : !db.teamTasks.some((t) => t.id === taskId)) return null;
+      const row = { id: crypto.randomUUID(), file_id: fileId, task_id: taskId, created_at: now(), updated_at: null, body, author_name: authorName, author_email: authorEmail };
       db.teamNotes.push(row);
       return row;
     },
     async updateTeamNote(id, body) {
-      const row = db.teamNotes.find((n) => n.id === id && n.file_id);
+      const row = db.teamNotes.find((n) => n.id === id && (n.file_id || n.task_id));
       if (!row) return null;
       row.body = body;
       row.updated_at = now();
       return row;
     },
     async deleteTeamNote(id) {
-      const i = db.teamNotes.findIndex((n) => n.id === id && n.file_id);
+      const i = db.teamNotes.findIndex((n) => n.id === id && (n.file_id || n.task_id));
       if (i < 0) return false;
       db.teamNotes.splice(i, 1);
       return true;
@@ -729,6 +731,8 @@ function memRepo(store) {
       const i = db.teamTasks.findIndex((t) => t.id === id);
       if (i < 0) return false;
       db.teamTasks.splice(i, 1);
+      // Notes go with their task, as ON DELETE CASCADE does in Postgres.
+      for (let n = db.teamNotes.length - 1; n >= 0; n -= 1) if (db.teamNotes[n].task_id === id) db.teamNotes.splice(n, 1);
       return true;
     },
 
@@ -1344,7 +1348,8 @@ export async function addTeamFile(store, session, { filename, data }) {
 
 const teamNoteOut = (row) => ({
   id: row.id,
-  fileId: row.file_id,
+  fileId: row.file_id ?? null,
+  taskId: row.task_id ?? null,
   body: row.body,
   authorName: row.author_name || '',
   authorEmail: row.author_email || '',
@@ -1375,17 +1380,24 @@ function cleanNoteBody(rawBody) {
   return body;
 }
 
-/** Add a note under a file. The author is always the signed-in session, never anything the browser sends. */
-export async function addTeamNote(store, session, fileId, rawBody) {
+/**
+ * Add a note under a file or a task (`target` is `{ fileId }` or `{ taskId }`). The author is
+ * always the signed-in session, never anything the browser sends.
+ */
+export async function addTeamNote(store, session, target, rawBody) {
   const body = cleanNoteBody(rawBody);
-  if (!isUuid(fileId)) throw notFound('file');
+  const fileId = target.fileId || null;
+  const taskId = target.taskId || null;
+  if (Boolean(fileId) === Boolean(taskId)) throw new PortalError('A note belongs to one file or one task.', { code: 'note_target' });
+  if (!isUuid(fileId ?? taskId)) throw notFound(fileId ? 'file' : 'task');
   const row = await repoFor(store).insertTeamNote({
     fileId,
+    taskId,
     body,
     authorName: String(session.name ?? '').slice(0, 120),
     authorEmail: String(session.email ?? '').slice(0, 254),
   });
-  if (!row) throw notFound('file');
+  if (!row) throw notFound(fileId ? 'file' : 'task');
   return teamNoteOut(row);
 }
 

@@ -1116,7 +1116,8 @@ test('team notes: sit under a file, masters add, edit and delete them; nobody el
   assert.equal((await master.person.post('/api/portal/team-notes', { fileId: fileA.id, body: '   ' })).body.code, 'note_empty');
   assert.equal((await master.person.post('/api/portal/team-notes', { fileId: fileA.id, body: 'x'.repeat(2001) })).body.code, 'note_long');
   assert.equal((await master.person.post('/api/portal/team-notes', { fileId: '00000000-0000-4000-8000-000000000000', body: 'orphan' })).status, 404, 'a note needs a file');
-  assert.equal((await master.person.post('/api/portal/team-notes', { body: 'no file' })).status, 400);
+  assert.equal((await master.person.post('/api/portal/team-notes', { body: 'no file' })).body.code, 'note_target', 'a note needs a file or a task');
+  assert.equal((await master.person.post('/api/portal/team-notes', { fileId: fileA.id, taskId: fileB.id, body: 'both' })).body.code, 'note_target');
 
   // Edit: any master can; the author and first time stay, and the edit is marked.
   const edited = await owner.patch(`/api/portal/team-notes/${first.body.note.id}`, { body: ' Handbook v4 is up. ' });
@@ -1189,4 +1190,37 @@ test('team punch list: masters add, edit, tick off and delete tasks; nobody else
   assert.equal((await master.person.del(`/api/portal/team-tasks/${task.id}`)).status, 200);
   assert.equal((await master.person.del(`/api/portal/team-tasks/${task.id}`)).status, 404);
   assert.equal((await master.person.get('/api/portal/team-tasks')).body.tasks.length, 1);
+});
+
+test('team notes on punch list tasks: add, edit, delete, and they go when the task goes', async () => {
+  const owner = await adminBrowser();
+  const master = await operatorWithLogin(owner, { name: 'Carlos', email: 'carlos@accessrank.test', role: 'master' }, '198.51.100.65');
+  const plain = await operatorWithLogin(owner, { name: 'Priya', email: 'priya@accessrank.test' }, '198.51.100.66');
+
+  const taskA = (await master.person.post('/api/portal/team-tasks', { text: 'Review the report' })).body.task;
+  const taskB = (await master.person.post('/api/portal/team-tasks', { text: 'Book the vendor' })).body.task;
+
+  const added = await master.person.post('/api/portal/team-notes', { taskId: taskA.id, body: '  Compare against the GEO report.  ', authorEmail: 'fake@x.test' });
+  assert.equal(added.status, 201, JSON.stringify(added.body));
+  assert.equal(added.body.note.taskId, taskA.id);
+  assert.equal(added.body.note.fileId, null);
+  assert.equal(added.body.note.body, 'Compare against the GEO report.');
+  assert.equal(added.body.note.authorEmail, 'carlos@accessrank.test', 'the author comes from the session');
+  assert.equal((await owner.post('/api/portal/team-notes', { taskId: taskB.id, body: 'Second' })).status, 201);
+  assert.equal((await master.person.post('/api/portal/team-notes', { taskId: '00000000-0000-4000-8000-000000000000', body: 'orphan' })).status, 404);
+  assert.equal((await master.person.post('/api/portal/team-notes', { taskId: taskA.id, body: ' ' })).body.code, 'note_empty');
+  assert.equal((await plain.person.post('/api/portal/team-notes', { taskId: taskA.id, body: 'nope' })).status, 404);
+
+  const all = (await master.person.get('/api/portal/team-notes')).body.notes;
+  assert.deepEqual(all.map((n) => n.taskId), [taskA.id, taskB.id]);
+
+  const edited = await owner.patch(`/api/portal/team-notes/${added.body.note.id}`, { body: 'Compared.' });
+  assert.equal(edited.status, 200);
+  assert.equal(edited.body.note.taskId, taskA.id);
+  assert.equal(edited.body.note.authorEmail, 'carlos@accessrank.test');
+  assert.ok(edited.body.note.updatedAt);
+
+  assert.equal((await master.person.del(`/api/portal/team-notes/${all[1].id}`)).status, 200);
+  assert.equal((await master.person.del(`/api/portal/team-tasks/${taskA.id}`)).status, 200);
+  assert.deepEqual((await master.person.get('/api/portal/team-notes')).body.notes, [], 'a deleted task takes its notes with it');
 });

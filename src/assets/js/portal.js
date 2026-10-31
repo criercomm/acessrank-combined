@@ -1445,7 +1445,7 @@
 
     function render() {
       clear(list);
-      threads = {};
+      forgetThreads('file:');
       loading.hidden = true;
       empty.hidden = state.files.length > 0;
       list.hidden = state.files.length === 0;
@@ -1460,7 +1460,7 @@
             setStatus(status, 'Deleted ' + file.name + ' and its notes.', 'success');
           }, fail);
         });
-        var panel = threadFor(file);
+        var panel = threadFor('file:' + file.id, { fileId: file.id }, file.name);
         list.appendChild(h('li', {}, [
           h('div', { class: 'file-row' }, [
             h('span', { class: 'file-badge', 'aria-hidden': 'true', text: fileKind(file.name) }),
@@ -1472,48 +1472,55 @@
               ])
             ]),
             h('div', { class: 'row-actions' }, [
-              threads[file.id].heading,
+              threads['file:' + file.id].heading,
               h('a', { class: 'btn-small', href: '/api/portal/team-files/' + encodeURIComponent(file.id), 'aria-label': 'Download ' + file.name, text: 'Download' }),
               remove
             ])
           ]),
           panel
         ]));
-        renderThread(file.id);
+        renderThread('file:' + file.id);
       });
     }
 
-    /* ---- notes under each file ---- */
+    /* ---- notes under each file and each task ---- */
 
-    function threadFor(file) {
+    function noteKey(n) { return n.fileId ? 'file:' + n.fileId : 'task:' + n.taskId; }
+
+    function forgetThreads(prefix) {
+      Object.keys(threads).forEach(function (key) { if (key.indexOf(prefix) === 0) delete threads[key]; });
+    }
+
+    /** The folded notes panel for one file or one task. `target` is { fileId } or { taskId }. */
+    function threadFor(key, target, name) {
       var heading = h('span', { class: 'notes-count' });
       var noteInput = h('input', {
         type: 'text', class: 'note-add-input', maxlength: '2000', autocomplete: 'off',
-        placeholder: 'Add a note…', 'aria-label': 'Add a note to ' + file.name
+        placeholder: 'Add a note…', 'aria-label': 'Add a note to ' + name
       });
-      var addButton = h('button', { type: 'submit', class: 'btn-small btn-small--brand', 'aria-label': 'Add note to ' + file.name, text: 'Add note' });
+      var addButton = h('button', { type: 'submit', class: 'btn-small btn-small--brand', 'aria-label': 'Add note to ' + name, text: 'Add note' });
       var form = h('form', { class: 'note-add', novalidate: true }, [noteInput, addButton]);
-      var noteList = h('ul', { class: 'note-list', 'aria-label': 'Notes on ' + file.name });
+      var noteList = h('ul', { class: 'note-list', 'aria-label': 'Notes on ' + name });
       form.addEventListener('submit', function (e) {
         e.preventDefault();
         var body = noteInput.value.trim();
         if (!body) { setStatus(status, 'Write a note first.', 'error'); noteInput.focus(); return; }
         addButton.disabled = true;
-        api('POST', '/api/portal/team-notes', { fileId: file.id, body: body }).then(function (data) {
+        api('POST', '/api/portal/team-notes', { fileId: target.fileId, taskId: target.taskId, body: body }).then(function (data) {
           notes.push(data.note);
           noteInput.value = '';
-          renderThread(file.id);
-          setStatus(status, 'Note added to ' + file.name + '.', 'success');
+          renderThread(key);
+          setStatus(status, 'Note added to ' + name + '.', 'success');
         }, function (error) { setStatus(status, error.message, 'error'); }).then(function () { addButton.disabled = false; noteInput.focus(); });
       });
-      threads[file.id] = { heading: heading, list: noteList, file: file };
+      threads[key] = { heading: heading, list: noteList };
       return h('div', { class: 'file-notes' }, [h('div', { class: 'file-notes-inner' }, [noteList, form])]);
     }
 
-    function renderThread(fileId) {
-      var thread = threads[fileId];
+    function renderThread(key) {
+      var thread = threads[key];
       if (!thread) return;
-      var mine = notes.filter(function (n) { return n.fileId === fileId; });
+      var mine = notes.filter(function (n) { return noteKey(n) === key; });
       thread.heading.textContent = mine.length ? 'Notes (' + mine.length + ')' : 'Notes (none yet)';
       clear(thread.list);
       mine.forEach(function (n) { thread.list.appendChild(noteRow(n)); });
@@ -1533,7 +1540,7 @@
       confirmable(remove, 'Delete note', function () {
         return api('DELETE', '/api/portal/team-notes/' + encodeURIComponent(note.id)).then(function () {
           notes = notes.filter(function (n) { return n.id !== note.id; });
-          renderThread(note.fileId);
+          renderThread(noteKey(note));
           setStatus(status, 'Note deleted.', 'success');
         }, fail);
       });
@@ -1546,7 +1553,7 @@
         var save = smallButton('Save', 'Save note', 'btn-small--brand');
         var cancel = smallButton('Cancel', 'Cancel editing');
         function grow() { area.style.height = 'auto'; area.style.height = area.scrollHeight + 'px'; }
-        function done() { renderThread(note.fileId); }
+        function done() { renderThread(noteKey(note)); }
         function commit() {
           var body = area.value.trim();
           if (!body) { setStatus(status, 'Write a note first, or use Delete.', 'error'); area.focus(); return; }
@@ -1580,6 +1587,7 @@
 
     function renderTasks() {
       clear(taskList);
+      forgetThreads('task:');
       var open = tasks.filter(function (t) { return !t.done; }).length;
       taskEmpty.hidden = tasks.length > 0;
       taskList.hidden = tasks.length === 0;
@@ -1591,6 +1599,8 @@
 
     function taskRow(task) {
       var li = h('li', { class: 'task' + (task.done ? ' is-done' : '') });
+      var row = h('div', { class: 'task-row' });
+      var panel = threadFor('task:' + task.id, { taskId: task.id }, task.text);
       var check = h('input', { type: 'checkbox', class: 'task-check', 'aria-label': (task.done ? 'Mark not done: ' : 'Mark done: ') + task.text });
       check.checked = task.done;
       check.addEventListener('change', function () {
@@ -1602,17 +1612,18 @@
       });
 
       var edit = smallButton('Edit', 'Edit task: ' + task.text);
-      var remove = smallButton('Delete', 'Delete task: ' + task.text);
-      confirmable(remove, 'Delete task', function () {
+      var remove = smallButton('Delete', 'Delete task and its notes: ' + task.text);
+      confirmable(remove, 'Delete task and notes', function () {
         return api('DELETE', '/api/portal/team-tasks/' + encodeURIComponent(task.id)).then(function () {
           tasks = tasks.filter(function (t) { return t.id !== task.id; });
+          notes = notes.filter(function (n) { return n.taskId !== task.id; });
           renderTasks();
-          setStatus(status, 'Task deleted.', 'success');
+          setStatus(status, 'Task and its notes deleted.', 'success');
         }, fail);
       });
 
       edit.addEventListener('click', function () {
-        clear(li);
+        clear(row);
         var field = h('input', { type: 'text', class: 'task-edit', maxlength: '300', autocomplete: 'off', 'aria-label': 'Edit task' });
         field.value = task.text;
         var save = smallButton('Save', 'Save task', 'btn-small--brand');
@@ -1633,20 +1644,24 @@
         });
         save.addEventListener('click', commit);
         cancel.addEventListener('click', renderTasks);
-        li.appendChild(h('span', { class: 'task-check-spacer', 'aria-hidden': 'true' }));
-        li.appendChild(field);
-        li.appendChild(h('div', { class: 'task-actions is-editing' }, [save, cancel]));
+        row.appendChild(h('span', { class: 'task-check-spacer', 'aria-hidden': 'true' }));
+        row.appendChild(field);
+        row.appendChild(h('div', { class: 'task-actions is-editing' }, [save, cancel]));
         field.focus();
         field.setSelectionRange(field.value.length, field.value.length);
       });
 
       var who = task.authorName || task.authorEmail;
-      li.appendChild(check);
-      li.appendChild(h('div', { class: 'task-main' }, [
+      row.appendChild(check);
+      row.appendChild(h('div', { class: 'task-main' }, [
         h('p', { class: 'task-text', text: task.text }),
         h('p', { class: 'note-meta', text: 'Added' + (who ? ' by ' + who : '') + ' ' + formatDate(task.createdAt) + (task.updatedAt ? ' (edited)' : '') })
       ]));
-      li.appendChild(h('div', { class: 'task-actions' }, [edit, remove]));
+      row.appendChild(threads['task:' + task.id].heading);
+      row.appendChild(h('div', { class: 'task-actions' }, [edit, remove]));
+      li.appendChild(row);
+      li.appendChild(panel);
+      renderThread('task:' + task.id);
       return li;
     }
 
@@ -1710,13 +1725,14 @@
     return {
       load: function () {
         function quiet(error) { if (error.code !== 'signed_out') setStatus(status, error.message, 'error'); }
-        api('GET', '/api/portal/team-tasks').then(function (data) { tasks = data.tasks; renderTasks(); }, quiet);
-        return Promise.all([api('GET', '/api/portal/team-files'), api('GET', '/api/portal/team-notes')]).then(function (results) {
+        return Promise.all([api('GET', '/api/portal/team-files'), api('GET', '/api/portal/team-notes'), api('GET', '/api/portal/team-tasks')]).then(function (results) {
           state.files = results[0].files;
+          tasks = results[2].tasks;
           state.maxFileBytes = results[0].maxFileBytes || state.maxFileBytes;
           notes = results[1].notes;
           root.querySelector('[data-max-file]').textContent = formatBytes(state.maxFileBytes);
           render();
+          renderTasks();
         }, function (error) {
           loading.hidden = true;
           // Anyone who is not a master gets a 404 here: send them back to the console.

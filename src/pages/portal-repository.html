@@ -26,17 +26,21 @@
       </div>
     </section>
 
-    <section class="portal-section" aria-labelledby="tasks-heading">
+    <section class="portal-section task-section" aria-labelledby="tasks-heading">
       <div class="portal-section-head">
         <h2 id="tasks-heading" tabindex="-1">Punch list <span class="portal-count" data-tasks-count></span></h2>
       </div>
-      <div class="portal-card task-card">
-        <p class="portal-empty" data-tasks-empty hidden>Nothing on the list yet.</p>
-        <ul class="task-list" data-task-list hidden></ul>
-        <form class="task-add" data-task-form novalidate>
-          <input type="text" class="task-add-input" data-task-input maxlength="300" autocomplete="off" placeholder="Add a task&hellip;" aria-label="Add a task">
-          <button class="btn-small btn-small--brand" type="submit">Add task</button>
-        </form>
+      <div class="task-fold">
+        <div class="task-fold-inner">
+          <div class="portal-card task-card">
+            <p class="portal-empty" data-tasks-empty hidden>Nothing on the list yet.</p>
+            <ul class="task-list" data-task-list hidden></ul>
+            <form class="task-add" data-task-form novalidate>
+              <input type="text" class="task-add-input" data-task-input maxlength="300" autocomplete="off" placeholder="Add a task&hellip;" aria-label="Add a task">
+              <button class="btn-small btn-small--brand" type="submit">Add task</button>
+            </form>
+          </div>
+        </div>
       </div>
     </section>
   </div>
