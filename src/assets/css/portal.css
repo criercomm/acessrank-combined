@@ -421,13 +421,16 @@ select#new-op-role { min-height: 44px; }
   display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 12px 16px;
   padding: 15px 18px 6px;
 }
-.file-notes { padding: 0 18px 10px 80px; }
-.notes-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 30px; }
-.notes-count { font-size: 12.5px; font-weight: 600; color: var(--text-muted); }
-.note-add { display: flex; align-items: center; gap: 8px; flex: 0 1 380px; min-width: 0; }
+/* "Notes (n)" sits in the file row, left of Download. The notes and the add-note
+   field stay folded away until the file is hovered or something inside has focus. */
+.notes-count { font-size: 12.5px; font-weight: 600; color: var(--text-muted); white-space: nowrap; align-self: center; margin-right: 6px; }
+.file-notes { display: grid; grid-template-rows: 0fr; transition: grid-template-rows .16s ease; }
+.file-notes-inner { min-height: 0; overflow: hidden; padding: 0 18px 0 80px; }
+.file-list--notes > li:hover .file-notes, .file-notes:focus-within { grid-template-rows: 1fr; }
+/* The add-note field starts under the note text and ends under the Delete button. */
+.note-add { display: flex; align-items: center; gap: 8px; padding: 8px 0 12px; }
+.note-list:empty + .note-add { padding-top: 2px; }
 .note-add-input, .task-add-input, .task-edit { flex: 1 1 auto; min-width: 0; min-height: 28px; padding: 3px 10px; font-size: 13px; border-radius: 7px; }
-.note-add { opacity: 0; transition: opacity .12s ease; }
-.file-list--notes > li:hover .note-add, .note-add:focus-within, .note-add:has(.note-add-input:not(:placeholder-shown)) { opacity: 1; }
 
 .note .btn-small, .task .btn-small, .note-add .btn-small, .task-add .btn-small {
   min-height: 26px; padding: 2px 10px; font-size: 12.5px; border-radius: 7px;
@@ -463,12 +466,11 @@ select#new-op-role { min-height: 44px; }
 
 /* Keyboard users and touch screens never depend on hover. */
 @media (hover: none) {
-  .note-add, .note-actions, .task-actions { opacity: 1; }
+  .note-actions, .task-actions { opacity: 1; }
+  .file-notes { grid-template-rows: 1fr; }
 }
 @media (max-width: 640px) {
   .file-list--notes .file-row { grid-template-columns: auto minmax(0, 1fr); }
   .file-list--notes .file-row .row-actions { grid-column: 1 / -1; }
-  .file-notes { padding-left: 16px; }
-  .notes-head { flex-wrap: wrap; }
-  .note-add { flex-basis: 100%; }
+  .file-notes-inner { padding-left: 16px; }
 }

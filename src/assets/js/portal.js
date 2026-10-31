@@ -1460,6 +1460,7 @@
             setStatus(status, 'Deleted ' + file.name + ' and its notes.', 'success');
           }, fail);
         });
+        var panel = threadFor(file);
         list.appendChild(h('li', {}, [
           h('div', { class: 'file-row' }, [
             h('span', { class: 'file-badge', 'aria-hidden': 'true', text: fileKind(file.name) }),
@@ -1471,11 +1472,12 @@
               ])
             ]),
             h('div', { class: 'row-actions' }, [
+              threads[file.id].heading,
               h('a', { class: 'btn-small', href: '/api/portal/team-files/' + encodeURIComponent(file.id), 'aria-label': 'Download ' + file.name, text: 'Download' }),
               remove
             ])
           ]),
-          threadFor(file)
+          panel
         ]));
         renderThread(file.id);
       });
@@ -1505,7 +1507,7 @@
         }, function (error) { setStatus(status, error.message, 'error'); }).then(function () { addButton.disabled = false; noteInput.focus(); });
       });
       threads[file.id] = { heading: heading, list: noteList, file: file };
-      return h('div', { class: 'file-notes' }, [h('div', { class: 'notes-head' }, [heading, form]), noteList]);
+      return h('div', { class: 'file-notes' }, [h('div', { class: 'file-notes-inner' }, [noteList, form])]);
     }
 
     function renderThread(fileId) {
