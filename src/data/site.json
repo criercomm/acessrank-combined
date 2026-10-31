@@ -139,6 +139,15 @@
       "changefreq": "monthly"
     },
     {
+      "file": "human-testing.html",
+      "url": "/human-testing",
+      "layout": "page",
+      "title": "Human testing, beyond alt text | Accessrank",
+      "description": "What a person checks when they test your store with a keyboard and a screen reader, what a flow is, how often each plan includes it, and what it costs if you have been served.",
+      "priority": "0.6",
+      "changefreq": "monthly"
+    },
+    {
       "file": "about.html",
       "url": "/about",
       "layout": "page",

@@ -615,3 +615,24 @@ html:not([data-theme="light"]) .overlay-content p strong { background: var(--bra
   .stat-col, .stat-col + .stat-col { padding: 0; border-left: 0; }
   .stat-col + .stat-col { padding-top: 20px; border-top: 1px solid var(--hairline); }
 }
+
+/* Already-served options: open rows with hairlines, no tiles. */
+.lo { margin: 26px 0 6px; border-top: 1px solid var(--hairline); }
+.lo-row { display: grid; grid-template-columns: minmax(0, 1fr) 190px; gap: 28px; padding: 20px 0; border-bottom: 1px solid var(--hairline); align-items: start; }
+.lo-name { font-size: 20px; font-weight: 700; letter-spacing: -.3px; color: var(--text); margin: 0 0 6px; }
+.lo-desc { font-size: 15px; line-height: 1.6; color: var(--text-soft); margin: 0; text-wrap: pretty; }
+.lo-opts { list-style: none; margin: 12px 0 0; padding: 0; }
+.lo-opts li { font-size: 15px; line-height: 1.55; color: var(--text-soft); padding: 8px 0; border-top: 1px solid var(--hairline); }
+.lo-opts strong { color: var(--text); }
+.lo-p { font-weight: 700; color: var(--text); white-space: nowrap; margin-left: 6px; }
+.lo-price { text-align: right; }
+.lo-amt { display: block; font-size: 30px; font-weight: 800; letter-spacing: -.8px; color: var(--text); line-height: 1.1; }
+.lo-amt .pre { font-size: 13px; font-weight: 600; letter-spacing: 0; color: var(--text-soft); margin-right: 4px; }
+.lo-meta { display: block; font-size: 13px; color: var(--text-soft); margin-top: 4px; }
+.lo-defs { margin: 22px 0 0; }
+.lo-def { display: grid; grid-template-columns: 130px minmax(0, 1fr); gap: 18px; padding: 12px 0; border-top: 1px solid var(--hairline); }
+.lo-def dt { font-size: 12px; letter-spacing: 1.4px; text-transform: uppercase; font-weight: 700; color: var(--text); padding-top: 3px; }
+.lo-def dd { margin: 0; font-size: 15px; line-height: 1.6; color: var(--text-soft); text-wrap: pretty; }
+.lo-def a, .lo-note a { color: var(--brand-text); text-decoration: underline; text-underline-offset: 2px; }
+.lo-note { font-size: 14px; line-height: 1.6; color: var(--text-soft); margin: 16px 0 14px; }
+@media (max-width: 800px) { .lo-row { grid-template-columns: 1fr; gap: 8px; } .lo-price { text-align: left; } .lo-def { grid-template-columns: 1fr; gap: 4px; } }

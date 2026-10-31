@@ -168,8 +168,18 @@ select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmln
    sibling pages (About, How we score, Resources, Disclosure). */
 .doc-section-nav { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 16px; }
 .doc-section-nav .eyebrow-pill { margin-bottom: 0; }
-.doc-section-nav .eyebrow-link { background: transparent; border-color: var(--hairline-strong); color: var(--text-soft); transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease; }
-.doc-section-nav .eyebrow-link:hover, .doc-section-nav .eyebrow-link:focus-visible { border-color: var(--brand-border); background: var(--brand-soft); color: var(--brand-text); }
+/* Page navigation is tabs: plain text, no pill or outline, current page underlined. Keyboard focus keeps the global focus ring. */
+.doc-section-nav { gap: 2px 26px; margin-bottom: 18px; }
+.doc-section-nav .eyebrow-pill, .doc-section-nav .eyebrow-link {
+  background: none; border: 0; border-radius: 6px; padding: 8px 2px;
+  font-size: 15px; font-weight: 600; letter-spacing: 0; text-transform: none; color: var(--text-soft);
+}
+.doc-section-nav .eyebrow-link:hover { background: none; color: var(--text); }
+.doc-section-nav .eyebrow-link:focus-visible { background: none; color: var(--text); }
+.doc-section-nav [aria-current="page"] {
+  color: var(--text); text-decoration: underline; text-decoration-color: var(--brand-text);
+  text-decoration-thickness: 2px; text-underline-offset: 10px;
+}
 .doc-head h1 { font-size: clamp(30px, 4vw, 44px); line-height: 1.06; letter-spacing: -1.4px; font-weight: 800; color: var(--text); margin: 0 0 12px; }
 .doc-head .updated { font-size: 13px; color: var(--text-faint); margin: 0; } /* TODO(contrast): verify against WCAG 1.4.3 */
 .doc-lede { font-size: 16px; line-height: 1.6; color: var(--text-soft); margin: 0 0 30px; text-wrap: pretty; }
