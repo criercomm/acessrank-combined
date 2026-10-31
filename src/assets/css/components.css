@@ -748,3 +748,4 @@ body.deck-open { overflow: hidden; }
 [data-theme="light"] .upload-queue .is-error { border-color: var(--error); }
 [data-theme="light"] .upload-queue .is-error .upload-state { color: var(--error); }
 [data-theme="light"] .credential { border-color: var(--brand-border); }
+.score-fine { font-size: 13.5px; line-height: 1.55; color: var(--text-muted); margin: 12px 0 18px; text-wrap: pretty; }

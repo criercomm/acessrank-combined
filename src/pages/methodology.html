@@ -20,24 +20,25 @@
 
     <section id="the-three-numbers">
       <h2>The three numbers</h2>
-      <p>Shown here for a sample store, so you can see what a real result looks like.</p>
+      <p>A sample store after fixes, so you can see what a real result looks like. The numbers are illustrative; your results will differ.</p>
       <div class="score-tiles">
         <div class="score-tile">
           <div class="score-tile-label">Accessibility score</div>
-          <div class="score-tile-num score-risk">58<small> / 100</small></div>
-          <p>The headline number. How much of the accessibility standard the store meets, with the most serious requirements counting for more. 100 is the only score that means the standard is fully met.</p>
+          <div class="score-tile-num">100<small> / 100</small></div>
+          <p>The headline number. How much of the accessibility standard the store meets, with the most serious requirements counting for more. 100 means every requirement we test is met.</p>
         </div>
         <div class="score-tile">
           <div class="score-tile-label">SEO score</div>
-          <div class="score-tile-num">71<small> / 100</small></div>
+          <div class="score-tile-num">93<small> / 100</small></div>
           <p>Fourteen things a search engine looks for on a page, from the page title to the product facts written in for machines. Reported beside the accessibility score, never mixed into it.</p>
         </div>
         <div class="score-tile">
           <div class="score-tile-label">AI agent readiness</div>
-          <div class="score-tile-num">64<small> / 100</small></div>
+          <div class="score-tile-num">88<small> / 100</small></div>
           <p>Eight checks on whether AI assistants and shopping agents can read the page and use it, from the buttons to the page title. Also reported on its own.</p>
         </div>
       </div>
+      <p class="score-fine">100 means every check we run passes, including the ones a person reviews. It does not guarantee conformance or protect against a claim.</p>
       <div class="callout">
         <p><strong>Why they stay separate.</strong> The number a plaintiff's lawyer or an insurer cares about is the accessibility result. A combined figure could look healthy while real accessibility failures remain, or look poor when the only problem is a missing page description. Keeping the three apart means each one answers one question.</p>
       </div>
@@ -73,15 +74,17 @@
       </div>
 
       <h3>Worked example</h3>
+      <p>The same sample store, before and after the fixes.</p>
       <table class="example-table">
+        <thead><tr><th scope="col"><span class="visually-hidden">Step</span></th><th scope="col" class="num-col">Before the fixes</th><th scope="col" class="num-col">After fixes</th></tr></thead>
         <tbody>
-          <tr><td>Requirements checked</td><td class="num-col">31 Level A &times; 3 + 24 Level AA &times; 2</td><td class="num-col">141</td></tr>
-          <tr><td>Requirements not met</td><td class="num-col">13 Level A &times; 3 + 10 Level AA &times; 2</td><td class="num-col">59</td></tr>
-          <tr><td>Requirements met</td><td class="num-col">141 &minus; 59</td><td class="num-col">82</td></tr>
-          <tr class="total"><td>Accessibility score</td><td class="num-col">82 &divide; 141 &times; 100</td><td class="num-col">58</td></tr>
+          <tr><td>Requirements checked</td><td class="num-col">31 Level A &times; 3 + 24 Level AA &times; 2 = 141</td><td class="num-col">141</td></tr>
+          <tr><td>Requirements not met</td><td class="num-col">8 Level A &times; 3 + 7 Level AA &times; 2 = 38</td><td class="num-col">0</td></tr>
+          <tr><td>Requirements met</td><td class="num-col">141 &minus; 38 = 103</td><td class="num-col">141 &minus; 0 = 141</td></tr>
+          <tr class="total"><td>Accessibility score</td><td class="num-col">103 &divide; 141 &times; 100 = 73</td><td class="num-col">141 &divide; 141 &times; 100 = 100</td></tr>
         </tbody>
       </table>
-      <p>The sample store had 117 individual problems behind those 23 unmet requirements. The problem count tells you the size of the fix; the score tells you how close the store is to meeting the standard. Both are reported, and they are never mixed.</p>
+      <p>The sample store had 76 individual problems behind those 15 unmet requirements before the fixes. The problem count tells you the size of the fix; the score tells you how close the store is to meeting the standard. Both are reported, and they are never mixed.</p>
 
       <details class="more">
         <summary>Why we score by requirement, not by how many things are wrong</summary>
