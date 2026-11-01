@@ -362,6 +362,13 @@ function pgRepo(store) {
     async setFileArea(id, area) {
       return (await q('UPDATE portal_files SET area = $2 WHERE id = $1 RETURNING id, client_id, filename, size_bytes, area, created_at', [id, area])).rows[0] ?? null;
     },
+    async replaceFile(id, { filename, contentType, data }) {
+      return (await q(
+        `UPDATE portal_files SET filename = $2, content_type = $3, size_bytes = $4, data = $5, created_at = now()
+         WHERE id = $1 RETURNING id, client_id, filename, size_bytes, area, created_at`,
+        [id, filename, contentType, data.length, data],
+      )).rows[0] ?? null;
+    },
 
     async listTeamFiles() {
       return (await q('SELECT id, filename, size_bytes, added_by_name, added_by_email, created_at FROM portal_team_files ORDER BY created_at DESC')).rows;
@@ -671,6 +678,12 @@ function memRepo(store) {
       const row = db.files.get(id);
       if (!row) return null;
       row.area = area;
+      return row;
+    },
+    async replaceFile(id, { filename, contentType, data }) {
+      const row = db.files.get(id);
+      if (!row) return null;
+      Object.assign(row, { filename, content_type: contentType, size_bytes: data.length, data, created_at: now() });
       return row;
     },
 
@@ -1705,6 +1718,24 @@ export async function setFileArea(store, id, rawArea) {
   return row;
 }
 
+/**
+ * Swap a file's contents in place. The id, the client and the area (Files,
+ * Compliance files or Past approvals) stay as they are, so a link the client
+ * already has keeps working and the file stays where staff put it. The name and
+ * the "Added" date follow the new upload.
+ */
+export async function replaceFile(store, id, { filename, data }) {
+  if (!Buffer.isBuffer(data) || data.length === 0) {
+    throw new PortalError('That file is empty.', { code: 'file_empty' });
+  }
+  const name = sanitizeFilename(filename);
+  const row = isUuid(id)
+    ? await repoFor(store).replaceFile(id, { filename: name, contentType: contentTypeFor(name), data })
+    : null;
+  if (!row) throw notFound('file');
+  return fileOut(row);
+}
+
 export async function deleteFile(store, id) {
   if (!isUuid(id) || !(await repoFor(store).deleteFile(id))) throw notFound('file');
 }
@@ -1714,7 +1745,7 @@ export default {
   signIn, signOut, sessionFor, setSessionCookie, clearSessionCookie,
   adminOverview, createClient, createClientWithSetup, renameClient, deleteClient,
   createLogin, resetLoginPassword, deleteLogin, changeOwnPassword,
-  listClientFiles, addFile, getFile, deleteFile, setFileArea,
+  listClientFiles, addFile, getFile, deleteFile, setFileArea, replaceFile,
   listTeamFiles, addTeamFile, getTeamFile, deleteTeamFile, listTeamNotes, addTeamNote, updateTeamNote, deleteTeamNote,
   listTeamTasks, addTeamTask, updateTeamTask, deleteTeamTask,
   addReport, listReports, getReport, deleteReport, saveApprovals, currentApprovals, adminApprovals, approvalHistory,

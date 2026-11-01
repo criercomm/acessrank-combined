@@ -9,7 +9,7 @@ import {
   PortalError, signIn, signOut, sessionFor, setSessionCookie, clearSessionCookie,
   adminOverview, createClient, renameClient, deleteClient,
   createLogin, createClientWithSetup, resetLoginPassword, deleteLogin, changeOwnPassword,
-  listClientFiles, addFile, getFile, deleteFile, setFileArea, contentDisposition, PASSWORD_MAX,
+  listClientFiles, addFile, getFile, deleteFile, setFileArea, replaceFile, contentDisposition, PASSWORD_MAX,
   listTeamFiles, addTeamFile, getTeamFile, deleteTeamFile, listTeamNotes, addTeamNote, updateTeamNote, deleteTeamNote,
   listTeamTasks, addTeamTask, updateTeamTask, deleteTeamTask,
   addReport, listReports, getReport, deleteReport, saveApprovals, currentApprovals, adminApprovals, approvalHistory,
@@ -379,6 +379,31 @@ admin.patch('/files/:id', wrap(async (req, res) => {
   log.info('portal file moved', { fileId: req.params.id, area: row.area });
   res.json({ ok: true, file: { id: row.id, area: row.area } });
 }));
+
+/**
+ * Replace a file's contents. Same wire format as an upload (raw bytes, name in the
+ * query); the file keeps its id and its area, so the client's existing link still works.
+ */
+admin.put(
+  '/files/:id',
+  express.raw({ type: 'application/octet-stream', limit: `${config.portal.maxFileMb}mb` }),
+  wrap(async (req, res) => {
+    const found = await getFile(await getStore(), req.params.id);
+    await assertClient(req, found ? found.client_id : null);
+    if (!Buffer.isBuffer(req.body)) {
+      if (req.is('application/octet-stream') !== false) {
+        throw new PortalError('That file is empty.', { code: 'file_empty' });
+      }
+      throw new PortalError('Upload the file as application/octet-stream.', { code: 'bad_upload', status: 415 });
+    }
+    const file = await replaceFile(await getStore(), req.params.id, {
+      filename: typeof req.query.name === 'string' ? req.query.name : '',
+      data: req.body,
+    });
+    log.info('portal file replaced', { fileId: file.id, clientId: file.clientId, bytes: file.size, by: req.portal.email });
+    res.json({ ok: true, file });
+  }),
+);
 
 admin.delete('/files/:id', wrap(async (req, res) => {
   const found = await getFile(await getStore(), req.params.id);
