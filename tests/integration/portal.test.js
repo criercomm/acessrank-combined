@@ -924,32 +924,29 @@ test('files are kept in two areas, and the client sees them separately', async (
   assert.equal(overview.files.find((f) => f.name === 'Compliance-Record.pdf').area, 'compliance');
 });
 
-test('staff replace a file in place: same id and area, new contents, and only for clients they can reach', async () => {
+test('masters replace a team file in place: notes stay, and nobody else can', async () => {
   const owner = await adminBrowser();
   const mine = await clientWithLogin(owner, 'Top Seedz', 'jordan@topseedz.test');
-  const theirs = await clientWithLogin(owner, 'Larkspur Tea Co.', 'sam@larkspur.test');
   const op = await operatorWithLogin(owner, { name: 'Emerson', email: 'emerson@accessrank.test' });
-  await owner.put(`/api/portal/operators/${op.operator.id}/clients`, { clientIds: [mine.client.id] });
-  const original = (await owner.upload(`/api/portal/admin/clients/${mine.client.id}/files?name=audit-v1.pdf&area=compliance`, PDF)).body.file;
-  const other = (await owner.upload(`/api/portal/admin/clients/${theirs.client.id}/files?name=b.pdf`, PDF)).body.file;
-  const next = Buffer.concat([PDF, Buffer.from('\n% revised')]);
+  const file = (await owner.upload('/api/portal/team-files?name=scope-v1.pdf', PDF)).body.file;
+  const note = await owner.post('/api/portal/team-notes', { fileId: file.id, body: 'Waiting on legal.' });
+  assert.equal(note.status, 201);
+  const next = Buffer.concat([PDF, Buffer.from('\n% v2')]);
 
-  const done = await op.person.replace(`/api/portal/admin/files/${original.id}?name=audit-v2.pdf`, next);
+  const done = await owner.replace(`/api/portal/team-files/${file.id}?name=scope-v2.pdf`, next);
   assert.equal(done.status, 200);
-  assert.equal(done.body.file.id, original.id, 'same file id, so existing links keep working');
-  assert.equal(done.body.file.area, 'compliance', 'stays in the area staff put it in');
-  assert.equal(done.body.file.name, 'audit-v2.pdf');
+  assert.equal(done.body.file.id, file.id);
+  assert.equal(done.body.file.name, 'scope-v2.pdf');
   assert.equal(done.body.file.size, next.length);
+  assert.deepEqual(Buffer.from((await owner.get(`/api/portal/team-files/${file.id}`)).body), next);
+  const listed = (await owner.get('/api/portal/team-files')).body.files.filter((f) => f.id === file.id);
+  assert.equal(listed.length, 1, 'replaced, not duplicated');
+  assert.equal((await owner.get('/api/portal/team-notes')).body.notes.filter((n) => n.fileId === file.id).length, 1, 'the note stayed with the file');
 
-  const download = await mine.person.get(`/api/portal/files/${original.id}`);
-  assert.equal(download.status, 200);
-  assert.deepEqual(Buffer.from(download.body), next, 'the client now downloads the new contents');
-  assert.equal((await mine.person.get('/api/portal/me')).body.files.filter((f) => f.id === original.id).length, 1, 'replaced, not duplicated');
-
-  assert.equal((await op.person.replace(`/api/portal/admin/files/${original.id}?name=empty.pdf`, Buffer.alloc(0))).status, 400);
-  assert.equal((await op.person.replace(`/api/portal/admin/files/${other.id}?name=x.pdf`, PDF)).status, 404, 'not their client');
-  assert.equal((await op.person.replace('/api/portal/admin/files/00000000-0000-4000-8000-000000000000?name=x.pdf', PDF)).status, 404);
-  assert.equal((await mine.person.replace(`/api/portal/admin/files/${original.id}?name=x.pdf`, PDF)).status, 404, 'clients cannot');
+  assert.equal((await owner.replace(`/api/portal/team-files/${file.id}?name=empty.pdf`, Buffer.alloc(0))).status, 400);
+  assert.equal((await owner.replace('/api/portal/team-files/00000000-0000-4000-8000-000000000000?name=x.pdf', PDF)).status, 404);
+  assert.equal((await op.person.replace(`/api/portal/team-files/${file.id}?name=x.pdf`, PDF)).status, 404, 'regular operators cannot');
+  assert.equal((await mine.person.replace(`/api/portal/team-files/${file.id}?name=x.pdf`, PDF)).status, 404, 'clients cannot');
 });
 
 test('operators move a file between Compliance and Other files, within their own clients', async () => {

@@ -762,42 +762,6 @@
       return remove;
     }
 
-    /**
-     * "Replace file": pick a new file and it takes the old one's place. The row keeps its
-     * area and its download link; the name and the Added date follow the new file.
-     * The picker is a real file input kept off-screen, opened by a normal button.
-     */
-    function replaceFileButton(client, file) {
-      var button = h('button', { type: 'button', class: 'btn-small', 'aria-label': 'Replace ' + file.name, text: 'Replace file' });
-      var input = h('input', { type: 'file', class: 'visually-hidden', tabindex: '-1', 'aria-hidden': 'true' });
-      button.addEventListener('click', function () { input.click(); });
-      input.addEventListener('change', function () {
-        var chosen = input.files && input.files[0];
-        input.value = '';
-        if (!chosen) return;
-        if (chosen.size === 0) { setStatus(status, chosen.name + ' is empty, so ' + file.name + ' was not replaced.', 'error'); return; }
-        if (chosen.size > state.maxFileBytes) {
-          setStatus(status, chosen.name + ' is over the ' + formatBytes(state.maxFileBytes) + ' limit, so ' + file.name + ' was not replaced.', 'error');
-          return;
-        }
-        button.disabled = true;
-        setStatus(status, 'Replacing ' + file.name + '\u2026');
-        var url = '/api/portal/admin/files/' + encodeURIComponent(file.id) + '?name=' + encodeURIComponent(chosen.name);
-        api('PUT', url, null, chosen).then(function (data) {
-          var oldName = file.name;
-          file.name = data.file.name;
-          file.size = data.file.size;
-          file.createdAt = data.file.createdAt;
-          renderFiles(client);
-          setStatus(status, 'Replaced ' + oldName + ' with ' + data.file.name + '. The client sees the new file straight away.', 'success');
-          var row = root.querySelector('[data-file-id="' + file.id + '"]');
-          var again = row && row.querySelector('button[aria-label^="Replace "]');
-          if (again) again.focus();
-        }).catch(function (e) { button.disabled = false; fail(e); });
-      });
-      return h('span', { class: 'replace-file' }, [button, input]);
-    }
-
     function moveFileButton(client, file, to) {
       var label = to === 'compliance' ? 'Move to Compliance' : 'Move to Other files';
       var button = h('button', { type: 'button', class: 'btn-small', 'aria-label': label + ': ' + file.name, text: label });
@@ -826,16 +790,16 @@
       var other = client.files.filter(function (f) { return f.area === 'files'; });
       var approvalFiles = client.files.filter(function (f) { return f.area === 'approvals'; });
       clear(fileList);
-      other.forEach(function (file) { fileList.appendChild(fileRow(file, [replaceFileButton(client, file), moveFileButton(client, file, 'compliance'), deleteFileButton(client, file)])); });
+      other.forEach(function (file) { fileList.appendChild(fileRow(file, [moveFileButton(client, file, 'compliance'), deleteFileButton(client, file)])); });
       filesEmpty.hidden = other.length > 0;
       fileList.hidden = other.length === 0;
       clear(complianceList);
-      compliance.forEach(function (file) { complianceList.appendChild(fileRow(file, [replaceFileButton(client, file), moveFileButton(client, file, 'files'), deleteFileButton(client, file)])); });
+      compliance.forEach(function (file) { complianceList.appendChild(fileRow(file, [moveFileButton(client, file, 'files'), deleteFileButton(client, file)])); });
       complianceEmpty.hidden = compliance.length > 0;
       complianceList.hidden = compliance.length === 0;
       complianceCount.textContent = compliance.length ? plural(compliance.length, 'file') : '';
       clear(approvalFileList);
-      approvalFiles.forEach(function (file) { approvalFileList.appendChild(fileRow(file, [replaceFileButton(client, file), deleteFileButton(client, file)])); });
+      approvalFiles.forEach(function (file) { approvalFileList.appendChild(fileRow(file, [deleteFileButton(client, file)])); });
       approvalFileList.hidden = approvalFiles.length === 0;
       renderPastSummary(client);
       fileCount.textContent = client.files.length ? plural(client.files.length, 'file') : '';
@@ -1479,6 +1443,42 @@
       return h('button', { type: 'button', class: 'btn-small' + (extra ? ' ' + extra : ''), 'aria-label': name, text: label });
     }
 
+    /**
+     * "Replace file": pick a new file and it takes the old one's place. The notes under the
+     * file stay with it, and the name, size and date follow the new file. The picker is a
+     * real file input kept off-screen and opened by a normal button.
+     */
+    function replaceButton(file) {
+      var button = smallButton('Replace file', 'Replace ' + file.name);
+      var input = h('input', { type: 'file', class: 'visually-hidden', tabindex: '-1', 'aria-hidden': 'true' });
+      button.addEventListener('click', function () { input.click(); });
+      input.addEventListener('change', function () {
+        var chosen = input.files && input.files[0];
+        input.value = '';
+        if (!chosen) return;
+        if (chosen.size === 0) { setStatus(status, chosen.name + ' is empty, so ' + file.name + ' was not replaced.', 'error'); return; }
+        if (chosen.size > state.maxFileBytes) {
+          setStatus(status, chosen.name + ' is over the ' + formatBytes(state.maxFileBytes) + ' limit, so ' + file.name + ' was not replaced.', 'error');
+          return;
+        }
+        button.disabled = true;
+        setStatus(status, 'Replacing ' + file.name + '\u2026');
+        api('PUT', '/api/portal/team-files/' + encodeURIComponent(file.id) + '?name=' + encodeURIComponent(chosen.name), null, chosen).then(function (data) {
+          var oldName = file.name;
+          file.name = data.file.name;
+          file.size = data.file.size;
+          file.createdAt = data.file.createdAt;
+          file.addedByName = data.file.addedByName;
+          file.addedByEmail = data.file.addedByEmail;
+          render();
+          setStatus(status, 'Replaced ' + oldName + ' with ' + data.file.name + '. Its notes stay with it.', 'success');
+          var row = list.querySelector('button[aria-label="Replace ' + data.file.name.replace(/"/g, '\\"') + '"]');
+          if (row) row.focus();
+        }, function (e) { button.disabled = false; fail(e); });
+      });
+      return h('span', { class: 'replace-file' }, [button, input]);
+    }
+
     function render() {
       clear(list);
       forgetThreads('file:');
@@ -1496,6 +1496,7 @@
             setStatus(status, 'Deleted ' + file.name + ' and its notes.', 'success');
           }, fail);
         });
+        var replace = replaceButton(file);
         var panel = threadFor('file:' + file.id, { fileId: file.id }, file.name);
         list.appendChild(h('li', {}, [
           h('div', { class: 'file-row' }, [
@@ -1510,6 +1511,7 @@
             h('div', { class: 'row-actions' }, [
               threads['file:' + file.id].heading,
               h('a', { class: 'btn-small', href: '/api/portal/team-files/' + encodeURIComponent(file.id), 'aria-label': 'Download ' + file.name, text: 'Download' }),
+              replace,
               remove
             ])
           ]),

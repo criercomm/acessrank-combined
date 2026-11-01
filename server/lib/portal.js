@@ -362,13 +362,6 @@ function pgRepo(store) {
     async setFileArea(id, area) {
       return (await q('UPDATE portal_files SET area = $2 WHERE id = $1 RETURNING id, client_id, filename, size_bytes, area, created_at', [id, area])).rows[0] ?? null;
     },
-    async replaceFile(id, { filename, contentType, data }) {
-      return (await q(
-        `UPDATE portal_files SET filename = $2, content_type = $3, size_bytes = $4, data = $5, created_at = now()
-         WHERE id = $1 RETURNING id, client_id, filename, size_bytes, area, created_at`,
-        [id, filename, contentType, data.length, data],
-      )).rows[0] ?? null;
-    },
 
     async listTeamFiles() {
       return (await q('SELECT id, filename, size_bytes, added_by_name, added_by_email, created_at FROM portal_team_files ORDER BY created_at DESC')).rows;
@@ -385,6 +378,15 @@ function pgRepo(store) {
     },
     async deleteTeamFile(id) {
       return (await q('DELETE FROM portal_team_files WHERE id = $1', [id])).rowCount > 0;
+    },
+    async replaceTeamFile(id, { filename, contentType, data, addedByName, addedByEmail }) {
+      return (await q(
+        `UPDATE portal_team_files
+            SET filename = $2, content_type = $3, size_bytes = $4, data = $5, added_by_name = $6, added_by_email = $7, created_at = now()
+          WHERE id = $1
+      RETURNING id, filename, size_bytes, added_by_name, added_by_email, created_at`,
+        [id, filename, contentType, data.length, data, addedByName, addedByEmail],
+      )).rows[0] ?? null;
     },
 
     async listTeamNotes() {
@@ -680,12 +682,6 @@ function memRepo(store) {
       row.area = area;
       return row;
     },
-    async replaceFile(id, { filename, contentType, data }) {
-      const row = db.files.get(id);
-      if (!row) return null;
-      Object.assign(row, { filename, content_type: contentType, size_bytes: data.length, data, created_at: now() });
-      return row;
-    },
 
     async listTeamFiles() {
       return [...db.teamFiles.values()].sort((a, b) => byCreated(b, a));
@@ -699,6 +695,15 @@ function memRepo(store) {
       return row;
     },
     async getTeamFile(id) { return db.teamFiles.get(id) ?? null; },
+    async replaceTeamFile(id, { filename, contentType, data, addedByName, addedByEmail }) {
+      const row = db.teamFiles.get(id);
+      if (!row) return null;
+      Object.assign(row, {
+        filename, content_type: contentType, size_bytes: data.length, data,
+        added_by_name: addedByName, added_by_email: addedByEmail, created_at: now(),
+      });
+      return row;
+    },
     async deleteTeamFile(id) {
       const removed = db.teamFiles.delete(id);
       // Notes go with their file, as ON DELETE CASCADE does in Postgres.
@@ -1464,6 +1469,28 @@ export async function getTeamFile(store, id) {
   return repoFor(store).getTeamFile(id);
 }
 
+/**
+ * Swap a team file's contents in place. The id stays, so the notes under the file stay
+ * with it and any saved link keeps working. The name, size, date and "by" follow the new upload.
+ */
+export async function replaceTeamFile(store, session, id, { filename, data }) {
+  if (!Buffer.isBuffer(data) || data.length === 0) {
+    throw new PortalError('That file is empty.', { code: 'file_empty' });
+  }
+  const name = sanitizeFilename(filename);
+  const row = isUuid(id)
+    ? await repoFor(store).replaceTeamFile(id, {
+      filename: name,
+      contentType: contentTypeFor(name),
+      data,
+      addedByName: String(session.name ?? '').slice(0, 120),
+      addedByEmail: String(session.email ?? '').slice(0, 254),
+    })
+    : null;
+  if (!row) throw notFound('file');
+  return teamFileOut(row);
+}
+
 export async function deleteTeamFile(store, id) {
   if (!isUuid(id) || !(await repoFor(store).deleteTeamFile(id))) throw notFound('file');
 }
@@ -1718,24 +1745,6 @@ export async function setFileArea(store, id, rawArea) {
   return row;
 }
 
-/**
- * Swap a file's contents in place. The id, the client and the area (Files,
- * Compliance files or Past approvals) stay as they are, so a link the client
- * already has keeps working and the file stays where staff put it. The name and
- * the "Added" date follow the new upload.
- */
-export async function replaceFile(store, id, { filename, data }) {
-  if (!Buffer.isBuffer(data) || data.length === 0) {
-    throw new PortalError('That file is empty.', { code: 'file_empty' });
-  }
-  const name = sanitizeFilename(filename);
-  const row = isUuid(id)
-    ? await repoFor(store).replaceFile(id, { filename: name, contentType: contentTypeFor(name), data })
-    : null;
-  if (!row) throw notFound('file');
-  return fileOut(row);
-}
-
 export async function deleteFile(store, id) {
   if (!isUuid(id) || !(await repoFor(store).deleteFile(id))) throw notFound('file');
 }
@@ -1745,8 +1754,8 @@ export default {
   signIn, signOut, sessionFor, setSessionCookie, clearSessionCookie,
   adminOverview, createClient, createClientWithSetup, renameClient, deleteClient,
   createLogin, resetLoginPassword, deleteLogin, changeOwnPassword,
-  listClientFiles, addFile, getFile, deleteFile, setFileArea, replaceFile,
-  listTeamFiles, addTeamFile, getTeamFile, deleteTeamFile, listTeamNotes, addTeamNote, updateTeamNote, deleteTeamNote,
+  listClientFiles, addFile, getFile, deleteFile, setFileArea,
+  listTeamFiles, addTeamFile, replaceTeamFile, getTeamFile, deleteTeamFile, listTeamNotes, addTeamNote, updateTeamNote, deleteTeamNote,
   listTeamTasks, addTeamTask, updateTeamTask, deleteTeamTask,
   addReport, listReports, getReport, deleteReport, saveApprovals, currentApprovals, adminApprovals, approvalHistory,
   setReportStatus, approvalsRecordCsv, loginClientId, isStaff, clientScope, canAccessClient, listOperators, createOperator, setOperatorRole, resetOperatorPassword,
