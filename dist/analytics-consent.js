@@ -22,6 +22,14 @@
     const domains = ['', host, '.' + host];
     for (const name of names) for (const domain of domains) document.cookie = name + '=; Max-Age=0; Path=/; SameSite=Lax' + (domain ? '; Domain=' + domain : '');
   }
+  // Withdraw consent in place. Never reload the page for this: a reload throws away whatever the
+  // visitor is looking at (scanner results, an open dialog, a half-filled form). ga-disable plus a
+  // denied consent update stops all further sends from the tag that is already loaded.
+  function revoke() {
+    window[disabled] = true;
+    try { if (window.gtag) window.gtag('consent', 'update', {analytics_storage:'denied'}); } catch {}
+    clearCookies();
+  }
   function start() {
     if (loaded || state !== 'accepted' || document.documentElement.classList.contains('gate-locked')) return;
     loaded = true;
@@ -60,9 +68,13 @@
       const choice = e.target.closest('button[data-choice]')?.dataset.choice;
       if (!choice) return;
       if (choice === 'rejected') {
-        window[disabled] = true; save(choice); clearCookies(); panel.hidden = true;
-        if (loaded) { location.reload(); return; }
-      } else { save(choice); panel.hidden = true; start(); }
+        save(choice); revoke(); panel.hidden = true;
+      } else {
+        save(choice); panel.hidden = true;
+        // Re-accepting after a withdrawal in the same visit: the tag is already loaded, so just switch it back on.
+        if (loaded) { window[disabled] = false; try { window.gtag('consent', 'update', {analytics_storage:'granted'}); } catch {} }
+        start();
+      }
       settings.focus({ preventScroll: true }); // the control is in the footer, far from the banner; do not scroll there
     });
     panel.hidden = state === 'accepted' || state === 'rejected';
@@ -92,6 +104,6 @@
   window.addEventListener('storage', e => {
     if (e.key !== key) return;
     let choice; try { choice = JSON.parse(e.newValue)?.choice; } catch {}
-    if (choice !== 'accepted') { window[disabled] = true; clearCookies(); if (loaded) location.reload(); }
+    if (choice !== 'accepted') revoke();
   });
 })();
