@@ -247,7 +247,10 @@
 /* ---- Risk strip ---- */
 /* Bottom padding was 2px, which only worked because the hero pulled itself up
  * over it with a transform. */
-.risk-strip { padding: 37px var(--edge) 20px; --warning: var(--blue-500); --warning-soft: #60A5FA; } /* --warning-soft: unused as of migration */
+.risk-strip { padding: 37px var(--edge) 0; display: flow-root; --warning: var(--blue-500); --warning-soft: #60A5FA; }
+/* The three hero stats are their own block (they were inside .risk-strip) so phones can put the free check above them.
+ * Padding moved here from .risk-strip's bottom; desktop spacing is the same. */
+.risk-stats { padding: 0 var(--edge) 20px; --warning: var(--blue-500); } /* --warning-soft: unused as of migration */
 .risk-eyebrow { font-size: 11px; letter-spacing: 3px; color: var(--warning); font-weight: 500; margin-bottom: 16px; text-align: center; }
 /* Set in the type of the deck's opening slide: Inter 800, all caps, tight leading, accent lines in brand yellow. */
 .risk-title { font-size: clamp(44px, 5.4vw, 88px); line-height: .96; letter-spacing: -.04em; font-weight: 800; text-transform: uppercase; margin: 0 auto 20px; color: var(--text); text-align: center; max-width: 1080px; text-wrap: balance; }
@@ -266,7 +269,7 @@ html.hero-fx .risk-title { visibility: hidden; animation: hero-failsafe 1ms line
 @keyframes hero-failsafe { to { visibility: visible; } }
 .risk-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px; max-width: 1080px; margin: 0 auto; }
 /* The shared list reset (.risk-grid, .pour, ... { margin: 0 }) loads later and zeroed the auto margins, which only went unnoticed while the grid nearly filled its container. */
-.risk-strip .risk-grid { margin-inline: auto; }
+.risk-stats .risk-grid { margin-inline: auto; }
 .risk-card { position: relative; padding: 22px 12px; background: var(--surface); border-radius: 12px; border: 1px solid var(--keyline); text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; transition: transform .28s cubic-bezier(.16,1,.3,1), border-color .28s ease, box-shadow .28s ease; }
 .risk-card:hover { transform: scale(1.1); border-color: var(--blue-500); box-shadow: 0 18px 40px -16px rgba(59,130,246,.55), 0 0 0 1px rgba(59,130,246,.4); z-index: 2; }
 .risk-num { font-size: 38px; font-weight: 800; letter-spacing: -1.5px; color: var(--text); line-height: 1; margin-bottom: 8px; }
@@ -646,14 +649,88 @@ html:not([data-theme="light"]) .overlay-content p strong { background: var(--bra
   .risk-card:hover, .record-tile:hover, .process-step:hover,
   [data-theme="light"] .risk-card:hover { transform: none; box-shadow: none; border-color: var(--keyline); }
 
-  .risk-card { display: grid; grid-template-columns: 116px minmax(0, 1fr); column-gap: 16px; align-items: center; text-align: left; padding: 16px 0; }
+  .risk-card { display: block; padding: 0; }
+  .risk-card .rgl, .risk-card .redge { display: none; } /* the desktop glow */
+  .risk-card .ro { transform: none; }
+  .risk-card .ri { display: grid; grid-template-columns: 116px minmax(0, 1fr); column-gap: 16px; align-items: center; text-align: left; padding: 16px 0; }
   .risk-num { grid-row: 1 / 3; margin: 0; font-size: 32px; }
   .risk-label { max-width: none; margin: 0 0 6px; font-size: 14px; }
   .risk-source { display: block; }
+  .risk-source::before { content: "\2014\00a0"; }
 
   .record-tile { padding: 12px 0; gap: 2px; }
 
   .process-step { display: grid; grid-template-columns: 50px minmax(0, 1fr); column-gap: 12px; row-gap: 4px; padding: 18px 0; }
   .process-num { grid-row: 1 / 3; font-size: 34px; }
   .process-title { margin: 0; }
+}
+
+/* Phones, round 2 (Nov 2026).
+ * Top of the page reads: headline, one compact row of links, the free check, then the three stats.
+ * Tiles come off the three "What we do" cards and the seven WCAG fails; the plug-in warning shows one stat.
+ * Selectors carry .site where a later stylesheet (pages.css, components.css) has an equal-weight rule. */
+@media (max-width: 767px) {
+  .top-stack { display: flex; flex-direction: column; }
+  .top-stack > .risk-strip { order: 1; }
+  .top-stack > .hero { order: 2; }
+  .top-stack > .risk-stats { order: 3; }
+
+  .dbr { display: none; } /* line breaks that only the desktop headings use */
+
+  /* Nav to the beta line: was 18px + 37px. */
+  .site .risk-strip { padding-top: 0; }
+  .site .risk-eyebrow { margin-bottom: 12px; }
+  .site .risk-title { margin-bottom: 14px; }
+  .site .risk-sub { margin-bottom: 8px; }
+
+  /* The three links share one compact, centred block instead of three stacked rows. */
+  .site .risk-links { flex-direction: row; flex-wrap: wrap; justify-content: center; gap: 0 18px; margin: 0 auto; font-size: 14px; line-height: 1.2; }
+  .site .risk-link { min-height: 30px; }
+  /* "Already served?" in red: light red on the dark page, deep red on the light page (both 4.5:1 or better). */
+  .site .risk-link-urgent, .site .risk-link-urgent:hover { color: #F87171; }
+  [data-theme="light"] .site .risk-link-urgent, [data-theme="light"] .site .risk-link-urgent:hover { color: #B91C1C; }
+
+  /* Free check sits right under the links. */
+  .site .hero { padding: 10px var(--edge) 16px; }
+  /* Intro above the check: headline and copy centred. */
+  .site .hero-copy { text-align: center; }
+  .site .hero-eyebrow { display: none; } /* "Built for DTC ecommerce" is dropped on phones */
+  .site .hero-title { text-align: center; }
+  .site .hero-sub { margin-inline: auto; }
+  /* Even line lengths: no single word left alone on the last line. */
+  .site .risk-sub, .site .hero-sub, .site .risk-label { text-wrap: balance; }
+  .site .hero-split { gap: 20px; }
+  .site .risk-stats { padding: 0 var(--edge) 4px; }
+
+  /* Hero stat: "Nearly 70%" stays on one line, as on the live site (it was breaking after "Nearly"). */
+  .site .risk-card .ri { grid-template-columns: 132px minmax(0, 1fr); }
+  .site .risk-num { white-space: nowrap; font-size: 27px; letter-spacing: -1.2px; }
+  .site .risk-num .small { font-size: 19px; margin-left: 2px; }
+  /* The platforms strip below already draws a rule; drop the second line after the last stat. */
+  .site .risk-card:last-child { border-bottom: 0; }
+
+  /* What we do: open rows, no tiles. Tighter below, so How it works follows closely. */
+  .site .features { padding: 36px var(--edge) 0; }
+  .site .features .section-sub { margin-bottom: 20px; }
+  .site .feature-grid { display: block; border-top: 1px solid var(--keyline); }
+  .site .feature-card { background: none; border: 0; border-bottom: 1px solid var(--keyline); border-radius: 0; box-shadow: none; padding: 16px 0; }
+  .site .feature-kicker { font-size: 19px; margin-bottom: 8px; }
+  .site .features-note { margin-top: 14px; }
+  .site .process { padding-top: 24px; }
+
+  /* Compliance Record: less air above the human-testing line. */
+  /* A stray 36px/20px padding (from a shared rule at 720px) was adding the gap and indenting the list. */
+  .site .record-grid { margin-bottom: 0; padding: 0; }
+  .site .record-more { margin: 12px 0 22px; }
+
+  /* WCAG explainer */
+  .site .wcag-lede { text-align: center; }
+  .site .criteria-list { gap: 0; border-top: 1px solid var(--keyline); }
+  .site .criteria-row { background: none; border: 0; border-bottom: 1px solid var(--keyline); border-radius: 0; padding: 12px 0; }
+
+  /* Plug-in warning: only the "About 1 in 4" stat. */
+  .site .stat-pair .stat-col + .stat-col { display: none; }
+  /* Everything in the warning card centred: icon, heading, copy and the stat. */
+  .site .overlay-card { align-items: center; text-align: center; }
+  .site .overlay-content h3, .site .overlay-content p { text-align: center; }
 }
