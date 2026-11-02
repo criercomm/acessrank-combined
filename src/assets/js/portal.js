@@ -298,7 +298,10 @@
       ])]));
     });
     li.classList.add('has-notes');
-    li.appendChild(h('div', { class: 'file-notes-panel' }, [list]));
+    // "Notes (n)" sits with the file's details; the notes themselves open under the file on hover or keyboard focus.
+    var meta = li.querySelector('.file-meta');
+    if (meta) meta.appendChild(h('span', { class: 'notes-count', text: 'Notes (' + notes.length + ')' }));
+    li.appendChild(h('div', { class: 'file-notes-hover' }, [h('div', { class: 'file-notes-hover-inner' }, [list])]));
     return li;
   }
 

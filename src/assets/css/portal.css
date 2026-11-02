@@ -428,15 +428,28 @@ select#new-op-role { min-height: 44px; }
 .file-notes-panel[hidden] { display: none; }
 .file-notes-panel .note-actions { opacity: 1; }
 
+/* The client's read-only view: the notes fold away under the file and open on hover, or when anything in the row
+   has keyboard focus (the Download link is the way in). Touch screens always show them. The collapsed row's grid
+   gap is pulled back so a file with notes sits as tall as one without. */
+.file-list > li.has-notes > .file-notes-hover {
+  grid-column: 1 / -1; display: grid; grid-template-rows: 0fr; margin-top: -12px;
+  transition: grid-template-rows .16s ease, margin-top .16s ease;
+}
+.file-notes-hover-inner { min-height: 0; overflow: hidden; padding-left: 62px; }
+.file-list > li.has-notes:hover > .file-notes-hover,
+.file-list > li.has-notes:focus-within > .file-notes-hover { grid-template-rows: 1fr; margin-top: 0; }
+.file-notes-hover .note-list { padding-bottom: 2px; }
+
 /* Keyboard users and touch screens never depend on hover. */
 @media (hover: none) {
   .note-actions, .task-actions { opacity: 1; }
   .file-notes, .task-add-wrap { grid-template-rows: 1fr; }
+  .file-list > li.has-notes > .file-notes-hover { grid-template-rows: 1fr; margin-top: 0; }
 }
 @media (max-width: 640px) {
   .file-list--notes .file-row { grid-template-columns: auto minmax(0, 1fr); }
   .file-list--notes .file-row .row-actions { grid-column: 1 / -1; }
-  .file-notes-inner { padding-left: 16px; }
+  .file-notes-inner, .file-notes-hover-inner { padding-left: 16px; }
 }
 
 /* ---- Background glow on the operator and client portals ----
