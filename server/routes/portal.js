@@ -9,7 +9,7 @@ import {
   PortalError, signIn, signOut, sessionFor, setSessionCookie, clearSessionCookie,
   adminOverview, createClient, renameClient, deleteClient,
   createLogin, createClientWithSetup, resetLoginPassword, deleteLogin, changeOwnPassword,
-  listClientFiles, addFile, getFile, deleteFile, setFileArea, contentDisposition, PASSWORD_MAX,
+  listClientFiles, addFile, getFile, deleteFile, setFileArea, addFileNote, fileNoteClientId, updateFileNote, deleteFileNote, contentDisposition, PASSWORD_MAX,
   listTeamFiles, addTeamFile, replaceTeamFile, getTeamFile, deleteTeamFile, listTeamNotes, addTeamNote, updateTeamNote, deleteTeamNote,
   listTeamTasks, addTeamTask, updateTeamTask, deleteTeamTask,
   addReport, listReports, getReport, deleteReport, saveApprovals, currentApprovals, adminApprovals, approvalHistory,
@@ -385,6 +385,33 @@ admin.delete('/files/:id', wrap(async (req, res) => {
   await assertClient(req, found ? found.client_id : null);
   await deleteFile(await getStore(), req.params.id);
   log.info('portal file deleted', { fileId: req.params.id });
+  res.json({ ok: true });
+}));
+
+/** Notes on a client's Other files and Past approvals. Staff only, and only for clients this person can reach. */
+const fileNoteSchema = z.object({ body: z.string().max(4000) });
+
+admin.post('/files/:id/notes', wrap(async (req, res) => {
+  const found = await getFile(await getStore(), req.params.id);
+  await assertClient(req, found ? found.client_id : null);
+  const input = parseOrThrow(fileNoteSchema, req.body);
+  const note = await addFileNote(await getStore(), req.portal, req.params.id, input.body);
+  log.info('portal file note added', { noteId: note.id, fileId: note.fileId, by: req.portal.email });
+  res.status(201).json({ ok: true, note });
+}));
+
+admin.patch('/file-notes/:id', wrap(async (req, res) => {
+  await assertClient(req, await fileNoteClientId(await getStore(), req.params.id));
+  const input = parseOrThrow(fileNoteSchema, req.body);
+  const note = await updateFileNote(await getStore(), req.params.id, input.body);
+  log.info('portal file note edited', { noteId: note.id, by: req.portal.email });
+  res.json({ ok: true, note });
+}));
+
+admin.delete('/file-notes/:id', wrap(async (req, res) => {
+  await assertClient(req, await fileNoteClientId(await getStore(), req.params.id));
+  await deleteFileNote(await getStore(), req.params.id);
+  log.info('portal file note deleted', { noteId: req.params.id, by: req.portal.email });
   res.json({ ok: true });
 }));
 

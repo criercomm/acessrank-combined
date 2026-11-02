@@ -363,6 +363,37 @@ function pgRepo(store) {
       return (await q('UPDATE portal_files SET area = $2 WHERE id = $1 RETURNING id, client_id, filename, size_bytes, area, created_at', [id, area])).rows[0] ?? null;
     },
 
+    async listFileNotes() {
+      return (await q('SELECT id, file_id, body, author_name, author_email, created_at, updated_at FROM portal_file_notes ORDER BY created_at ASC LIMIT 10000')).rows;
+    },
+    /** Null when the file no longer exists. */
+    async insertFileNote({ fileId, body, authorName, authorEmail }) {
+      return (await q(
+        `INSERT INTO portal_file_notes (file_id, body, author_name, author_email)
+         SELECT $1::uuid, $2, $3, $4 WHERE EXISTS (SELECT 1 FROM portal_files WHERE id = $1::uuid)
+         RETURNING id, file_id, body, author_name, author_email, created_at, updated_at`,
+        [fileId, body, authorName, authorEmail],
+      )).rows[0] ?? null;
+    },
+    /** The note with the client that owns its file, so a route can check access first. */
+    async getFileNote(id) {
+      return (await q(
+        `SELECT n.id, n.file_id, f.client_id, n.body, n.author_name, n.author_email, n.created_at, n.updated_at
+           FROM portal_file_notes n JOIN portal_files f ON f.id = n.file_id WHERE n.id = $1`,
+        [id],
+      )).rows[0] ?? null;
+    },
+    async updateFileNote(id, body) {
+      return (await q(
+        `UPDATE portal_file_notes SET body = $2, updated_at = now() WHERE id = $1
+         RETURNING id, file_id, body, author_name, author_email, created_at, updated_at`,
+        [id, body],
+      )).rows[0] ?? null;
+    },
+    async deleteFileNote(id) {
+      return (await q('DELETE FROM portal_file_notes WHERE id = $1', [id])).rowCount > 0;
+    },
+
     async listTeamFiles() {
       return (await q('SELECT id, filename, size_bytes, added_by_name, added_by_email, created_at FROM portal_team_files ORDER BY created_at DESC')).rows;
     },
@@ -561,6 +592,7 @@ function memRepo(store) {
   store._portal.approvals ??= [];
   store._portal.teamFiles ??= new Map();
   store._portal.teamNotes ??= [];
+  store._portal.fileNotes ??= [];
   store._portal.teamTasks ??= [];
   const db = store._portal;
   let last = 0;
@@ -675,12 +707,43 @@ function memRepo(store) {
       return row;
     },
     async getFile(id) { return db.files.get(id) ?? null; },
-    async deleteFile(id) { return db.files.delete(id); },
+    async deleteFile(id) {
+      const removed = db.files.delete(id);
+      // Notes go with their file, as ON DELETE CASCADE does in Postgres.
+      if (removed) db.fileNotes = db.fileNotes.filter((n) => n.file_id !== id);
+      return removed;
+    },
     async setFileArea(id, area) {
       const row = db.files.get(id);
       if (!row) return null;
       row.area = area;
       return row;
+    },
+
+    async listFileNotes() { return [...db.fileNotes].sort((a, b) => byCreated(a, b)); },
+    async insertFileNote({ fileId, body, authorName, authorEmail }) {
+      if (!db.files.has(fileId)) return null;
+      const row = { id: crypto.randomUUID(), file_id: fileId, created_at: now(), updated_at: null, body, author_name: authorName, author_email: authorEmail };
+      db.fileNotes.push(row);
+      return row;
+    },
+    async getFileNote(id) {
+      const row = db.fileNotes.find((n) => n.id === id);
+      const file = row && db.files.get(row.file_id);
+      return file ? { ...row, client_id: file.client_id } : null;
+    },
+    async updateFileNote(id, body) {
+      const row = db.fileNotes.find((n) => n.id === id);
+      if (!row) return null;
+      row.body = body;
+      row.updated_at = now();
+      return row;
+    },
+    async deleteFileNote(id) {
+      const i = db.fileNotes.findIndex((n) => n.id === id);
+      if (i < 0) return false;
+      db.fileNotes.splice(i, 1);
+      return true;
     },
 
     async listTeamFiles() {
@@ -1026,16 +1089,19 @@ const notFound = (what) => new PortalError(`That ${what} no longer exists.`, { c
 /** Everything the admin page shows, in one round trip. */
 export async function adminOverview(store, scope = null) {
   const repo = repoFor(store);
-  const [allClients, users, files, reports, latest] = await Promise.all([
-    repo.listClients(), repo.listUsers(), repo.listFiles(), repo.listReports(), repo.latestApprovals(),
+  const [allClients, users, files, reports, latest, fileNotes] = await Promise.all([
+    repo.listClients(), repo.listUsers(), repo.listFiles(), repo.listReports(), repo.latestApprovals(), repo.listFileNotes(),
   ]);
+  // Notes are for the team only, so they ride on the admin view and never on what a client login fetches.
+  const notesByFile = new Map();
+  for (const n of fileNotes) (notesByFile.get(n.file_id) ?? notesByFile.set(n.file_id, []).get(n.file_id)).push(fileNoteOut(n));
   const byReport = new Map();
   for (const a of latest) (byReport.get(a.report_id) ?? byReport.set(a.report_id, []).get(a.report_id)).push(a);
   const clients = scope ? allClients.filter((c) => scope.has(c.id)) : allClients;
   return clients.map((client) => ({
     ...clientOut(client),
     users: users.filter((u) => u.client_id === client.id).map(userOut),
-    files: files.filter((f) => f.client_id === client.id).map(fileOut),
+    files: files.filter((f) => f.client_id === client.id).map((f) => ({ ...fileOut(f), notes: notesByFile.get(f.id) ?? [] })),
     reports: reports.filter((r) => r.client_id === client.id).map((r) => ({ ...reportOut(r), progress: progressOf(byReport.get(r.id) ?? []) })),
   }));
 }
@@ -1329,7 +1395,19 @@ export async function changeOwnOperatorPassword(store, session, { current, next 
 /* ================================================================ files === */
 
 export async function listClientFiles(store, clientId) {
-  return (await repoFor(store).listFiles(clientId)).map(fileOut);
+  const repo = repoFor(store);
+  const [files, notes] = await Promise.all([repo.listFiles(clientId), repo.listFileNotes()]);
+  const byFile = new Map();
+  for (const n of notes) (byFile.get(n.file_id) ?? byFile.set(n.file_id, []).get(n.file_id)).push(n);
+  // A client reads the team's notes on their own Other files and Past approvals. Read-only, and the author
+  // is shown by name only: no staff email addresses go to a client.
+  return files.map((f) => ({
+    ...fileOut(f),
+    notes: (NOTE_AREAS.has(f.area ?? 'files') ? byFile.get(f.id) ?? [] : []).map((n) => {
+      const { authorEmail, ...safe } = fileNoteOut(n);
+      return safe;
+    }),
+  }));
 }
 
 export const FILE_AREAS = new Set(['files', 'compliance', 'approvals']);
@@ -1749,12 +1827,61 @@ export async function deleteFile(store, id) {
   if (!isUuid(id) || !(await repoFor(store).deleteFile(id))) throw notFound('file');
 }
 
+/* ======================================================= client file notes === */
+
+/** Notes can sit on files in these areas: Other files and Past approvals. */
+export const NOTE_AREAS = new Set(['files', 'approvals']);
+
+const fileNoteOut = (row) => ({
+  id: row.id,
+  fileId: row.file_id,
+  body: row.body,
+  authorName: row.author_name || '',
+  authorEmail: row.author_email || '',
+  createdAt: iso(row.created_at),
+  updatedAt: row.updated_at ? iso(row.updated_at) : null,
+});
+
+/** Add a note to a client file. The author is the signed-in session, never anything the browser sends. */
+export async function addFileNote(store, session, fileId, rawBody) {
+  const body = cleanNoteBody(rawBody);
+  const repo = repoFor(store);
+  const file = isUuid(fileId) ? await repo.getFile(fileId) : null;
+  if (!file) throw notFound('file');
+  if (!NOTE_AREAS.has(file.area)) throw new PortalError('Notes can be added to Other files and Past approvals.', { code: 'note_area' });
+  const row = await repo.insertFileNote({
+    fileId,
+    body,
+    authorName: String(session.name ?? '').slice(0, 120),
+    authorEmail: String(session.email ?? '').slice(0, 254),
+  });
+  if (!row) throw notFound('file');
+  return fileNoteOut(row);
+}
+
+/** The client a note belongs to (through its file), or null. The route uses it to check access first. */
+export async function fileNoteClientId(store, id) {
+  const row = isUuid(id) ? await repoFor(store).getFileNote(id) : null;
+  return row ? row.client_id : null;
+}
+
+export async function updateFileNote(store, id, rawBody) {
+  const body = cleanNoteBody(rawBody);
+  const row = isUuid(id) ? await repoFor(store).updateFileNote(id, body) : null;
+  if (!row) throw notFound('note');
+  return fileNoteOut(row);
+}
+
+export async function deleteFileNote(store, id) {
+  if (!isUuid(id) || !(await repoFor(store).deleteFileNote(id))) throw notFound('note');
+}
+
 export default {
   PortalError, hashPassword, verifyPassword, generatePassword,
   signIn, signOut, sessionFor, setSessionCookie, clearSessionCookie,
   adminOverview, createClient, createClientWithSetup, renameClient, deleteClient,
   createLogin, resetLoginPassword, deleteLogin, changeOwnPassword,
-  listClientFiles, addFile, getFile, deleteFile, setFileArea,
+  listClientFiles, addFile, getFile, deleteFile, setFileArea, addFileNote, fileNoteClientId, updateFileNote, deleteFileNote,
   listTeamFiles, addTeamFile, replaceTeamFile, getTeamFile, deleteTeamFile, listTeamNotes, addTeamNote, updateTeamNote, deleteTeamNote,
   listTeamTasks, addTeamTask, updateTeamTask, deleteTeamTask,
   addReport, listReports, getReport, deleteReport, saveApprovals, currentApprovals, adminApprovals, approvalHistory,

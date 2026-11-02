@@ -1250,3 +1250,66 @@ test('team notes on punch list tasks: add, edit, delete, and they go when the ta
   assert.equal((await master.person.del(`/api/portal/team-tasks/${taskA.id}`)).status, 200);
   assert.deepEqual((await master.person.get('/api/portal/team-notes')).body.notes, [], 'a deleted task takes its notes with it');
 });
+
+test('client file notes: staff add, edit and delete them on Other files and Past approvals; clients never see them', async () => {
+  const owner = await adminBrowser();
+  const mine = await clientWithLogin(owner, 'Top Seedz', 'jordan@topseedz.test');
+  const theirs = await clientWithLogin(owner, 'Larkspur Tea Co.', 'sam@larkspur.test');
+  const op = await operatorWithLogin(owner, { name: 'Emerson Dev', email: 'emerson@accessrank.test' });
+  await owner.put(`/api/portal/operators/${op.operator.id}/clients`, { clientIds: [mine.client.id] });
+  const upload = async (c, name, area) => (await owner.upload(`/api/portal/admin/clients/${c.client.id}/files?name=${name}&area=${area}`, PDF)).body.file;
+  const other = await upload(mine, 'other.pdf', 'files');
+  const past = await upload(mine, 'signed.pdf', 'approvals');
+  const compliance = await upload(mine, 'vpat.pdf', 'compliance');
+  const theirFile = await upload(theirs, 'secret.pdf', 'files');
+  const notesOf = async (id) => (await owner.get('/api/portal/admin/clients')).body.clients.find((c) => c.id === mine.client.id).files.find((f) => f.id === id).notes;
+
+  // Add: trimmed, authored by the session (never the body), on both areas.
+  const first = await owner.post(`/api/portal/admin/files/${other.id}/notes`, { body: '  Waiting on legal.  ', authorName: 'Someone Else' });
+  assert.equal(first.status, 201);
+  assert.equal(first.body.note.body, 'Waiting on legal.');
+  assert.notEqual(first.body.note.authorName, 'Someone Else');
+  assert.equal(first.body.note.updatedAt, null);
+  const pastNote = await op.person.post(`/api/portal/admin/files/${past.id}/notes`, { body: 'Signed 11/2.' });
+  assert.equal(pastNote.status, 201, 'an assigned operator can');
+  assert.deepEqual((await notesOf(other.id)).map((n) => n.body), ['Waiting on legal.']);
+  assert.deepEqual((await notesOf(past.id)).map((n) => n.body), ['Signed 11/2.']);
+
+  // Refused: empty, too long, Compliance files, missing files.
+  assert.equal((await owner.post(`/api/portal/admin/files/${other.id}/notes`, { body: '   ' })).body.code, 'note_empty');
+  assert.equal((await owner.post(`/api/portal/admin/files/${other.id}/notes`, { body: 'x'.repeat(2001) })).body.code, 'note_long');
+  assert.equal((await owner.post(`/api/portal/admin/files/${compliance.id}/notes`, { body: 'nope' })).body.code, 'note_area');
+  assert.equal((await owner.post('/api/portal/admin/files/00000000-0000-4000-8000-000000000000/notes', { body: 'orphan' })).status, 404);
+
+  // Edit: the body and updatedAt change, the author and created time do not.
+  const edited = await owner.patch(`/api/portal/admin/file-notes/${first.body.note.id}`, { body: ' Legal approved. ' });
+  assert.equal(edited.status, 200);
+  assert.equal(edited.body.note.body, 'Legal approved.');
+  assert.ok(edited.body.note.updatedAt);
+  assert.equal(edited.body.note.authorEmail, first.body.note.authorEmail);
+  assert.equal(edited.body.note.createdAt, first.body.note.createdAt);
+  assert.equal((await owner.patch(`/api/portal/admin/file-notes/${first.body.note.id}`, { body: '' })).body.code, 'note_empty');
+
+  // Nobody outside the team, and no operator outside their clients, can reach them.
+  const theirNote = (await owner.post(`/api/portal/admin/files/${theirFile.id}/notes`, { body: 'Theirs.' })).body.note;
+  assert.equal((await op.person.post(`/api/portal/admin/files/${theirFile.id}/notes`, { body: 'x' })).status, 404);
+  assert.equal((await op.person.patch(`/api/portal/admin/file-notes/${theirNote.id}`, { body: 'x' })).status, 404);
+  assert.equal((await op.person.del(`/api/portal/admin/file-notes/${theirNote.id}`)).status, 404);
+  assert.equal((await mine.person.post(`/api/portal/admin/files/${other.id}/notes`, { body: 'x' })).status, 404, 'a client login cannot add');
+  assert.equal((await mine.person.patch(`/api/portal/admin/file-notes/${first.body.note.id}`, { body: 'x' })).status, 404);
+  assert.equal((await mine.person.del(`/api/portal/admin/file-notes/${first.body.note.id}`)).status, 404);
+  // The client reads the notes on their own Other files and Past approvals, by author name only, and cannot change them.
+  const seen = (await mine.person.get('/api/portal/me')).body.files;
+  assert.deepEqual(seen.find((f) => f.id === other.id).notes.map((n) => n.body), ['Legal approved.']);
+  assert.deepEqual(seen.find((f) => f.id === past.id).notes.map((n) => n.body), ['Signed 11/2.']);
+  assert.deepEqual(seen.find((f) => f.id === compliance.id).notes, [], 'Compliance files carry none');
+  assert.ok(!JSON.stringify(seen).includes('@accessrank.test'), 'no staff email address reaches a client');
+  assert.ok(!JSON.stringify((await theirs.person.get('/api/portal/me')).body.files).includes('Legal approved.'), 'another client sees none of it');
+
+  // Delete, and deleting a file takes its notes with it.
+  assert.equal((await owner.del(`/api/portal/admin/file-notes/${first.body.note.id}`)).status, 200);
+  assert.equal((await owner.del(`/api/portal/admin/file-notes/${first.body.note.id}`)).status, 404);
+  assert.deepEqual(await notesOf(other.id), []);
+  assert.equal((await owner.del(`/api/portal/admin/files/${past.id}`)).status, 200);
+  assert.equal((await owner.patch(`/api/portal/admin/file-notes/${pastNote.body.note.id}`, { body: 'x' })).status, 404, 'its notes went with it');
+});

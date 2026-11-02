@@ -422,6 +422,12 @@ select#new-op-role { min-height: 44px; }
 .task-card:hover .task-add-wrap, .task-add-wrap:focus-within { grid-template-rows: 1fr; }
 .task-add { display: flex; align-items: center; gap: 8px; margin-top: 8px; padding: 10px 0 0 30px; border-top: 1px solid var(--hairline); }
 
+/* Notes on a client's Other files and Past approvals: a plain panel under the file row, opened by its Notes button
+   (so keyboard and touch work the same as a mouse). It spans the whole row. */
+.file-list > li.has-notes > .file-notes-panel { grid-column: 1 / -1; padding: 2px 0 4px; }
+.file-notes-panel[hidden] { display: none; }
+.file-notes-panel .note-actions { opacity: 1; }
+
 /* Keyboard users and touch screens never depend on hover. */
 @media (hover: none) {
   .note-actions, .task-actions { opacity: 1; }
