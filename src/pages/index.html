@@ -216,7 +216,7 @@
       </div>
     </div>
     <div class="credit-card">
-      <div class="credit-form-tag"><span class="credit-form-no">FORM 8826</span><span class="credit-form-name">Disabled Access Credit</span></div>
+      <div class="credit-form-tag"><a class="credit-form-no" href="#price-toggle" data-apply-credit title="See the pricing after this credit">FORM 8826</a><span class="credit-form-name">Disabled Access Credit</span></div>
       <div class="credit-calc">
         <div class="credit-calc-row"><span class="label">Eligible access expenditures</span><span class="val">$10,250</span></div>
         <div class="credit-calc-row"><span class="label">Less floor (first $250)</span><span class="val">&ndash; $250</span></div>
@@ -246,11 +246,14 @@
   <h2>Pay for results, not promises.</h2>
   <p class="section-sub">Two jobs, priced separately: a one-time project to <strong>raise your accessibility score</strong>, then a plan to <strong>hold it there</strong>, because every new product, app or theme edit can quietly undo the work.</p>
   <div class="price-toggles">
-    <div class="price-toggle" id="price-toggle" role="group" aria-label="Onboarding price">
-      <button type="button" data-mode="standard" aria-pressed="true">Standard pricing</button>
-      <button type="button" data-mode="credit" aria-pressed="false">After Form 8826 credit (illustrative, if you qualify)</button>
+    <p class="price-toggle-label" id="price-toggle-label">Onboarding price</p>
+    <div class="price-toggle" id="price-toggle" role="group" aria-labelledby="price-toggle-label">
+      <button type="button" data-mode="standard" aria-pressed="true">Standard<span class="pt-more"> pricing</span></button>
+      <button type="button" data-mode="credit" aria-pressed="false">After Form 8826 credit<span class="pt-more"> (illustrative, if you qualify)</span></button>
     </div>
-    <div class="price-toggle" id="bill-toggle" role="group" aria-label="Billing period">
+    <p class="price-caption">After-credit prices are illustrative, if you qualify.</p>
+    <p class="price-toggle-label" id="bill-toggle-label">Billing</p>
+    <div class="price-toggle" id="bill-toggle" role="group" aria-labelledby="bill-toggle-label">
       <button type="button" data-bill="monthly" aria-pressed="true">Monthly</button>
       <button type="button" data-bill="annual" aria-pressed="false">Annual &middot; save up to 30%</button>
     </div>

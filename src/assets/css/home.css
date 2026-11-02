@@ -463,6 +463,7 @@ html:not([data-theme="light"]) .overlay-content p strong { background: var(--bra
  * clicking "After Form 8826 credit" changed the prices but gave no visual
  * confirmation of which mode was showing. */
 .price-toggle button.is-active { background: var(--brand); color: var(--brand-ink); }
+.price-toggle-label, .price-caption { display: none; } /* phones only: see the 767px block */
 .price-was { display: none; font-size: 17px; color: var(--text-faint); text-decoration: line-through; font-weight: 700; margin-right: 9px; letter-spacing: -0.5px; } /* TODO(contrast): verify against WCAG 1.4.3 */
 /* [data-mode="credit"], matching what site.js actually sets on .pricing.
  * This said .show-credit, a class site.js never applied (it sets a
@@ -686,12 +687,14 @@ html:not([data-theme="light"]) .overlay-content p strong { background: var(--bra
   /* The three links share one compact, centred block instead of three stacked rows. */
   .site .risk-links { flex-direction: row; flex-wrap: wrap; justify-content: center; gap: 0 18px; margin: 0 auto; font-size: 14px; line-height: 1.2; }
   .site .risk-link { min-height: 30px; }
-  /* "Already served?" in red: light red on the dark page, deep red on the light page (both 4.5:1 or better). */
-  .site .risk-link-urgent, .site .risk-link-urgent:hover { color: #F87171; }
-  [data-theme="light"] .site .risk-link-urgent, [data-theme="light"] .site .risk-link-urgent:hover { color: #B91C1C; }
+  /* "Already served?" in red: --red-text is a light red on the dark page and a deep red on the light page. */
+  .site .risk-link-urgent, .site .risk-link-urgent:hover { color: var(--red-text); }
 
   /* Free check sits right under the links. */
-  .site .hero { padding: 10px var(--edge) 16px; }
+  .site .hero { padding: 18px var(--edge) 16px; }
+  /* Section dividers: under the links, and under the "Higher rank" intro. */
+  .site .risk-links { border-bottom: 1px solid var(--keyline); padding-bottom: 7px; }
+  .site .hero-copy { border-bottom: 1px solid var(--keyline); padding-bottom: 20px; }
   /* Intro above the check: headline and copy centred. */
   .site .hero-copy { text-align: center; }
   .site .hero-eyebrow { display: none; } /* "Built for DTC ecommerce" is dropped on phones */
@@ -699,7 +702,7 @@ html:not([data-theme="light"]) .overlay-content p strong { background: var(--bra
   .site .hero-sub { margin-inline: auto; }
   /* Even line lengths: no single word left alone on the last line. */
   .site .risk-sub, .site .hero-sub, .site .risk-label { text-wrap: balance; }
-  .site .hero-split { gap: 20px; }
+  .site .hero-split { gap: 24px; }
   .site .risk-stats { padding: 0 var(--edge) 4px; }
 
   /* Hero stat: "Nearly 70%" stays on one line, as on the live site (it was breaking after "Nearly"). */
@@ -730,6 +733,68 @@ html:not([data-theme="light"]) .overlay-content p strong { background: var(--bra
 
   /* Plug-in warning: only the "About 1 in 4" stat. */
   .site .stat-pair .stat-col + .stat-col { display: none; }
+  /* Works with: label and names centred. */
+  .site .platforms { align-items: center; text-align: center; }
+  .site .platforms-list { justify-content: center; }
+
+  /* How it works: no "Check my store" after step 4; "See how we score" is the one button. */
+  .site .process-actions .btn-primary { display: none; }
+  .site .process-link { display: inline-block; background: var(--brand); color: var(--brand-ink); padding: 14px 26px; border-radius: 8px; font-size: 16px; font-weight: 700; text-decoration: none; }
+  .site .process-link:hover { color: var(--brand-ink); opacity: .85; }
+  /* No rule above or below the button: the last step's line and the stats strip's top line are dropped. */
+  .site .process-step:last-child { border-bottom: 0; }
+  /* Equal air above and below the button. */
+  .site .process-grid { margin-bottom: 0; }
+  .site .process-actions { padding-top: 8px; }
+  .site .process { padding-bottom: 16px; }
+  .site .stats-strip { border-top: 0; }
+
+  /* Less air after "2-4 wks" and above the Compliance Record. */
+  .site .stats-strip { padding: 16px 0; gap: 14px; }
+  .site .record { padding-top: 24px; }
+
+  /* Rank (Every plan / Growth and above): open rows, centred, no tiles. */
+  .site .rank-grid { display: block; border-top: 1px solid var(--keyline); }
+  .site .rank-tile { background: none; border: 0; border-bottom: 1px solid var(--keyline); border-radius: 0; box-shadow: none; padding: 18px 0; text-align: center; align-items: center; }
+  .site .rank-tile:hover { transform: none; box-shadow: none; border-color: var(--keyline); }
+
+  /* The FORM 8826 chip is a button: one line, pointer, and it holds its size. */
+  .site .credit-form-no { flex: 0 0 auto; white-space: nowrap; text-decoration: none; cursor: pointer; padding: 11px 14px; border-radius: 6px; }
+  .site .credit-form-no:hover { opacity: .85; }
+  .site #price-toggle { scroll-margin-top: 16px; }
+
+  /* Tax credit: the second copy block and the "Who's eligible" eyebrow are centred. */
+  .site .credit-lede, .site .credit-elig-head { text-align: center; }
+
+  /* Pricing: the plan tiles come first, then "Every plan includes", then the note. */
+  .site .pricing { display: flex; flex-direction: column; }
+  .site .pricing-grid { order: 1; width: 100%; box-sizing: border-box; }
+  .site .price-every { order: 2; margin: 24px 0 0; }
+  .site .pricing-note { order: 3; }
+
+  /* "Every plan includes": a clear checklist. Centred heading, then one ruled row per item with the tick in a fixed column. */
+  .site .price-every { display: block; padding: 0; border: 0; border-radius: 0; background: none; }
+  .site .price-every-label { text-align: center; font-size: 13px; font-weight: 700; letter-spacing: 2px; margin: 0 0 12px; }
+  .site .price-every ul { display: block; max-width: 420px; margin: 0 auto; border-top: 1px solid var(--hairline); }
+  .site .price-every li { display: grid; grid-template-columns: 22px minmax(0, 1fr); column-gap: 12px; align-items: start; padding: 11px 0; border-bottom: 1px solid var(--hairline); font-size: 16px; line-height: 1.4; color: var(--text); text-align: left; }
+  .site .price-every li::before { position: static; width: 22px; height: 22px; border-radius: 50%; background: var(--brand); color: var(--brand-ink); font-size: 13px; font-weight: 800; display: inline-flex; align-items: center; justify-content: center; margin: 0; }
+
+  /* Less air between Rank and Pricing, and down through the Pricing heading. */
+  .site .pricing { padding-top: 8px; }
+  .site .pricing .section-eyebrow { margin-bottom: 10px; }
+  .site .pricing h2 { margin-bottom: 10px; }
+  .site .pricing .section-sub { margin-bottom: 14px; }
+
+  /* Pricing options: two labelled rows, each a single line of plain-text choices, the chosen one underlined. */
+  .site .price-toggles { flex-direction: column; align-items: center; gap: 0; margin-bottom: 18px; }
+  .site .price-toggle-label { display: block; margin: 0 0 2px; font-size: 12px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-muted); text-align: center; }
+  .site .price-caption { display: block; margin: 0 0 16px; font-size: 13px; line-height: 1.4; color: var(--text-muted); text-align: center; }
+  .site .pt-note, .site .pt-more { display: none; }
+  .site .price-toggle { background: none; border: 0; border-radius: 0; padding: 0; width: 100%; gap: 0 28px; flex-wrap: nowrap; justify-content: center; }
+  .site .price-toggle button, .site .price-toggle button.is-active { flex: 0 1 auto; background: none; border: 0; border-bottom: 2px solid transparent; border-radius: 0; padding: 10px 2px; min-height: 44px; font-size: 15px; font-weight: 500; color: var(--text-muted); white-space: nowrap; text-align: center; }
+  .site .price-toggle button[aria-pressed="true"], .site .price-toggle button.is-active { background: none; color: var(--text); font-weight: 600; border-bottom-color: var(--brand-text); }
+  .site .price-toggles .price-toggle + .price-toggle-label { margin-top: 6px; }
+
   /* Everything in the warning card centred: icon, heading, copy and the stat. */
   .site .overlay-card { align-items: center; text-align: center; }
   .site .overlay-content h3, .site .overlay-content p { text-align: center; }

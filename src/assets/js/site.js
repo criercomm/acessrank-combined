@@ -168,6 +168,15 @@
     applyMode('standard');
   }
 
+  /* The FORM 8826 button in the tax credit card: switches the pricing to the after-credit view; the link then
+   * scrolls to the pricing toggles, with the new prices below them. */
+  document.querySelectorAll('[data-apply-credit]').forEach(function (link) {
+    link.addEventListener('click', function () {
+      var creditButton = document.querySelector('#price-toggle [data-mode="credit"]');
+      if (creditButton) creditButton.click();
+    });
+  });
+
   /* ------------------------------------------- overview deck overlay --- */
   /* "Overview" in the primary nav (site.json: nav[].deck) and "Why stores get
    * sued" under the hero open the overview deck (built to /deck/) full-screen over

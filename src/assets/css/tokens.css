@@ -57,6 +57,7 @@
      page — #FFD23F on the light background is about 1.4:1. Anything that is
      brand-coloured *text* reads --brand-text instead, which is the same yellow
      here and a slate blue in the light theme. Likewise the focus ring. */
+  --red-text: #FF5C5C; /* red text on the dark page: the live-site red ("lawsuit risk", "Already been served?", the mobile "Already served?" link) */
   --brand-text: var(--brand);
   --brand-hover: #FFDF6E;      /* link hover; was a literal in pages.css/layout.css */
   --focus: var(--brand);
@@ -87,6 +88,7 @@
   /* The accent: a slate blue. As text it is 5.5:1 on the white page and 5.1:1 on
      a tile — it clears 4.5:1 on both, but with little to spare, so do not lighten it. */
   --brand-text: #5064B4;
+  --red-text: #B91C1C;          /* 6.5:1 on white */
   --brand-hover: #38467E;
   --accent-rgb: 80, 100, 180;  /* the same blue, for tints and rollover shadows */
   --brand-soft: rgba(80, 100, 180, 0.09);
@@ -127,6 +129,7 @@
   --brand-border: rgba(255, 210, 63, 0.30);
   --keyline: rgba(255, 210, 63, 0.32);
 
+  --red-text: #FF5C5C;
   --brand-text: var(--brand);
   --brand-hover: #FFDF6E;
   --focus: var(--brand);

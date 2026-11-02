@@ -16,10 +16,10 @@
   .site[data-page="/"] {
     /* Content column: 1120px wide, matching the preview. */
     --edge: max(40px, calc((100% - 1200px) / 2 + 40px));
-    --rd-red: #FF5C5C;      /* "lawsuit risk" */
+    --rd-red: var(--red-text); /* "lawsuit risk", "Already been served?" */
     --rd-green: #4ADE80;    /* "rankings" */
   }
-  [data-theme="light"] .site[data-page="/"] { --rd-red: #B91C1C; --rd-green: #166534; }
+  [data-theme="light"] .site[data-page="/"] { --rd-green: #166534; }
 
   /* ---- Shared section heading scale ---- */
   .site[data-page="/"] .section-eyebrow,
@@ -221,6 +221,9 @@
   .site[data-page="/"] .credit-form-tag { margin: 0 0 6px; padding: 0; background: none; border: 0; display: block; }
   .site[data-page="/"] .credit-form-no, .site[data-page="/"] .credit-form-name { display: inline; font-family: inherit; font-size: 13px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--brand-text); background: none; padding: 0; border-radius: 0; }
   .site[data-page="/"] .credit-form-no::after { content: " \00b7 "; white-space: pre; }
+  .site[data-page="/"] a.credit-form-no { text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+  .site[data-page="/"] a.credit-form-no:hover { color: var(--text); }
+  .site[data-page="/"] #price-toggle { scroll-margin-top: 24px; }
   .site[data-page="/"] .credit-calc { border-top: 1px solid var(--hairline-strong); }
   .site[data-page="/"] .credit-calc-row { display: flex; justify-content: space-between; align-items: baseline; gap: 20px; padding: 16px 0; border-bottom: 1px solid var(--hairline); background: none; }
   .site[data-page="/"] .credit-calc-row .label { font-size: 17px; color: var(--text-soft); }
