@@ -56,7 +56,7 @@
     position: relative; isolation: isolate; padding: 0; background: none; border: 0; border-radius: 0; box-shadow: none;
     display: block; text-align: center; --a: 0deg;
     --hot: conic-gradient(from var(--a), #FFF3B0 0deg, #FFB020 40deg, #FF6A1A 80deg, rgba(150,30,0,.55) 130deg, #FF8A1F 180deg, #FFE07A 225deg, #FF7A1A 275deg, rgba(150,30,0,.5) 320deg, #FFF3B0 360deg);
-    --b: 1.5px; --spin: 18s; --go: .2; --b1: 8px; --b2: 14px; --f1: 7.5s; --f2: 9.5s;
+    --b: 1.5px; --spin: 18s; --go: .45; --b1: 12px; --b2: 22px; --f1: 7.5s; --f2: 9.5s;
     animation: rd-spin calc(var(--spin) * var(--k, 1)) linear infinite var(--dir, normal);
     animation-delay: var(--dl, 0s);
     pointer-events: none;
@@ -68,8 +68,8 @@
   .site[data-page="/"] .risk-card .ri { position: relative; z-index: 1; height: 100%; background: var(--surface); padding: 32px 24px 28px; text-align: center; }
   .site[data-page="/"] .risk-card .ri > * { transform: skewX(3deg); }
   .site[data-page="/"] .risk-card .rgl { position: absolute; z-index: 0; inset: 0; pointer-events: none; transform: skewX(-3deg); background: var(--hot); opacity: min(1, calc(var(--go) * var(--gm, 1))); transition: opacity .45s ease; }
-  .site[data-page="/"] .risk-card .rgl1 { inset: -1px; animation: rd-fl1 calc(var(--f1) * var(--k1, 1)) linear infinite, rd-ign 1.8s ease-out both; animation-delay: var(--d1, 0s), var(--ig, 0s); }
-  .site[data-page="/"] .risk-card .rgl2 { inset: -5px; animation: rd-fl2 calc(var(--f2) * var(--k2, 1)) linear infinite, rd-ign 1.8s ease-out both; animation-delay: var(--d2, 0s), var(--ig, 0s); }
+  .site[data-page="/"] .risk-card .rgl1 { inset: -2px; animation: rd-fl1 calc(var(--f1) * var(--k1, 1)) linear infinite, rd-ign 1.8s ease-out both; animation-delay: var(--d1, 0s), var(--ig, 0s); }
+  .site[data-page="/"] .risk-card .rgl2 { inset: -10px; animation: rd-fl2 calc(var(--f2) * var(--k2, 1)) linear infinite, rd-ign 1.8s ease-out both; animation-delay: var(--d2, 0s), var(--ig, 0s); }
   .site[data-page="/"] .risk-card:has(.ro:hover) .rgl { opacity: min(1, calc(var(--go) * var(--gm, 1) * 1.8)); }
   /* Each tile burns a little differently. */
   .site[data-page="/"] .risk-card:nth-child(1) { --ig: 0s; }
