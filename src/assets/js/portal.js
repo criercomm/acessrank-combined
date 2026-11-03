@@ -282,6 +282,112 @@
 
   /* ------------------------------------------------------ client portal --- */
 
+  /* ---- the team's notes on a file: add, edit and delete (clients only read them, see fileRowWithClientNotes) ---- */
+
+  function noteButton(label, name, extra) {
+    return h('button', { type: 'button', class: 'btn-small' + (extra ? ' ' + extra : ''), 'aria-label': name, text: label });
+  }
+
+  function noteMetaLine(note) {
+    var who = note.authorName || note.authorEmail;
+    var when = formatDateTime(note.createdAt) + (note.updatedAt ? ' (edited)' : '');
+    return h('p', { class: 'note-meta', title: note.updatedAt ? 'Edited ' + formatDateTime(note.updatedAt) : null, text: (who ? who + ' \u00b7 ' : '') + when });
+  }
+
+  /** The "Notes (n)" label for one file and the panel that opens under it on hover: the notes, each with Edit and Delete, and an add field. */
+  function editableNotes(file, status) {
+    file.notes = file.notes || [];
+    var count = h('span', { class: 'notes-count' });
+    var list = h('ul', { class: 'note-list', 'aria-label': 'Notes on ' + file.name });
+    var input = h('input', { type: 'text', class: 'note-add-input', maxlength: '2000', autocomplete: 'off', placeholder: 'Add a note\u2026', 'aria-label': 'Add a note to ' + file.name });
+    var addButton = h('button', { type: 'submit', class: 'btn-small btn-small--brand', 'aria-label': 'Add note to ' + file.name, text: 'Add note' });
+    var form = h('form', { class: 'note-add', novalidate: 'novalidate' }, [input, addButton]);
+    var panel = h('div', { class: 'file-notes-panel' }, [list, form]);
+
+    function refresh() {
+      count.textContent = file.notes.length ? 'Notes (' + file.notes.length + ')' : 'Notes (none yet)';
+      clear(list);
+      file.notes.forEach(function (note) { list.appendChild(row(note)); });
+    }
+
+    function row(note) {
+      var li = h('li', { class: 'note' });
+      var edit = noteButton('Edit', 'Edit note');
+      var remove = noteButton('Delete', 'Delete note');
+
+      confirmable(remove, 'Delete note', function () {
+        return api('DELETE', '/api/portal/admin/file-notes/' + encodeURIComponent(note.id)).then(function () {
+          file.notes = file.notes.filter(function (n) { return n.id !== note.id; });
+          refresh();
+          setStatus(status, 'Note deleted.', 'success');
+        }, function (error) { setStatus(status, error.message, 'error'); });
+      });
+
+      edit.addEventListener('click', function () {
+        clear(li);
+        li.classList.add('is-editing');
+        var area = h('textarea', { class: 'note-edit', rows: '1', maxlength: '2000', 'aria-label': 'Edit note' });
+        area.value = note.body;
+        var save = noteButton('Save', 'Save note', 'btn-small--brand');
+        var cancel = noteButton('Cancel', 'Cancel editing');
+        function grow() { area.style.height = 'auto'; area.style.height = area.scrollHeight + 'px'; }
+        function commit() {
+          var body = area.value.trim();
+          if (!body) { setStatus(status, 'Write a note first, or use Delete.', 'error'); area.focus(); return; }
+          save.disabled = true;
+          api('PATCH', '/api/portal/admin/file-notes/' + encodeURIComponent(note.id), { body: body }).then(function (data) {
+            file.notes = file.notes.map(function (n) { return n.id === note.id ? data.note : n; });
+            refresh();
+            setStatus(status, 'Note saved.', 'success');
+          }, function (error) { setStatus(status, error.message, 'error'); save.disabled = false; area.focus(); });
+        }
+        area.addEventListener('input', grow);
+        area.addEventListener('keydown', function (e) {
+          if (e.key === 'Escape') { e.preventDefault(); refresh(); }
+          else if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) { e.preventDefault(); commit(); }
+        });
+        save.addEventListener('click', commit);
+        cancel.addEventListener('click', refresh);
+        li.appendChild(area);
+        li.appendChild(h('div', { class: 'note-edit-actions' }, [save, cancel]));
+        grow();
+        area.focus();
+        area.setSelectionRange(area.value.length, area.value.length);
+      });
+
+      li.appendChild(h('div', { class: 'note-main' }, [h('p', { class: 'note-body', text: note.body }), noteMetaLine(note)]));
+      li.appendChild(h('div', { class: 'note-actions' }, [edit, remove]));
+      return li;
+    }
+
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var body = input.value.trim();
+      if (!body) { setStatus(status, 'Write a note first.', 'error'); input.focus(); return; }
+      addButton.disabled = true;
+      api('POST', '/api/portal/admin/files/' + encodeURIComponent(file.id) + '/notes', { body: body }).then(function (data) {
+        file.notes.push(data.note);
+        input.value = '';
+        refresh();
+        setStatus(status, 'Note added to ' + file.name + '.', 'success');
+      }, function (error) { setStatus(status, error.message, 'error'); }).then(function () { addButton.disabled = false; input.focus(); });
+    });
+
+    refresh();
+    return { count: count, panel: panel };
+  }
+
+  /** A file row with "Notes (n)" beside its details; the notes and the add-note field open under it on hover or keyboard focus. */
+  function fileRowWithEditableNotes(file, actions, status) {
+    var notes = editableNotes(file, status);
+    var li = fileRow(file, actions);
+    li.classList.add('has-notes');
+    var meta = li.querySelector('.file-meta');
+    if (meta) meta.appendChild(notes.count);
+    li.appendChild(h('div', { class: 'file-notes-hover' }, [h('div', { class: 'file-notes-hover-inner' }, [notes.panel])]));
+    return li;
+  }
+
   /** The four sections a client sees: awaiting approval, compliance files, past approvals, other files. */
   /** The team's notes on a file, read-only, for the client. Nothing when the file has none. */
   function fileRowWithClientNotes(file, actions) {
@@ -319,7 +425,7 @@
     clear(pastList);
     pastReports.forEach(function (report) { pastList.appendChild(reportRow(report)); });
     var pastFiles = allFiles.filter(function (f) { return f.area === 'approvals'; });
-    pastFiles.forEach(function (file) { pastList.appendChild(fileRowWithClientNotes(file)); });
+    pastFiles.forEach(function (file) { pastList.appendChild(team ? fileRowWithEditableNotes(file, [], team.status) : fileRowWithClientNotes(file)); });
     var pastTotal = pastReports.length + pastFiles.length;
     root.querySelector('[data-past-section]').hidden = pastTotal === 0;
     root.querySelector('[data-past-count]').textContent = pastTotal ? plural(pastTotal, 'record') : '';
@@ -338,7 +444,7 @@
     var empty = root.querySelector('[data-files-empty]');
     var count = root.querySelector('[data-file-count]');
     clear(list);
-    others.forEach(function (file) { list.appendChild(fileRowWithClientNotes(file, rowActions(file))); });
+    others.forEach(function (file) { list.appendChild(team ? fileRowWithEditableNotes(file, rowActions(file), team.status) : fileRowWithClientNotes(file, rowActions(file))); });
     var loading = root.querySelector('[data-files-loading]'); if (loading) loading.hidden = true;
     empty.hidden = others.length > 0;
     list.hidden = others.length === 0;
@@ -462,6 +568,7 @@
       });
 
       team = {
+        status: status,
         deleteButton: function (file) {
           var remove = h('button', { type: 'button', class: 'btn-small btn-small--danger', 'aria-label': 'Delete ' + file.name, text: 'Delete' });
           confirmable(remove, 'Confirm delete', function () {
@@ -859,109 +966,7 @@
 
     /* ---- notes on Other files and Past approvals: the team adds, edits and deletes; the client reads them ---- */
 
-    function noteButton(label, name, extra) {
-      return h('button', { type: 'button', class: 'btn-small' + (extra ? ' ' + extra : ''), 'aria-label': name, text: label });
-    }
-
-    function noteMetaLine(note) {
-      var who = note.authorName || note.authorEmail;
-      var when = formatDateTime(note.createdAt) + (note.updatedAt ? ' (edited)' : '');
-      return h('p', { class: 'note-meta', title: note.updatedAt ? 'Edited ' + formatDateTime(note.updatedAt) : null, text: (who ? who + ' \u00b7 ' : '') + when });
-    }
-
-    /** The "Notes (n)" label for one file and the panel that opens under it on hover: the notes, each with Edit and Delete, and an add field. */
-    function notesFor(file) {
-      file.notes = file.notes || [];
-      var count = h('span', { class: 'notes-count' });
-      var list = h('ul', { class: 'note-list', 'aria-label': 'Notes on ' + file.name });
-      var input = h('input', { type: 'text', class: 'note-add-input', maxlength: '2000', autocomplete: 'off', placeholder: 'Add a note\u2026', 'aria-label': 'Add a note to ' + file.name });
-      var addButton = h('button', { type: 'submit', class: 'btn-small btn-small--brand', 'aria-label': 'Add note to ' + file.name, text: 'Add note' });
-      var form = h('form', { class: 'note-add', novalidate: 'novalidate' }, [input, addButton]);
-      var panel = h('div', { class: 'file-notes-panel' }, [list, form]);
-
-      function refresh() {
-        count.textContent = file.notes.length ? 'Notes (' + file.notes.length + ')' : 'Notes (none yet)';
-        clear(list);
-        file.notes.forEach(function (note) { list.appendChild(row(note)); });
-      }
-
-      function row(note) {
-        var li = h('li', { class: 'note' });
-        var edit = noteButton('Edit', 'Edit note');
-        var remove = noteButton('Delete', 'Delete note');
-
-        confirmable(remove, 'Delete note', function () {
-          return api('DELETE', '/api/portal/admin/file-notes/' + encodeURIComponent(note.id)).then(function () {
-            file.notes = file.notes.filter(function (n) { return n.id !== note.id; });
-            refresh();
-            setStatus(status, 'Note deleted.', 'success');
-          }, function (error) { setStatus(status, error.message, 'error'); });
-        });
-
-        edit.addEventListener('click', function () {
-          clear(li);
-          li.classList.add('is-editing');
-          var area = h('textarea', { class: 'note-edit', rows: '1', maxlength: '2000', 'aria-label': 'Edit note' });
-          area.value = note.body;
-          var save = noteButton('Save', 'Save note', 'btn-small--brand');
-          var cancel = noteButton('Cancel', 'Cancel editing');
-          function grow() { area.style.height = 'auto'; area.style.height = area.scrollHeight + 'px'; }
-          function commit() {
-            var body = area.value.trim();
-            if (!body) { setStatus(status, 'Write a note first, or use Delete.', 'error'); area.focus(); return; }
-            save.disabled = true;
-            api('PATCH', '/api/portal/admin/file-notes/' + encodeURIComponent(note.id), { body: body }).then(function (data) {
-              file.notes = file.notes.map(function (n) { return n.id === note.id ? data.note : n; });
-              refresh();
-              setStatus(status, 'Note saved.', 'success');
-            }, function (error) { setStatus(status, error.message, 'error'); save.disabled = false; area.focus(); });
-          }
-          area.addEventListener('input', grow);
-          area.addEventListener('keydown', function (e) {
-            if (e.key === 'Escape') { e.preventDefault(); refresh(); }
-            else if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) { e.preventDefault(); commit(); }
-          });
-          save.addEventListener('click', commit);
-          cancel.addEventListener('click', refresh);
-          li.appendChild(area);
-          li.appendChild(h('div', { class: 'note-edit-actions' }, [save, cancel]));
-          grow();
-          area.focus();
-          area.setSelectionRange(area.value.length, area.value.length);
-        });
-
-        li.appendChild(h('div', { class: 'note-main' }, [h('p', { class: 'note-body', text: note.body }), noteMetaLine(note)]));
-        li.appendChild(h('div', { class: 'note-actions' }, [edit, remove]));
-        return li;
-      }
-
-      form.addEventListener('submit', function (e) {
-        e.preventDefault();
-        var body = input.value.trim();
-        if (!body) { setStatus(status, 'Write a note first.', 'error'); input.focus(); return; }
-        addButton.disabled = true;
-        api('POST', '/api/portal/admin/files/' + encodeURIComponent(file.id) + '/notes', { body: body }).then(function (data) {
-          file.notes.push(data.note);
-          input.value = '';
-          refresh();
-          setStatus(status, 'Note added to ' + file.name + '.', 'success');
-        }, function (error) { setStatus(status, error.message, 'error'); }).then(function () { addButton.disabled = false; input.focus(); });
-      });
-
-      refresh();
-      return { count: count, panel: panel };
-    }
-
-    /** A file row with "Notes (n)" beside its details; the notes and the add-note field open under it on hover or keyboard focus. */
-    function fileRowWithNotes(client, file, actions) {
-      var notes = notesFor(file);
-      var li = fileRow(file, actions);
-      li.classList.add('has-notes');
-      var meta = li.querySelector('.file-meta');
-      if (meta) meta.appendChild(notes.count);
-      li.appendChild(h('div', { class: 'file-notes-hover' }, [h('div', { class: 'file-notes-hover-inner' }, [notes.panel])]));
-      return li;
-    }
+    function fileRowWithNotes(client, file, actions) { return fileRowWithEditableNotes(file, actions, status); }
 
     function moveFileButton(client, file, to) {
       var label = to === 'compliance' ? 'Move to Compliance' : 'Move to Other files';
@@ -1181,7 +1186,7 @@
       return api('PATCH', '/api/portal/admin/clients/' + encodeURIComponent(client.id), { name: values.name }).then(function (data) {
         client.name = data.client.name;
         sortClients();
-        render();
+        renderDetail();
         setStatus(status, 'Renamed to ' + client.name + '.', 'success');
         detailName.focus();
       });
