@@ -857,9 +857,7 @@
       return remove;
     }
 
-    /* ---- notes on Other files and Past approvals (team only; a client never sees them) ---- */
-
-    var openNotes = {};
+    /* ---- notes on Other files and Past approvals: the team adds, edits and deletes; the client reads them ---- */
 
     function noteButton(label, name, extra) {
       return h('button', { type: 'button', class: 'btn-small' + (extra ? ' ' + extra : ''), 'aria-label': name, text: label });
@@ -871,19 +869,18 @@
       return h('p', { class: 'note-meta', title: note.updatedAt ? 'Edited ' + formatDateTime(note.updatedAt) : null, text: (who ? who + ' \u00b7 ' : '') + when });
     }
 
-    /** The "Notes (n)" button for one file and the panel it opens: the notes, each with Edit and Delete, and an add field. */
+    /** The "Notes (n)" label for one file and the panel that opens under it on hover: the notes, each with Edit and Delete, and an add field. */
     function notesFor(file) {
       file.notes = file.notes || [];
-      var toggle = h('button', { type: 'button', class: 'btn-small', 'aria-expanded': openNotes[file.id] ? 'true' : 'false', 'aria-label': 'Notes on ' + file.name });
+      var count = h('span', { class: 'notes-count' });
       var list = h('ul', { class: 'note-list', 'aria-label': 'Notes on ' + file.name });
       var input = h('input', { type: 'text', class: 'note-add-input', maxlength: '2000', autocomplete: 'off', placeholder: 'Add a note\u2026', 'aria-label': 'Add a note to ' + file.name });
       var addButton = h('button', { type: 'submit', class: 'btn-small btn-small--brand', 'aria-label': 'Add note to ' + file.name, text: 'Add note' });
       var form = h('form', { class: 'note-add', novalidate: 'novalidate' }, [input, addButton]);
       var panel = h('div', { class: 'file-notes-panel' }, [list, form]);
-      panel.hidden = !openNotes[file.id];
 
       function refresh() {
-        toggle.textContent = file.notes.length ? 'Notes (' + file.notes.length + ')' : 'Notes';
+        count.textContent = file.notes.length ? 'Notes (' + file.notes.length + ')' : 'Notes (none yet)';
         clear(list);
         file.notes.forEach(function (note) { list.appendChild(row(note)); });
       }
@@ -938,14 +935,6 @@
         return li;
       }
 
-      toggle.addEventListener('click', function () {
-        var show = panel.hidden;
-        panel.hidden = !show;
-        openNotes[file.id] = show;
-        toggle.setAttribute('aria-expanded', show ? 'true' : 'false');
-        if (show) input.focus();
-      });
-
       form.addEventListener('submit', function (e) {
         e.preventDefault();
         var body = input.value.trim();
@@ -960,15 +949,17 @@
       });
 
       refresh();
-      return { toggle: toggle, panel: panel };
+      return { count: count, panel: panel };
     }
 
-    /** A file row with its Notes button among the actions and the notes panel underneath. */
+    /** A file row with "Notes (n)" beside its details; the notes and the add-note field open under it on hover or keyboard focus. */
     function fileRowWithNotes(client, file, actions) {
       var notes = notesFor(file);
-      var li = fileRow(file, [notes.toggle].concat(actions));
+      var li = fileRow(file, actions);
       li.classList.add('has-notes');
-      li.appendChild(notes.panel);
+      var meta = li.querySelector('.file-meta');
+      if (meta) meta.appendChild(notes.count);
+      li.appendChild(h('div', { class: 'file-notes-hover' }, [h('div', { class: 'file-notes-hover-inner' }, [notes.panel])]));
       return li;
     }
 
