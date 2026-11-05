@@ -32,6 +32,7 @@ const DIST = path.join(__dirname, 'dist');
 
 const site = JSON.parse(fs.readFileSync(path.join(SRC, 'data', 'site.json'), 'utf8'));
 const SITE_URL = (process.env.SITE_URL || 'https://accessrank.ai').replace(/\/+$/, '');
+const BUILD_DATE = new Date().toLocaleDateString('en-CA');
 
 /* ------------------------------------------------------------ template --- */
 
@@ -157,6 +158,12 @@ function structuredData(page) {
     blocks.push({
       '@context': 'https://schema.org',
       '@type': 'FAQPage',
+      // Freshness signal. Answer engines weight recently-updated pages more
+      // heavily, and an FAQ with no date carries none. Set `dateModified` on
+      // the page in site.json when you change its answers; the build date is
+      // only a fallback, so an untouched page does not claim to be newer than
+      // it is.
+      dateModified: page.dateModified || BUILD_DATE,
       mainEntity: page.faq.map((item) => ({
         '@type': 'Question',
         name: item.q,
@@ -164,6 +171,21 @@ function structuredData(page) {
       })),
     });
   }
+
+  // Page-level freshness for every page, FAQ or not. Same date convention as
+  // above: site.json wins, build date is the fallback.
+  blocks.push({
+    '@context': 'https://schema.org',
+    '@type': 'WebPage',
+    url: `${SITE_URL}${page.url}`,
+    name: page.title.split(' | ')[0].split(' \u2014 ')[0],
+    description: page.description,
+    inLanguage: 'en-US',
+    datePublished: page.datePublished || `${site.foundingYear}-01-01`,
+    dateModified: page.dateModified || BUILD_DATE,
+    publisher: { '@id': `${SITE_URL}/#organization` },
+    isPartOf: { '@type': 'WebSite', name: site.name, url: `${SITE_URL}/` },
+  });
 
   if (page.url !== '/') {
     blocks.push({

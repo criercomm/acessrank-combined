@@ -102,6 +102,9 @@
   .site[data-page="/"] .hero-eyebrow .pulse-dot { display: none; }
   .site[data-page="/"] .hero-title { font-size: clamp(40px, 4.5vw, 56px); line-height: 1.06; letter-spacing: -.035em; margin: 0 0 20px; }
   .site[data-page="/"] .hero-sub { font-size: 19px; line-height: 1.65; max-width: none; }
+  .site[data-page="/"] .hero-def-q { font-size: 19px; margin: 20px 0 6px; }
+  .site[data-page="/"] .hero-def { font-size: 17px; line-height: 1.7; max-width: none; }
+  .site[data-page="/"] .risk-asof { margin-top: 18px; }
   .site[data-page="/"] .hero-audit .audit-card { background: none; border: 0; box-shadow: none; border-radius: 0; padding: 0; margin: 0; }
   .site[data-page="/"] .hero-audit .audit-top { display: block; }
   .site[data-page="/"] .hero-audit .audit-intro, .site[data-page="/"] .hero-audit .audit-action { max-width: none; min-width: 0; }

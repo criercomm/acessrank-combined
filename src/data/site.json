@@ -6,57 +6,136 @@
   "reportFrom": "reports@accessrank.ai",
   "legalName": "Accessrank, Inc.",
   "phone": "+1-310-408-1881",
-  "address": { "city": "Los Angeles", "region": "CA" },
+  "address": {
+    "city": "Los Angeles",
+    "region": "CA"
+  },
   "foundingYear": 2026,
   "locale": "en",
-
   "nav": [
-    { "label": "Overview", "href": "/deck/", "deck": true },
-    { "label": "Why Accessrank", "href": "/about", "menu": true, "children": [
-      { "label": "Our approach", "href": "/about" },
-      { "label": "ADA guide", "href": "/guide/ada-eaa" },
-      { "label": "How we score", "href": "/methodology" }
-    ] },
-    { "label": "What we fix", "href": "/#product" },
-    { "label": "Pricing", "href": "/#pricing" },
-    { "label": "Free audit", "href": "/#audit", "cta": true }
+    {
+      "label": "Overview",
+      "href": "/deck/",
+      "deck": true
+    },
+    {
+      "label": "Why Accessrank",
+      "href": "/about",
+      "menu": true,
+      "children": [
+        {
+          "label": "Our approach",
+          "href": "/about"
+        },
+        {
+          "label": "ADA guide",
+          "href": "/guide/ada-eaa"
+        },
+        {
+          "label": "How we score",
+          "href": "/methodology"
+        }
+      ]
+    },
+    {
+      "label": "What we fix",
+      "href": "/#product"
+    },
+    {
+      "label": "Pricing",
+      "href": "/#pricing"
+    },
+    {
+      "label": "Free audit",
+      "href": "/#audit",
+      "cta": true
+    }
   ],
-
   "footer": [
     {
       "heading": "Company",
       "links": [
-        { "label": "Our approach", "href": "/about" },
-        { "label": "How we score", "href": "/methodology" },
-        { "label": "Overview", "href": "/deck/" },
-        { "label": "Careers", "href": "/careers" },
-        { "label": "Apply for the beta", "href": "/beta" },
-        { "label": "Talk to sales", "href": "/contact-sales" },
-        { "label": "Client login", "href": "/client-login" }
+        {
+          "label": "Our approach",
+          "href": "/about"
+        },
+        {
+          "label": "How we score",
+          "href": "/methodology"
+        },
+        {
+          "label": "Overview",
+          "href": "/deck/"
+        },
+        {
+          "label": "Careers",
+          "href": "/careers"
+        },
+        {
+          "label": "Apply for the beta",
+          "href": "/beta"
+        },
+        {
+          "label": "Talk to sales",
+          "href": "/contact-sales"
+        },
+        {
+          "label": "Client login",
+          "href": "/client-login"
+        }
       ]
     },
     {
       "heading": "Learn",
       "links": [
-        { "label": "ADA guide", "href": "/guide/ada-eaa" },
-        { "label": "Using an overlay?", "href": "/overlays" },
-        { "label": "WCAG 2.2 explained", "href": "/#wcag" },
-        { "label": "How it works", "href": "/#process" },
-        { "label": "FAQ", "href": "/#faq" },
-        { "label": "Resources", "href": "/resources" }
+        {
+          "label": "ADA guide",
+          "href": "/guide/ada-eaa"
+        },
+        {
+          "label": "Using an overlay?",
+          "href": "/overlays"
+        },
+        {
+          "label": "WCAG 2.2 explained",
+          "href": "/#wcag"
+        },
+        {
+          "label": "How it works",
+          "href": "/#process"
+        },
+        {
+          "label": "FAQ",
+          "href": "/#faq"
+        },
+        {
+          "label": "Resources",
+          "href": "/resources"
+        }
       ]
     },
     {
       "heading": "Legal",
       "links": [
-        { "label": "Privacy", "href": "/privacy" },
-        { "label": "Terms", "href": "/terms" },
-        { "label": "Disclosure", "href": "/disclosure" },
-        { "label": "Citations", "href": "/citations" }
+        {
+          "label": "Privacy",
+          "href": "/privacy"
+        },
+        {
+          "label": "Terms",
+          "href": "/terms"
+        },
+        {
+          "label": "Disclosure",
+          "href": "/disclosure"
+        },
+        {
+          "label": "Citations",
+          "href": "/citations"
+        }
       ]
     }
   ],
-
   "pages": [
     {
       "file": "index.html",
@@ -67,7 +146,11 @@
       "description": "A low accessibility score is a lawsuit waiting to happen. Accessrank raises your ADA/WCAG 2.2 AA score with real code fixes, and lifts your SEO at the same time.",
       "priority": "1.0",
       "changefreq": "weekly",
-      "schema": ["Organization", "Service", "FAQPage"],
+      "schema": [
+        "Organization",
+        "Service",
+        "FAQPage"
+      ],
       "faq": [
         {
           "q": "Is a Shopify store automatically ADA compliant?",
@@ -117,8 +200,16 @@
           "q": "What if I have already received a demand letter?",
           "a": "Talk to us right away. Our lawsuit-response engagement starts at $5,900 and moves in about 7 days: an emergency audit of the cited and critical-path barriers, source-code remediation of the complaint items, a screen-reader proof video, VPAT and conformance documentation, and a technical review of the remediation requirements in any proposed settlement terms, prepared for your attorney. The details are in the “Already facing a claim” section above. Accessrank is not a law firm and does not provide legal representation or advice. This runs alongside your attorney, not instead of one."
         },
-        { "q": "Isn't the Compliance Record just a VPAT?", "a": "No, and the difference matters. A VPAT (Voluntary Product Accessibility Template) is a standard form that software vendors fill in to tell buyers how their product performs against WCAG today. It was designed for universities and government agencies comparing software, and it answers one question: where does this product stand right now? That is useful, which is why the Record includes one. But a VPAT is a single form on a single date, self-reported and usually from automated scans. It says nothing about when you started, what you fixed, or whether you kept going. The Record is built to answer that argument: a dated baseline from before any fixes, a fix-by-fix log with re-test results, signed monitoring certificates after every scan, and a published accessibility statement with a contact path." }
-      ]
+        {
+          "q": "What is human testing, and what is a flow?",
+          "a": "Alt text review, which a person does on every plan, checks the descriptions of your images. Human testing goes further: a person works through your store the way a shopper using only a keyboard or a screen reader does, then signs and dates the result. It finds problems automated checks cannot, such as a pop-up you cannot close or a cart update that is never announced. A flow is one shopping task from start to finish, like finding a product and adding it to your cart. We count tasks, not pages. Growth includes human testing once a year (up to 8 flows) and Scale includes it twice a year (up to 16 flows)."
+        },
+        {
+          "q": "Isn't the Compliance Record just a VPAT?",
+          "a": "No, and the difference matters. A VPAT (Voluntary Product Accessibility Template) is a standard form that software vendors fill in to tell buyers how their product performs against WCAG today. It was designed for universities and government agencies comparing software, and it answers one question: where does this product stand right now? That is useful, which is why the Record includes one. But a VPAT is a single form on a single date, self-reported and usually from automated scans. It says nothing about when you started, what you fixed, or whether you kept going. The Record is built to answer that argument: a dated baseline from before any fixes, a fix-by-fix log with re-test results, signed monitoring certificates after every scan, and a published accessibility statement with a contact path."
+        }
+      ],
+      "dateModified": "2026-11-04"
     },
     {
       "file": "beta.html",
@@ -153,7 +244,9 @@
       "layout": "page",
       "title": "About Accessrank | accessibility engineers, not overlay vendors",
       "description": "Who we are, why we fix source code instead of installing an overlay widget, and how we think about accessibility, risk and search.",
-      "schema": ["Article"],
+      "schema": [
+        "Article"
+      ],
       "priority": "0.6",
       "changefreq": "monthly"
     },
@@ -163,7 +256,9 @@
       "layout": "page",
       "title": "How we score your site | Accessrank audit methodology",
       "description": "The exact scoring model behind your Accessrank report: axe-core rules, WCAG conformance weighting, and the on-page SEO checklist. No black box.",
-      "schema": ["Article"],
+      "schema": [
+        "Article"
+      ],
       "priority": "0.7",
       "changefreq": "monthly"
     },
@@ -173,7 +268,9 @@
       "layout": "page",
       "title": "The ADA and your online store | Accessrank guide",
       "description": "What the ADA and Section 508 actually require of an online store, who is covered, and what happens when a demand letter arrives.",
-      "schema": ["Article"],
+      "schema": [
+        "Article"
+      ],
       "priority": "0.8",
       "changefreq": "monthly"
     },
@@ -331,7 +428,6 @@
       "excludeFromSitemap": true
     }
   ],
-
   "jobs": [
     {
       "slug": "senior-accessibility-engineer",

@@ -128,6 +128,20 @@
 .hero-title .accent { color: var(--brand-text); }
 .hero-sub { font-size: 15px; line-height: 1.6; color: var(--text-soft); margin: 0; max-width: 34ch; } /* 34ch wraps the four sentences into four even lines; at 37ch "do both." was left alone on the last line */
 .hero-sub strong { color: var(--text); font-weight: 600; }
+
+/* Plain-language definition under the hero intro. Retrieval lifts a page in
+ * chunks, so this names Accessrank once in a sentence of its own: the chunk has
+ * to say who it is about after it has been cut away from the title and the nav.
+ * The question above it is a real heading, so the paragraph reads as the answer
+ * to it rather than as more hero copy. Same 34ch measure as .hero-sub so the
+ * right edge of the column lines up. */
+.hero-def-q { font-size: 15px; font-weight: 700; letter-spacing: -.01em; color: var(--text); margin: 18px 0 6px; }
+.hero-def { font-size: 15px; line-height: 1.6; color: var(--text-soft); margin: 0; max-width: 34ch; }
+
+/* Date under the lawsuit statistics. The figures are kept current; without a
+ * date nothing on the page says so, to a reader or to a crawler. Update the
+ * <time> value and dateModified in site.json together when the numbers change. */
+.risk-asof { font-size: 13px; line-height: 1.5; color: var(--text-muted); text-align: center; margin: 16px auto 0; max-width: 1020px; }
 @media (max-width: 900px) {
   .hero-split { flex-direction: column; align-items: stretch; gap: 32px; }
   .hero-title { font-size: 32px; }
@@ -700,6 +714,7 @@ html:not([data-theme="light"]) .overlay-content p strong { background: var(--bra
   .site .hero-eyebrow { display: none; } /* "Built for DTC ecommerce" is dropped on phones */
   .site .hero-title { text-align: center; }
   .site .hero-sub { margin-inline: auto; }
+  .site .hero-def { margin-inline: auto; }
   /* Even line lengths: no single word left alone on the last line. */
   .site .risk-sub, .site .hero-sub, .site .risk-label { text-wrap: balance; }
   .site .hero-split { gap: 24px; }

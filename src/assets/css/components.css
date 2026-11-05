@@ -556,7 +556,7 @@ body.modal-open { overflow: hidden; }
 .faq-q:focus-visible { outline: 2px solid var(--brand-text); outline-offset: -2px; }
 .faq-item[open] > .faq-q { color: var(--brand-text); }
 
-.faq-q-text { flex: 1 1 auto; }
+.faq-q-text { flex: 1 1 auto; font: inherit; margin: 0; }
 
 /* Plus icon that rotates into a cross when open. */
 .faq-icon {
