@@ -271,13 +271,14 @@
 .risk-title .h-line { display: block; }
 .risk-sub { font-size: 20px; line-height: 1.45; color: var(--text-soft); text-align: center; max-width: 860px; margin: 0 auto 36px; }
 .risk-title .red { color: var(--brand-text); } /* --brand is a fill; as text it is 1.4:1 on the light page. --brand-text is the same yellow in dark and slate blue in light. */
-/* Headline animation (hero-motion.js): the deck's slide-1 kinetic type. The markup is only split
-   into words and letters while it plays; these rules style that temporary markup. `--wght` is
-   tweened by GSAP and read here, so each letter's weight swells 300 -> 800 as it lands. `hero-fx` is
-   set by theme.js and removed by hero-motion.js, so the headline does not flash in finished before it
-   animates. The keyframe is a failsafe: if the script never runs, the headline shows after 3 seconds. */
-.risk-title .hw { display: inline-block; white-space: nowrap; }
-.risk-title .hc { display: inline-block; font-variation-settings: 'wght' var(--wght, 800); will-change: transform, opacity; }
+/* Headline animation (hero-motion.js). The markup is only split into words while it plays; these rules
+   style that temporary markup. `hero-fx` is set by theme.js and removed by hero-motion.js, so the headline
+   does not flash in finished before it animates. The keyframe is a failsafe: if the script never runs,
+   the headline shows after 3 seconds. */
+.risk-title .hw { display: inline-block; overflow: hidden; vertical-align: top; padding-bottom: .14em; margin-bottom: -.14em; }
+.risk-title .hw-i { display: inline-block; position: relative; will-change: transform; }
+.risk-title .hw-bar { position: absolute; left: -.03em; right: -.03em; top: .06em; bottom: .08em; background: #000; transform: scaleX(0); transform-origin: 0 50%; will-change: transform; }
+.risk-title .hw-i span { will-change: opacity; }
 html.hero-fx .risk-title { visibility: hidden; animation: hero-failsafe 1ms linear 3s forwards; }
 @keyframes hero-failsafe { to { visibility: visible; } }
 .risk-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px; max-width: 1080px; margin: 0 auto; }

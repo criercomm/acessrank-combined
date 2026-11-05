@@ -9,7 +9,7 @@ export const copy = {
   chapters: ['The lawsuit', 'The letter', 'Plug-ins', 'The fix', 'Process', 'Engine', 'Model', 'Market', 'Contact'],
 
   s01: {
-    title: ['THE LAWSUIT', 'HIDING IN', 'YOUR WEBSITE.'],
+    title: ['THE LAWSUIT', 'HIDDEN IN', 'YOUR WEBSITE.'],
     sub: "Most websites fail accessibility standards, shutting out shoppers with blindness, low vision or mobility issues. Most brands don't find out until a demand letter arrives. We open your store to every shopper, then make sure Google and AI assistants recommend it.",
     stats: [
       { value: '95.9%', label: 'of the top 1M sites fail WCAG' },

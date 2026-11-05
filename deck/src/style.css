@@ -77,6 +77,12 @@ html, body { font-family: var(--display); }
 .s01-copy { position: absolute; left: var(--margin); top: 50%; transform: translateY(-50%); width: 42%; display: grid; row-gap: 20px; z-index: 3; }
 .s01-brand { justify-self: start; margin-bottom: 8px; }
 .s01-title { font-size: clamp(48px, 5.4vw, 96px); }
+/* Slide 1 headline effect (components/redact-heading.js): words roll up inside clipped wrappers, bars cover
+   "lawsuit" and "hidden". Same rules as the home page's .risk-title in src/assets/css/home.css. */
+.s01-title .hw { display: inline-block; overflow: hidden; vertical-align: top; padding-bottom: .14em; margin-bottom: -.14em; }
+.s01-title .hw-i { display: inline-block; position: relative; will-change: transform; }
+.s01-title .hw-bar { position: absolute; left: -.03em; right: -.03em; top: .06em; bottom: .08em; background: #000; transform: scaleX(0); transform-origin: 0 50%; will-change: transform; }
+.s01-title .hw-i span { will-change: opacity; }
 .s01-sub { font-size: 18px; line-height: 28px; color: var(--soft); max-width: 46ch; }
 .s01-head { display: grid; row-gap: 20px; }
 /* desktop: the paragraph spans the headline's width. .s01-head shrinks to the headline (the paragraph adds nothing to its
@@ -475,7 +481,6 @@ a.contact-line:hover { color: var(--accent); }
   .s01-head { row-gap: 16px; width: auto; max-width: none; }
   .s01-sub { max-width: 46ch; width: auto; min-width: 0; }
   .s01-title .h-line.is-accent { display: inline; }
-  .s01-title .h-line.is-accent:not(:last-child) .kt-word:last-child { margin-right: .26em; } /* the word space between the joined lines; a margin on the next line's start would indent it when it wraps */
   .s01-sub { font-size: 16px; line-height: 24px; }
   .s01-stats { flex-wrap: wrap; gap: 20px 28px; }
   .s01-title { font-size: clamp(36px, 10vw, 56px); }

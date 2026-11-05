@@ -335,6 +335,7 @@ export function deckBundleDrift(copy, staticDeckDir) {
   if (!fs.existsSync(bundlePath)) return { ok: false, reason: `${ref[1]} is referenced but not on disk` };
   const bundle = fs.readFileSync(bundlePath, 'utf8');
   const probes = [
+    ['s01.title[1]', String(copy.s01?.title?.[1] || '')],
     ['s01.sub', String(copy.s01?.sub || '').slice(0, 48)],
     ['s02.title', String(copy.s02?.title?.[0] || '')],
     ['s03.lede', String(copy.s03?.lede || '').slice(0, 48)],
