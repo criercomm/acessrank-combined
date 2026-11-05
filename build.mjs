@@ -285,10 +285,16 @@ async function build() {
     // text can never drift from the copy it is generated from.
     // See scripts/prerender-deck.mjs for what is rendered and what is skipped.
     try {
-      const { renderDeckText, injectDeckText, loadCopy } = await import('./scripts/prerender-deck.mjs');
+      const { renderDeckText, injectDeckText, loadCopy, DECK_TEXT_CSS } = await import('./scripts/prerender-deck.mjs');
       const deckCopy = await loadCopy();
+      // The stylesheet is a file, not an inline block, because of the CSP
+      // (see prerender-deck.mjs). Content-hashed like the deck's own assets so
+      // a change is never stuck behind a cached copy.
+      const cssHash = crypto.createHash('sha256').update(DECK_TEXT_CSS).digest('hex').slice(0, 10);
+      const cssName = `deck-text.${cssHash}.css`;
+      fs.writeFileSync(path.join(DIST, 'deck', 'assets', cssName), DECK_TEXT_CSS);
       const before = fs.readFileSync(deckIndex, 'utf8');
-      fs.writeFileSync(deckIndex, injectDeckText(before, deckCopy));
+      fs.writeFileSync(deckIndex, injectDeckText(before, deckCopy, { cssHref: `/deck/assets/${cssName}` }));
       const words = renderDeckText(deckCopy).replace(/<[^>]*>/g, ' ').split(/\s+/).filter(Boolean).length;
       console.log(`  deck ${words} words pre-rendered into /deck/`);
     } catch (err) {

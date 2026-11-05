@@ -268,12 +268,26 @@ body:has(#deck-text:target) #deck { display: none; }
 const START = '<!-- deck-text:start -->';
 const END = '<!-- deck-text:end -->';
 
+const LINK_START = '<!-- deck-text:css -->';
+
 // Idempotent: a previous block is replaced, so re-running never stacks copies.
-export function injectDeckText(html, copy) {
-  const stripped = html.replace(new RegExp(`${START}[\\s\\S]*?${END}\\n?`, 'g'), '');
-  const block = `${START}\n<style>${DECK_TEXT_CSS}</style>\n`
+//
+// The stylesheet goes in as a <link>, not a <style> block. server/app.js sends
+// a Content-Security-Policy whose style-src is 'self' plus the exact hash of
+// the main site's one inline block — never 'unsafe-inline' — so an inline
+// <style> added here is silently dropped by the browser and the text renders
+// unstyled on top of the deck. A same-origin file is allowed by 'self'.
+// `cssHref` is where build.mjs wrote DECK_TEXT_CSS.
+export function injectDeckText(html, copy, { cssHref } = {}) {
+  if (!cssHref) throw new Error('prerender-deck: cssHref is required (see build.mjs)');
+  let out = html
+    .replace(new RegExp(`${START}[\\s\\S]*?${END}\\n?`, 'g'), '')
+    .replace(new RegExp(`\\s*${LINK_START}[^\\n]*`, 'g'), '');
+  const link = `${LINK_START}<link rel="stylesheet" href="${cssHref}">`;
+  const block = `${START}\n`
     + `<a class="deck-text-skip" href="#deck-text">Read this overview as text</a>\n`
     + `${renderDeckText(copy)}\n${END}`;
-  if (!stripped.includes('</body>')) throw new Error('prerender-deck: no </body> in deck HTML');
-  return stripped.replace('</body>', `${block}\n  </body>`);
+  if (!out.includes('</head>') || !out.includes('</body>')) throw new Error('prerender-deck: deck HTML has no </head> or </body>');
+  out = out.replace('</head>', `    ${link}\n  </head>`);
+  return out.replace('</body>', `${block}\n  </body>`);
 }
