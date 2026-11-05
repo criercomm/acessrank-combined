@@ -30,7 +30,9 @@ export default {
     // (the contact lines, the button itself) goes where the button goes. The button stays the
     // keyboard and screen-reader route; this is the mouse and touch shortcut.
     root.classList.add('s12-exit')
-    root.addEventListener('click', (e) => { if (e.target.closest('a, button')) return; location.href = C.siteHref })
+    // Navigate the top window, like the button's target="_top": on the long-form site the deck runs
+    // inside an overlay iframe (site.js openDeck), and /home refuses to load inside a frame.
+    root.addEventListener('click', (e) => { if (e.target.closest('a, button')) return; try { window.top.location.href = C.siteHref } catch (_) { location.href = C.siteHref } })
     gsap.set([sub, ...cards, site], { opacity: 0 })
   },
   enter(ctx) {

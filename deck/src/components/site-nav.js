@@ -19,7 +19,12 @@
 import { el } from '@lib/util/dom.js'
 
 const LINKS = [
-  { label: 'Why Accessrank', href: '/about' },
+  // Same second tier as the main site's nav (src/data/site.json): a dropdown in the bar.
+  { label: 'Why Accessrank', href: '/about', children: [
+    { label: 'Our approach', href: '/about' },
+    { label: 'ADA guide', href: '/guide/ada-eaa' },
+    { label: 'How we score', href: '/methodology' },
+  ] },
   { label: 'What we fix', href: '/home#product' },
   { label: 'Pricing', href: '/home#pricing' },
   { label: 'Client login', href: '/client-login' },
@@ -39,6 +44,23 @@ const CTA = { label: 'Free audit', href: '/home#audit' }
 const MARK = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>'
 
 const link = (l, cls = 'ar-nav-link') => el('a', { class: cls, href: l.href, target: '_top', text: l.label })
+const CHEVRON = '<svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true" focusable="false"><path d="M2.5 4.5 6 8l3.5-3.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+
+// A bar item with a dropdown, built and behaving like the main site's (src/partials/nav.html +
+// site.js): the label stays a real link, a chevron button beside it toggles the list for keyboard
+// and touch, and CSS also opens it on hover / focus-within. Escape and outside clicks close it.
+function dropdown(l) {
+  const item = el('li', { class: 'ar-nav-item has-menu' })
+  const btn = el('button', { class: 'ar-nav-sub-btn', type: 'button', 'aria-expanded': 'false', 'aria-haspopup': 'true', 'aria-label': `Show ${l.label} pages`, html: CHEVRON })
+  const list = el('ul', { class: 'ar-nav-sub' }, ...l.children.map((c) => el('li', {}, link(c, 'ar-nav-sub-link'))))
+  item.append(link(l), btn, list)
+  const setOpen = (open) => { item.classList.toggle('is-open', open); btn.setAttribute('aria-expanded', String(open)) }
+  btn.addEventListener('click', (e) => { e.stopPropagation(); setOpen(!item.classList.contains('is-open')) })
+  document.addEventListener('pointerdown', (e) => { if (!item.contains(e.target)) setOpen(false) }, true)
+  item.addEventListener('keydown', (e) => { if (e.key === 'Escape' && item.classList.contains('is-open')) { e.preventDefault(); e.stopPropagation(); setOpen(false); btn.focus() } })
+  item.addEventListener('focusout', (e) => { if (e.relatedTarget && !item.contains(e.relatedTarget)) setOpen(false) })
+  return item
+}
 
 export function SiteNav({ homeHref = '/' } = {}) {
   const logo = el('a', { class: 'ar-nav-logo', href: homeHref, target: '_top', 'aria-label': 'Accessrank home' },
@@ -46,7 +68,7 @@ export function SiteNav({ homeHref = '/' } = {}) {
     el('span', { class: 'ar-nav-word', text: 'Accessrank' }))
 
   // Bar links (hidden below 1280px by CSS).
-  const row = el('ul', { class: 'ar-nav-links' }, ...LINKS.map((l) => el('li', {}, link(l))))
+  const row = el('ul', { class: 'ar-nav-links' }, ...LINKS.map((l) => (l.children ? dropdown(l) : el('li', {}, link(l)))))
 
   const site = link(SITE, 'ar-nav-link ar-nav-site')
   const cta = link(CTA, 'ar-nav-link ar-nav-cta')
