@@ -800,15 +800,32 @@ html:not([data-theme="light"]) .overlay-content p strong { background: var(--bra
   .site .pricing h2 { margin-bottom: 10px; }
   .site .pricing .section-sub { margin-bottom: 14px; }
 
-  /* Pricing options: two labelled rows, each a single line of plain-text choices, the chosen one underlined. */
-  .site .price-toggles { flex-direction: column; align-items: center; gap: 0; margin-bottom: 18px; }
-  .site .price-toggle-label { display: block; margin: 0 0 2px; font-size: 12px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-muted); text-align: center; }
-  .site .price-caption { display: block; margin: 0 0 16px; font-size: 13px; line-height: 1.4; color: var(--text-muted); text-align: center; }
+  /* Pricing options on phones: two labelled segmented controls, full width.
+   * Each is one bordered track split into two equal halves; the chosen half is
+   * filled in brand yellow so the current state reads at a glance and both
+   * halves are obvious as something to tap (48px tall). The plain-text /
+   * underline version this replaces read as two unrelated labels. */
+  .site .price-toggles { flex-direction: column; align-items: stretch; gap: 0; margin-bottom: 22px; }
+  .site .price-toggle-label { display: block; margin: 0 0 8px; font-size: 12px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-muted); text-align: center; }
+  .site .price-caption { display: block; margin: 8px 0 0; font-size: 13px; line-height: 1.4; color: var(--text-muted); text-align: center; }
   .site .pt-note, .site .pt-more { display: none; }
-  .site .price-toggle { background: none; border: 0; border-radius: 0; padding: 0; width: 100%; gap: 0 28px; flex-wrap: nowrap; justify-content: center; }
-  .site .price-toggle button, .site .price-toggle button.is-active { flex: 0 1 auto; background: none; border: 0; border-bottom: 2px solid transparent; border-radius: 0; padding: 10px 2px; min-height: 44px; font-size: 15px; font-weight: 500; color: var(--text-muted); white-space: nowrap; text-align: center; }
-  .site .price-toggle button[aria-pressed="true"], .site .price-toggle button.is-active { background: none; color: var(--text); font-weight: 600; border-bottom-color: var(--brand-text); }
-  .site .price-toggles .price-toggle + .price-toggle-label { margin-top: 6px; }
+  .site .price-toggle { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; width: 100%; margin: 0; padding: 4px; background: var(--surface); border: 1px solid var(--hairline-strong); border-radius: 14px; }
+  .site .price-toggle button, .site .price-toggle button.is-active { min-height: 48px; padding: 8px 10px; border: 0; border-radius: 10px; background: none; font-size: 15px; line-height: 1.25; font-weight: 500; color: var(--text-muted); white-space: normal; text-align: center; }
+  .site .price-toggle button[aria-pressed="true"], .site .price-toggle button.is-active { background: var(--brand); color: var(--brand-ink); font-weight: 600; }
+  .site .price-toggle button:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+  .site .price-toggles .price-toggle + .price-toggle-label, .site .price-toggles .price-caption + .price-toggle-label { margin-top: 18px; }
+
+  /* Plan tiles: everything centred on phones, matching the centred heading,
+   * intro and switches above them. The feature ticks move inline ahead of
+   * their text (they are absolutely positioned at the left edge on desktop). */
+  .site .price-card { text-align: center; align-items: center; }
+  .site .price-card > * { width: 100%; }
+  .site .price-timeline { display: flex; justify-content: center; }
+  .site .price-monthly .ann { white-space: normal; }
+  .site .price-features { text-align: left; max-width: 300px; margin-left: auto; margin-right: auto; }
+  .site .price-features li { display: grid; grid-template-columns: 18px minmax(0, 1fr); column-gap: 6px; padding-left: 0; }
+  .site .price-features li::before { position: static; }
+  .site .price-features li.plus { display: block; }
 
   /* Everything in the warning card centred: icon, heading, copy and the stat. */
   .site .overlay-card { align-items: center; text-align: center; }

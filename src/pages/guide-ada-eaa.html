@@ -32,41 +32,41 @@
     </nav>
 
     <section id="why">
-      <h2><span class="num">1.</span>Why this affects online stores</h2>
+      <h2><span class="num">1.</span>Why does this affect online stores?</h2>
       <p>An online store is not just a marketing channel. In the eyes of a growing number of courts and regulators it is something that has to work for disabled customers in much the same way a physical shop does. The Americans with Disabilities Act (ADA) has been applied to commercial websites through litigation for over a decade, without a specific federal regulation ever having been written for it. In practice, that litigation points back to one technical standard: the Web Content Accessibility Guidelines (WCAG), currently at version 2.2, Level AA. The rest of this guide explains how that came about and what it means for you.</p>
     </section>
 
     <section id="ada">
-      <h2><span class="num">2.</span>The ADA and Title III</h2>
+      <h2><span class="num">2.</span>What is Title III of the ADA?</h2>
       <p>Title III of the ADA prohibits discrimination on the basis of disability in "places of public accommodation" — a term Congress wrote in 1990 to describe hotels, restaurants, retail stores, and similar physical spaces, years before commercial websites existed at any scale. Since the mid-2010s, a large and growing body of case law has applied that language to websites. Some federal circuits have held that a website can itself be a place of public accommodation, regardless of any connection to a physical location. Others have generally required some "nexus" between the website and a physical place of business before Title III applies — though in practice, almost any DTC ecommerce brand whose site facilitates a purchase tends to satisfy that nexus test one way or another, and the circuit split matters more to litigators than it changes the practical calculus for most online retailers.</p>
       <p>The Department of Justice has repeatedly stated, including in formal guidance issued in March 2022, that the ADA's requirements apply to the websites of public accommodations. What the DOJ has not done, as of this writing, is issue a specific regulation for private businesses spelling out an exact technical standard, the way it has for state and local government websites under Title II. That regulatory gap is precisely why this area is driven by litigation and settlement practice rather than a published rulebook: without an official technical standard for private-sector sites, WCAG 2.1 or 2.2 Level AA has become the de facto benchmark referenced in the overwhelming majority of demand letters, consent decrees, and settlement agreements, even though no statute names it explicitly.</p>
       <p>ADA lawsuit volume also gives a sense of scale: UsableNet counted more than 5,000 ADA digital accessibility lawsuits filed in federal and state courts in 2025 and projects about 6,176 for 2026 (a projection based on filings through June 14, 2026), and it found that nearly 70% of 2025 digital accessibility lawsuits hit ecommerce. If you sell online, you are inside the group these figures describe.</p>
     </section>
 
     <section id="section508">
-      <h2><span class="num">3.</span>Section 508, a narrower federal rule</h2>
+      <h2><span class="num">3.</span>What is Section 508?</h2>
       <p>Section 508 of the Rehabilitation Act is frequently confused with the ADA, but it is a narrower and different rule. It requires federal agencies, and organisations that sell information and communications technology to the federal government, to make that technology accessible. If your store's customers are members of the public and you are not selling to a US federal agency or operating a federally funded program, Section 508 does not directly apply to you. It is worth knowing about mainly because it has, for years, referenced WCAG-aligned technical standards, reinforcing WCAG as the common reference point across US accessibility law generally — even in the many private-sector contexts where Section 508 itself has no jurisdiction.</p>
     </section>
 
     <section id="exemptions">
-      <h2><span class="num">4.</span>Who has to comply, and who is exempt</h2>
+      <h2><span class="num">4.</span>Who has to comply, and who is exempt?</h2>
       <p>Title III of the ADA applies to businesses that are "places of public accommodation", and the courts have been steadily applying that term to commercial websites, so almost any DTC brand selling to the US public should assume it is covered. The ADA has no employee-count or revenue-based exemption for Title III public accommodations. Business size can affect what a court considers a reasonable accommodation in a specific dispute, but there is no bright-line small-business exemption, and "we only have a few employees" is not a defence a demand letter will accept.</p>
       <p>A few categories sit outside Title III altogether, including religious organisations and private clubs, and a site run by a state or local government falls under Title II instead, which has its own published technical rule. For a private ecommerce business none of that applies: the question is not whether the ADA reaches your store, but whether your store meets the standard it is measured against.</p>
     </section>
 
     <section id="demand-letters">
-      <h2><span class="num">5.</span>What a demand letter typically looks like</h2>
+      <h2><span class="num">5.</span>What does a demand letter look like?</h2>
       <p>For US ecommerce brands, ADA compliance risk usually arrives as a demand letter, not a government enforcement action. A typical letter is sent by a law firm on behalf of an individual plaintiff, often after an automated or manual accessibility scan of the site. It will usually cite specific pages and specific WCAG success criteria the site is said to fail — missing alt text, insufficient colour contrast, keyboard traps, unlabelled form fields — and assert that these barriers prevented the plaintiff, who may use a screen reader or navigate by keyboard, from completing a purchase. It will typically invoke Title III of the ADA and, where there is a California connection, the state's Unruh Civil Rights Act, which — unlike the ADA itself — allows for statutory damages per violation, a major reason a large share of US digital accessibility litigation is filed in California specifically. The letter usually sets a short deadline for a response, asks for prompt remediation, and often proposes a settlement payment to avoid formal litigation.</p>
       <p>None of this constitutes a court ruling that a site actually violated the ADA — it is a claim, and businesses regularly negotiate, remediate, or contest these letters — but ignoring one rarely makes it go away.</p>
     </section>
 
     <section id="conformance">
-      <h2><span class="num">6.</span>What "conformance" actually means</h2>
+      <h2><span class="num">6.</span>What does "conformance" actually mean?</h2>
       <p>WCAG defines "conformance" precisely, and it is stricter than most people assume. To conform at a given level (A, AA, or AAA), a page must satisfy <em>every</em> applicable success criterion at that level and all levels below it — there is no partial credit, and no criterion is optional because it is inconvenient. A site that meets 95% of AA success criteria has not achieved "AA conformance"; it has made significant progress toward it. Because most real sites change constantly — new products, new pages, new app installs, theme updates — conformance is also a snapshot, not a permanent state: a conformance report or VPAT describes the pages actually assessed, at the time they were assessed, which is why ongoing monitoring matters as much as the initial fix. See our <a href="/methodology">scoring methodology</a> for how we measure progress toward conformance in practice, including why automated testing alone cannot certify it.</p>
     </section>
 
     <section id="takeaways">
-      <h2><span class="num">7.</span>Where this leaves you</h2>
+      <h2><span class="num">7.</span>Where does this leave you?</h2>
       <p>The ADA does not hand you a single certificate to obtain and file away. What it consistently rewards is a website built and maintained to WCAG 2.2 Level AA, with evidence (audit history, remediation records, and monitoring) that you took it seriously and kept at it as the site changed. That is a technical and operational undertaking, not a legal one, and it is where our work sits: fixing the underlying code, and helping you document that you did.</p>
     </section>
 

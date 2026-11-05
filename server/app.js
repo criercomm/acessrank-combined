@@ -313,12 +313,19 @@ app.use('/assets', express.static(path.join(DIST, 'assets'), {
 // for testing and for anyone who wants the other one.
 const PHONE_UA = /\bMobile\b|iPhone|iPod|Windows Phone/i;
 const TABLET_UA = /iPad|Tablet|PlayBook|Silk/i;
+// The AI crawlers robots.txt invites by name. None of them carries a phone
+// signature, so without this they would receive the deck — 1,100 words and no
+// FAQ or Service schema — while Google's smartphone crawler receives the
+// long-form page. They get what every phone visitor gets: a complete page that
+// real people see, which is what keeps this dynamic serving rather than cloaking.
+const AI_CRAWLER_UA = /GPTBot|OAI-SearchBot|ChatGPT-User|ClaudeBot|Claude-SearchBot|anthropic-ai|PerplexityBot|Google-Extended|Applebot-Extended|Bytespider|CCBot|Amazonbot|meta-externalagent/i;
 function wantsLongForm(req) {
   const view = typeof req.query.view === 'string' ? req.query.view : '';
   if (view === 'site') return true;
   if (view === 'deck') return false;
   if (req.get('sec-ch-ua-mobile') === '?1') return true;
   const ua = req.get('user-agent') || '';
+  if (AI_CRAWLER_UA.test(ua)) return true;
   return PHONE_UA.test(ua) && !TABLET_UA.test(ua);
 }
 const HOME_HTML = path.join(DIST, 'index.html');

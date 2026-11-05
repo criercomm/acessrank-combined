@@ -218,37 +218,41 @@
       "title": "Apply to be an Accessrank beta client",
       "description": "Accessrank is in private beta and launching in Q1 2027. Apply to be one of the first stores we fix the code for.",
       "priority": "0.7",
-      "changefreq": "monthly"
+      "changefreq": "monthly",
+      "dateModified": "2026-10-27"
     },
     {
       "file": "overlays.html",
       "url": "/overlays",
       "layout": "page",
-      "title": "Using an accessibility widget? Fix the code under it | Accessrank",
-      "description": "A plug-in won't hide your store from predatory ADA lawyers, and it can point them to you. See what your widget leaves unfixed and what the FTC said about overlay claims.",
+      "title": "Fix the code under your accessibility widget | Accessrank",
+      "description": "A plug-in won't hide your store from predatory ADA lawyers, and can point them to you. See what your widget leaves unfixed and what the FTC said about overlays.",
       "priority": "0.7",
-      "changefreq": "monthly"
+      "changefreq": "monthly",
+      "dateModified": "2026-11-04"
     },
     {
       "file": "human-testing.html",
       "url": "/human-testing",
       "layout": "page",
       "title": "Human testing, beyond alt text | Accessrank",
-      "description": "What a person checks when they test your store with a keyboard and a screen reader, what a flow is, how often each plan includes it, and what it costs if you have been served.",
+      "description": "What a person checks when they test your store with a keyboard and a screen reader, what a flow is, how often each plan includes it, and the cost if served.",
       "priority": "0.6",
-      "changefreq": "monthly"
+      "changefreq": "monthly",
+      "dateModified": "2026-11-04"
     },
     {
       "file": "about.html",
       "url": "/about",
       "layout": "page",
-      "title": "About Accessrank | accessibility engineers, not overlay vendors",
+      "title": "About Accessrank | engineers, not overlay vendors",
       "description": "Who we are, why we fix source code instead of installing an overlay widget, and how we think about accessibility, risk and search.",
       "schema": [
         "Article"
       ],
       "priority": "0.6",
-      "changefreq": "monthly"
+      "changefreq": "monthly",
+      "dateModified": "2026-11-04"
     },
     {
       "file": "methodology.html",
@@ -260,7 +264,8 @@
         "Article"
       ],
       "priority": "0.7",
-      "changefreq": "monthly"
+      "changefreq": "monthly",
+      "dateModified": "2026-11-04"
     },
     {
       "file": "guide-ada-eaa.html",
@@ -272,7 +277,8 @@
         "Article"
       ],
       "priority": "0.8",
-      "changefreq": "monthly"
+      "changefreq": "monthly",
+      "dateModified": "2026-11-04"
     },
     {
       "file": "resources.html",
@@ -281,7 +287,8 @@
       "title": "Accessibility & SEO resources for DTC ecommerce | Accessrank",
       "description": "Plain-English explainers on WCAG 2.2 AA, ADA compliance, accessibility scoring, and how accessibility work affects organic search.",
       "priority": "0.6",
-      "changefreq": "weekly"
+      "changefreq": "weekly",
+      "dateModified": "2026-11-04"
     },
     {
       "file": "careers.html",
@@ -290,7 +297,8 @@
       "title": "Careers at Accessrank — make ecommerce work for everyone",
       "description": "Open roles at Accessrank. Remote-first and US-based, building accessibility remediation that actually ships.",
       "priority": "0.5",
-      "changefreq": "weekly"
+      "changefreq": "weekly",
+      "dateModified": "2026-10-17"
     },
     {
       "file": "signup.html",
@@ -300,7 +308,8 @@
       "description": "Tell us about your store and we will come back with a fixed-scope remediation plan and timeline.",
       "priority": "0.8",
       "changefreq": "monthly",
-      "noindex": false
+      "noindex": false,
+      "dateModified": "2026-10-19"
     },
     {
       "file": "contact-sales.html",
@@ -309,7 +318,8 @@
       "title": "Talk to Accessrank sales — Shopify Plus & multi-brand",
       "description": "Built for Shopify Plus and multi-brand catalogues. Most teams hear back within one business day.",
       "priority": "0.7",
-      "changefreq": "monthly"
+      "changefreq": "monthly",
+      "dateModified": "2026-11-04"
     },
     {
       "file": "privacy.html",
@@ -318,7 +328,8 @@
       "title": "Privacy Policy — Accessrank",
       "description": "How Accessrank collects, uses and retains personal data, including data from the free accessibility audit.",
       "priority": "0.3",
-      "changefreq": "yearly"
+      "changefreq": "yearly",
+      "dateModified": "2026-10-31"
     },
     {
       "file": "terms.html",
@@ -327,7 +338,8 @@
       "title": "Terms of Service — Accessrank",
       "description": "The terms governing use of the Accessrank website, the free audit tool, and Accessrank remediation engagements.",
       "priority": "0.3",
-      "changefreq": "yearly"
+      "changefreq": "yearly",
+      "dateModified": "2026-10-17"
     },
     {
       "file": "disclosure.html",
@@ -336,16 +348,18 @@
       "title": "Disclosure | Accessrank",
       "description": "Important disclosures about litigation risk, results claims, tax credit guidance and WCAG conformance.",
       "priority": "0.3",
-      "changefreq": "yearly"
+      "changefreq": "yearly",
+      "dateModified": "2026-10-30"
     },
     {
       "file": "citations.html",
       "url": "/citations",
       "layout": "doc",
       "title": "Citations — Accessrank",
-      "description": "Sources for every statistic cited on the Accessrank website.",
+      "description": "Every statistic on the Accessrank site, with the claim it supports and a link to the source: CDC, UsableNet, WebAIM, the FTC and others.",
       "priority": "0.3",
-      "changefreq": "monthly"
+      "changefreq": "monthly",
+      "dateModified": "2026-10-29"
     },
     {
       "file": "client-login.html",
@@ -356,7 +370,8 @@
       "description": "Sign in to your Accessrank client portal to download your audit reports and conformance documents.",
       "priority": "0.2",
       "changefreq": "yearly",
-      "portal": true
+      "portal": true,
+      "dateModified": "2026-10-17"
     },
     {
       "file": "portal.html",
@@ -425,7 +440,8 @@
       "title": "Page not found — Accessrank",
       "description": "That page does not exist.",
       "noindex": true,
-      "excludeFromSitemap": true
+      "excludeFromSitemap": true,
+      "dateModified": "2026-11-04"
     }
   ],
   "jobs": [

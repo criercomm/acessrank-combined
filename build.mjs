@@ -147,7 +147,7 @@ function structuredData(page) {
       url: `${SITE_URL}${page.url}`,
       inLanguage: 'en-US',
       datePublished: page.datePublished || `${site.foundingYear}-01-01`,
-      dateModified: new Date().toISOString().slice(0, 10),
+      dateModified: page.dateModified || BUILD_DATE,
       author: { '@id': `${SITE_URL}/#organization` },
       publisher: { '@id': `${SITE_URL}/#organization` },
       isPartOf: { '@type': 'WebSite', name: site.name, url: `${SITE_URL}/` },
@@ -244,14 +244,10 @@ async function build() {
   fs.writeFileSync(path.join(DIST, 'assets', 'js', portalJsName), portalJs);
   fs.writeFileSync(path.join(DIST, 'assets', 'js', heroJsName), heroJs);
 
-  // The stylesheet is inlined into every page's <head> (see shell.html), which
-  // removes the one render-blocking request from the critical path. CSP must
-  // then allow exactly that block and nothing else: the build records the
-  // sha256 of the inlined text here, and server/app.js folds it into
-  // style-src. The hash covers the <style> element's exact contents, so any
-  // drift between what was built and what is served fails closed — the page
-  // loses its styles rather than the policy quietly widening.
-  const styleHash = `sha256-${crypto.createHash('sha256').update(css, 'utf8').digest('base64')}`;
+  // The stylesheet is linked, not inlined (see shell.html), so CSP's style-src
+  // stays 'self' alone and no block hash is recorded. server/app.js tolerates
+  // the absent hash: it only adds one when csp.json carries it.
+  const styleHash = null;
   // Whether the built pages ship the Turnstile <script> + widgets is a
   // BUILD-time fact, so it is recorded here and the server's CSP follows it.
   // Deciding from the server's own env instead caused a real mismatch: a keyed
@@ -285,8 +281,15 @@ async function build() {
     // text can never drift from the copy it is generated from.
     // See scripts/prerender-deck.mjs for what is rendered and what is skipped.
     try {
-      const { renderDeckText, injectDeckText, loadCopy, DECK_TEXT_CSS } = await import('./scripts/prerender-deck.mjs');
+      const { renderDeckText, injectDeckText, loadCopy, DECK_TEXT_CSS, deckBundleDrift } = await import('./scripts/prerender-deck.mjs');
       const deckCopy = await loadCopy();
+      // Slides and text must tell one story: warn if the committed slide bundle
+      // predates copy.js. `npm test` fails on the same condition.
+      const drift = deckBundleDrift(deckCopy, path.join(SRC, 'assets', 'static', 'deck'));
+      if (!drift.ok) {
+        console.warn(`  ! DECK SLIDES ARE STALE: ${drift.reason}`);
+        console.warn('    Rebuild: cd deck && DECK_BASE=/deck/ npm run build, then copy deck/dist over src/assets/static/deck');
+      }
       // The stylesheet is a file, not an inline block, because of the CSP
       // (see prerender-deck.mjs). Content-hashed like the deck's own assets so
       // a change is never stuck behind a cached copy.
@@ -320,7 +323,7 @@ async function build() {
       nav: site.nav,
       footer: site.footer,
       jobs: site.jobs,
-      inlineCss: css,
+      cssHref: `/assets/css/${cssName}`,
       jsHref: `/assets/js/${jsName}`,
       portalCssHref: `/assets/css/${portalCssName}`,
       portalJsHref: `/assets/js/${portalJsName}`,
@@ -365,7 +368,7 @@ async function build() {
       };
       const context = {
         site, page, job, nav: site.nav, footer: site.footer,
-        inlineCss: css, jsHref: `/assets/js/${jsName}`,
+        cssHref: `/assets/css/${cssName}`, jsHref: `/assets/js/${jsName}`,
         canonical: `${SITE_URL}${page.url}`, siteUrl: SITE_URL,
         year: new Date().getFullYear(), isHome: false,
         turnstileSiteKey: process.env.TURNSTILE_SITE_KEY || '',
@@ -382,12 +385,14 @@ async function build() {
   }
 
   // --- sitemap & robots ---------------------------------------------------
-  const today = new Date().toISOString().slice(0, 10);
+  // Per-page `dateModified` from site.json, so an untouched page does not
+  // claim a new modification date on every deploy (the same rule the schema
+  // blocks follow). Build date only as the fallback.
   const urls = written
     .filter(({ page }) => !page.excludeFromSitemap && !page.noindex)
     .map(({ page }) => `  <url>
     <loc>${SITE_URL}${page.url === '/' ? '/' : page.url}</loc>
-    <lastmod>${today}</lastmod>
+    <lastmod>${page.dateModified || BUILD_DATE}</lastmod>
     <changefreq>${page.changefreq ?? 'monthly'}</changefreq>
     <priority>${page.priority ?? '0.5'}</priority>
   </url>`)

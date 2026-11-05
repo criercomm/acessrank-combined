@@ -57,8 +57,10 @@ body { min-height: 100vh; overflow-x: hidden; }
   padding: 6px 13px; border-radius: 100px;
 }
 .eyebrow-pill .price { font-family: 'JetBrains Mono', monospace; color: var(--text); letter-spacing: 0; }
-.intro h1 { font-size: clamp(28px, 3.4vw, 40px); line-height: 1.08; letter-spacing: -1.2px; font-weight: 800; color: var(--text); margin: 0; text-wrap: balance; }
-.intro h1 .accent { color: inherit; }
+/* .as-h1: a second or third intro heading on one page (contact-sales) keeps the
+   look of the first but is an h2, so the page states its subject once. */
+.intro h1, .intro h2.as-h1 { font-size: clamp(28px, 3.4vw, 40px); line-height: 1.08; letter-spacing: -1.2px; font-weight: 800; color: var(--text); margin: 0; text-wrap: balance; }
+.intro h1 .accent, .intro h2.as-h1 .accent { color: inherit; }
 .intro p { font-size: 15px; line-height: 1.5; color: var(--text-soft); margin: 0; max-width: 460px; text-wrap: pretty; }
 
 /* ---- Logo (secondary pages) ----

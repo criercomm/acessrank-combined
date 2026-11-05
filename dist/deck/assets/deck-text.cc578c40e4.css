@@ -1,0 +1,51 @@
+
+.deck-text-skip { position: fixed; top: 8px; left: 8px; z-index: 9999; padding: 10px 16px; border-radius: 6px;
+  background: #FFD23F; color: #14142A; font: 600 15px/1.2 Inter, system-ui, sans-serif; text-decoration: none;
+  transform: translateY(-200%); }
+.deck-text-skip:focus { transform: none; }
+
+.deck-text { max-width: 760px; margin: 0 auto; padding: 56px 24px 96px; color: #E8E6F0;
+  font: 400 17px/1.7 Inter, system-ui, sans-serif; }
+.dt-eyebrow { font: 700 12px/1 Inter, system-ui, sans-serif; letter-spacing: .14em; text-transform: uppercase; color: #9A96B0; margin: 0 0 12px; }
+.deck-text h1 { font-size: 34px; line-height: 1.15; letter-spacing: -.02em; margin: 0 0 14px; color: #fff; }
+.dt-definition { font-size: 18px; line-height: 1.6; color: #fff; margin: 0 0 12px; }
+.deck-text h2 { font-size: 25px; line-height: 1.2; letter-spacing: -.02em; margin: 0 0 14px; color: #fff; }
+.deck-text h3 { font-size: 17px; margin: 24px 0 8px; color: #fff; }
+.deck-text h4 { font-size: 17px; margin: 0 0 4px; color: #fff; }
+.deck-text p { margin: 0 0 14px; }
+.deck-text a { color: #FFD23F; }
+.dt-section { padding: 28px 0; border-top: 1px solid rgba(255,255,255,.14); }
+.dt-chapter { font: 700 12px/1 Inter, system-ui, sans-serif; letter-spacing: .14em; text-transform: uppercase;
+  color: #9A96B0; margin: 0 0 10px; }
+.deck-text ul, .deck-text ol { margin: 0 0 14px; padding-left: 22px; }
+.deck-text li { margin: 0 0 7px; }
+.dt-stats { list-style: none; padding: 0; }
+.dt-stats li { margin: 0 0 12px; }
+.dt-value { font-weight: 800; color: #FFD23F; }
+.dt-stats cite, .dt-fine cite { display: block; font-style: normal; font-size: 13px; color: #9A96B0; }
+.dt-fine { font-size: 13px; color: #9A96B0; }
+.dt-wcag, .dt-n { color: #9A96B0; font-size: 14px; }
+.dt-inline { list-style: none; padding: 0; }
+.dt-inline li { display: inline; }
+.dt-inline li + li::before { content: " \2022 "; color: #9A96B0; }
+.dt-pairs { margin: 0 0 14px; }
+.dt-pairs dt { font-weight: 700; color: #fff; }
+.dt-pairs dd { margin: 0 0 8px; }
+.dt-plan { padding: 14px 0; border-top: 1px solid rgba(255,255,255,.1); }
+.dt-price { color: #FFD23F; font-weight: 700; margin: 0 0 6px; }
+.dt-people { list-style: none; padding: 0; }
+.dt-back { margin-top: 32px; }
+
+/* Deck mounted, text not asked for: the deck owns the viewport. Park the text
+   below it, where body's own overflow:hidden clips it. Deliberately NOT
+   display:none or visibility:hidden — it stays laid out and part of the
+   document, which is both honest and what keeps it worth indexing. */
+body:has(#deck.deck):not(:has(#deck-text:target)) #deck-text {
+  position: absolute; top: 100%; left: 0; width: 100%;
+}
+
+/* No JavaScript: the deck never mounts, so the document is a normal page. */
+html:not(:has(#deck.deck)), body:not(:has(#deck.deck)) { position: static; overflow: auto; height: auto; }
+/* Reading the text: step the deck aside. */
+html:has(#deck-text:target), body:has(#deck-text:target) { position: static; overflow: auto; height: auto; }
+body:has(#deck-text:target) #deck { display: none; }

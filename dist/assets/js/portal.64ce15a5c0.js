@@ -283,8 +283,137 @@
 
   /* ------------------------------------------------------ client portal --- */
 
+  /* ---- the team's notes on a file: add, edit and delete (clients only read them, see fileRowWithClientNotes) ---- */
+
+  function noteButton(label, name, extra) {
+    return h('button', { type: 'button', class: 'btn-small' + (extra ? ' ' + extra : ''), 'aria-label': name, text: label });
+  }
+
+  function noteMetaLine(note) {
+    var who = note.authorName || note.authorEmail;
+    var when = formatDateTime(note.createdAt) + (note.updatedAt ? ' (edited)' : '');
+    return h('p', { class: 'note-meta', title: note.updatedAt ? 'Edited ' + formatDateTime(note.updatedAt) : null, text: (who ? who + ' \u00b7 ' : '') + when });
+  }
+
+  /** The "Notes (n)" label for one file and the panel that opens under it on hover: the notes, each with Edit and Delete, and an add field. */
+  function editableNotes(file, status) {
+    file.notes = file.notes || [];
+    var count = h('span', { class: 'notes-count' });
+    var list = h('ul', { class: 'note-list', 'aria-label': 'Notes on ' + file.name });
+    var input = h('input', { type: 'text', class: 'note-add-input', maxlength: '2000', autocomplete: 'off', placeholder: 'Add a note\u2026', 'aria-label': 'Add a note to ' + file.name });
+    var addButton = h('button', { type: 'submit', class: 'btn-small btn-small--brand', 'aria-label': 'Add note to ' + file.name, text: 'Add note' });
+    var form = h('form', { class: 'note-add', novalidate: 'novalidate' }, [input, addButton]);
+    var panel = h('div', { class: 'file-notes-panel' }, [list, form]);
+
+    function refresh() {
+      count.textContent = file.notes.length ? 'Notes (' + file.notes.length + ')' : 'Notes (none yet)';
+      clear(list);
+      file.notes.forEach(function (note) { list.appendChild(row(note)); });
+    }
+
+    function row(note) {
+      var li = h('li', { class: 'note' });
+      var edit = noteButton('Edit', 'Edit note');
+      var remove = noteButton('Delete', 'Delete note');
+
+      confirmable(remove, 'Delete note', function () {
+        return api('DELETE', '/api/portal/admin/file-notes/' + encodeURIComponent(note.id)).then(function () {
+          file.notes = file.notes.filter(function (n) { return n.id !== note.id; });
+          refresh();
+          setStatus(status, 'Note deleted.', 'success');
+        }, function (error) { setStatus(status, error.message, 'error'); });
+      });
+
+      edit.addEventListener('click', function () {
+        clear(li);
+        li.classList.add('is-editing');
+        var area = h('textarea', { class: 'note-edit', rows: '1', maxlength: '2000', 'aria-label': 'Edit note' });
+        area.value = note.body;
+        var save = noteButton('Save', 'Save note', 'btn-small--brand');
+        var cancel = noteButton('Cancel', 'Cancel editing');
+        function grow() { area.style.height = 'auto'; area.style.height = area.scrollHeight + 'px'; }
+        function commit() {
+          var body = area.value.trim();
+          if (!body) { setStatus(status, 'Write a note first, or use Delete.', 'error'); area.focus(); return; }
+          save.disabled = true;
+          api('PATCH', '/api/portal/admin/file-notes/' + encodeURIComponent(note.id), { body: body }).then(function (data) {
+            file.notes = file.notes.map(function (n) { return n.id === note.id ? data.note : n; });
+            refresh();
+            setStatus(status, 'Note saved.', 'success');
+          }, function (error) { setStatus(status, error.message, 'error'); save.disabled = false; area.focus(); });
+        }
+        area.addEventListener('input', grow);
+        area.addEventListener('keydown', function (e) {
+          if (e.key === 'Escape') { e.preventDefault(); refresh(); }
+          else if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) { e.preventDefault(); commit(); }
+        });
+        save.addEventListener('click', commit);
+        cancel.addEventListener('click', refresh);
+        li.appendChild(area);
+        li.appendChild(h('div', { class: 'note-edit-actions' }, [save, cancel]));
+        grow();
+        area.focus();
+        area.setSelectionRange(area.value.length, area.value.length);
+      });
+
+      li.appendChild(h('div', { class: 'note-main' }, [h('p', { class: 'note-body', text: note.body }), noteMetaLine(note)]));
+      li.appendChild(h('div', { class: 'note-actions' }, [edit, remove]));
+      return li;
+    }
+
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var body = input.value.trim();
+      if (!body) { setStatus(status, 'Write a note first.', 'error'); input.focus(); return; }
+      addButton.disabled = true;
+      api('POST', '/api/portal/admin/files/' + encodeURIComponent(file.id) + '/notes', { body: body }).then(function (data) {
+        file.notes.push(data.note);
+        input.value = '';
+        refresh();
+        setStatus(status, 'Note added to ' + file.name + '.', 'success');
+      }, function (error) { setStatus(status, error.message, 'error'); }).then(function () { addButton.disabled = false; input.focus(); });
+    });
+
+    refresh();
+    return { count: count, panel: panel };
+  }
+
+  /** A file row with "Notes (n)" beside its details; the notes and the add-note field open under it on hover or keyboard focus. */
+  function fileRowWithEditableNotes(file, actions, status) {
+    var notes = editableNotes(file, status);
+    var li = fileRow(file, actions);
+    li.classList.add('has-notes');
+    var meta = li.querySelector('.file-meta');
+    if (meta) meta.appendChild(notes.count);
+    li.appendChild(h('div', { class: 'file-notes-hover' }, [h('div', { class: 'file-notes-hover-inner' }, [notes.panel])]));
+    return li;
+  }
+
   /** The four sections a client sees: awaiting approval, compliance files, past approvals, other files. */
-  function renderPortalSections(root, reports, allFiles) {
+  /** The team's notes on a file, read-only, for the client. Nothing when the file has none. */
+  function fileRowWithClientNotes(file, actions) {
+    var li = fileRow(file, actions);
+    var notes = file.notes || [];
+    if (!notes.length) return li;
+    var list = h('ul', { class: 'note-list', 'aria-label': 'Notes on ' + file.name });
+    notes.forEach(function (note) {
+      var who = note.authorName || 'Accessrank team';
+      var when = formatDateTime(note.createdAt) + (note.updatedAt ? ' (edited)' : '');
+      list.appendChild(h('li', { class: 'note' }, [h('div', { class: 'note-main' }, [
+        h('p', { class: 'note-body', text: note.body }),
+        h('p', { class: 'note-meta', text: who + ' \u00b7 ' + when })
+      ])]));
+    });
+    li.classList.add('has-notes');
+    // "Notes (n)" sits with the file's details; the notes themselves open under the file on hover or keyboard focus.
+    var meta = li.querySelector('.file-meta');
+    if (meta) meta.appendChild(h('span', { class: 'notes-count', text: 'Notes (' + notes.length + ')' }));
+    li.appendChild(h('div', { class: 'file-notes-hover' }, [h('div', { class: 'file-notes-hover-inner' }, [list])]));
+    return li;
+  }
+
+  function renderPortalSections(root, reports, allFiles, team) {
+    var rowActions = function (file) { return team ? [team.deleteButton(file)] : []; };
     var openReports = reports.filter(function (r) { return r.status !== 'closed'; });
     var pastReports = reports.filter(function (r) { return r.status === 'closed'; });
     var reportList = root.querySelector('[data-report-list]');
@@ -297,7 +426,7 @@
     clear(pastList);
     pastReports.forEach(function (report) { pastList.appendChild(reportRow(report)); });
     var pastFiles = allFiles.filter(function (f) { return f.area === 'approvals'; });
-    pastFiles.forEach(function (file) { pastList.appendChild(fileRow(file)); });
+    pastFiles.forEach(function (file) { pastList.appendChild(team ? fileRowWithEditableNotes(file, [], team.status) : fileRowWithClientNotes(file)); });
     var pastTotal = pastReports.length + pastFiles.length;
     root.querySelector('[data-past-section]').hidden = pastTotal === 0;
     root.querySelector('[data-past-count]').textContent = pastTotal ? plural(pastTotal, 'record') : '';
@@ -305,7 +434,7 @@
     var compliance = allFiles.filter(function (f) { return f.area === 'compliance'; });
     var complianceList = root.querySelector('[data-compliance-list]');
     clear(complianceList);
-    compliance.forEach(function (file) { complianceList.appendChild(fileRow(file)); });
+    compliance.forEach(function (file) { complianceList.appendChild(fileRow(file, rowActions(file))); });
     complianceList.hidden = compliance.length === 0;
     root.querySelector('[data-compliance-empty]').hidden = compliance.length > 0;
     root.querySelector('[data-compliance-count]').textContent = compliance.length ? plural(compliance.length, 'file') : '';
@@ -316,7 +445,7 @@
     var empty = root.querySelector('[data-files-empty]');
     var count = root.querySelector('[data-file-count]');
     clear(list);
-    others.forEach(function (file) { list.appendChild(fileRow(file)); });
+    others.forEach(function (file) { list.appendChild(team ? fileRowWithEditableNotes(file, rowActions(file), team.status) : fileRowWithClientNotes(file, rowActions(file))); });
     var loading = root.querySelector('[data-files-loading]'); if (loading) loading.hidden = true;
     empty.hidden = others.length > 0;
     list.hidden = others.length === 0;
@@ -345,6 +474,8 @@
     // A team member opening /portal?as=<client id> sees exactly what that client sees.
     var asMatch = /^[0-9a-f-]{36}$/i.test(new URLSearchParams(location.search).get('as') || '') ? new URLSearchParams(location.search).get('as') : null;
 
+    var team = null;
+
     function render(data) {
       root.querySelector('[data-portal-client]').textContent = data.client.name;
       var user = root.querySelector('[data-portal-user]');
@@ -354,7 +485,7 @@
 
       if (nudge) nudge.hidden = asMatch ? true : data.user.passwordSetBy !== 'admin';
 
-      renderPortalSections(root, data.reports || [], data.files || []);
+      renderPortalSections(root, data.reports || [], data.files || [], team);
     }
 
     /** The team bar above the client's own page: who you are looking at, and the way back. */
@@ -368,7 +499,7 @@
 
       var bar = h('div', { class: 'viewas-bar', role: 'region', 'aria-label': 'Team view' }, [
         h('span', { class: 'viewas-label', text: 'Viewing as ' + client.name }),
-        h('span', { class: 'viewas-note', text: 'This is the client\u2019s page. Nothing here can be changed.' }),
+        h('span', { class: 'viewas-note', text: 'This is the client\u2019s page. You can add and delete files in Compliance files and Other files; everything else here is read-only.' }),
         h('label', { class: 'viewas-login', for: 'viewas-login' }, [h('span', { text: 'Login ' }), picker]),
         h('a', { class: 'btn-small', href: '/portal/client#client=' + encodeURIComponent(client.id), text: 'Back to ' + client.name }),
         h('a', { class: 'btn-small', href: '/portal/approvals', text: 'Exit' })
@@ -383,6 +514,76 @@
       }
     }
 
+    /** Team only: Add files beside Compliance files and Other files, and Delete on each row there. */
+    function mountTeamFileControls(client) {
+      var maxBytes = 25 * 1024 * 1024;
+      var busy = false;
+      var queue = h('ul', { class: 'upload-queue', 'aria-live': 'polite' });
+      var wrap = root.querySelector('.portal-wrap');
+      wrap.insertBefore(queue, status.nextSibling);
+
+      function rerender() { render(viewData(client, (root.querySelector('#viewas-login') || {}).value)); }
+
+      function uploadOne(file, area) {
+        var state_ = h('span', { class: 'upload-state', text: 'Uploading\u2026' });
+        var row = h('li', {}, [h('span', { class: 'upload-name', text: file.name }), state_]);
+        queue.appendChild(row);
+        var reject = function (message) { row.className = 'is-error'; state_.textContent = message; return false; };
+        if (file.size === 0) return Promise.resolve(reject('Empty file \u2014 skipped'));
+        if (file.size > maxBytes) return Promise.resolve(reject('Over the ' + formatBytes(maxBytes) + ' limit \u2014 skipped'));
+        var url = '/api/portal/admin/clients/' + encodeURIComponent(client.id) + '/files?name=' + encodeURIComponent(file.name) + '&area=' + encodeURIComponent(area);
+        return api('POST', url, null, file).then(function (data) {
+          client.files = client.files || [];
+          client.files.unshift(data.file);
+          row.className = 'is-done';
+          state_.textContent = 'Added';
+          rerender();
+          return true;
+        }, function (error) { return reject(error.message); });
+      }
+
+      function uploadFiles(files, area) {
+        var batch = Array.prototype.slice.call(files || []);
+        if (!batch.length) return;
+        if (busy) { setStatus(status, 'Wait for the current upload to finish, then add more.', 'error'); return; }
+        busy = true;
+        clear(queue);
+        var added = 0;
+        batch.reduce(function (chain, file) {
+          return chain.then(function () { return uploadOne(file, area); }).then(function (ok) { if (ok) added += 1; });
+        }, Promise.resolve()).then(function () {
+          busy = false;
+          setStatus(status, 'Added ' + plural(added, 'file') + ' to ' + (area === 'compliance' ? 'Compliance files' : 'Other files') + '.', added ? 'success' : 'error');
+        });
+      }
+
+      [['compliance-heading', 'compliance', 'Add compliance files'], ['files-heading', 'files', 'Add other files']].forEach(function (cfg) {
+        var heading = root.querySelector('#' + cfg[0]);
+        var head = heading && heading.parentNode;
+        if (!head) return;
+        var id = 'team-upload-' + cfg[1];
+        var input = h('input', { class: 'visually-hidden', type: 'file', id: id, multiple: 'multiple' });
+        input.addEventListener('change', function () { uploadFiles(input.files, cfg[1]); input.value = ''; });
+        head.appendChild(h('label', { class: 'btn-small upload-button', for: id, text: 'Add files', 'aria-label': cfg[2] }));
+        head.appendChild(input);
+      });
+
+      team = {
+        status: status,
+        deleteButton: function (file) {
+          var remove = h('button', { type: 'button', class: 'btn-small btn-small--danger', 'aria-label': 'Delete ' + file.name, text: 'Delete' });
+          confirmable(remove, 'Confirm delete', function () {
+            return api('DELETE', '/api/portal/admin/files/' + encodeURIComponent(file.id)).then(function () {
+              client.files = (client.files || []).filter(function (f) { return f.id !== file.id; });
+              rerender();
+              setStatus(status, 'Deleted ' + file.name + '.', 'success');
+            }).catch(function (error) { setStatus(status, error.message, 'error'); });
+          });
+          return remove;
+        }
+      };
+    }
+
     function viewData(client, email) {
       var login = (client.users || []).filter(function (u) { return u.email === email; })[0] || (client.users || [])[0];
       return { client: client, user: { email: login ? login.email : 'no login yet' }, reports: client.reports || [], files: client.files || [] };
@@ -393,6 +594,7 @@
         var client = data.clients.filter(function (c) { return c.id === asMatch; })[0];
         if (!client) { go('/portal/clients'); return; }
         mountViewAsBar(client);
+        mountTeamFileControls(client);
         render(viewData(client));
       });
     }
@@ -763,6 +965,10 @@
       return remove;
     }
 
+    /* ---- notes on Other files and Past approvals: the team adds, edits and deletes; the client reads them ---- */
+
+    function fileRowWithNotes(client, file, actions) { return fileRowWithEditableNotes(file, actions, status); }
+
     function moveFileButton(client, file, to) {
       var label = to === 'compliance' ? 'Move to Compliance' : 'Move to Other files';
       var button = h('button', { type: 'button', class: 'btn-small', 'aria-label': label + ': ' + file.name, text: label });
@@ -791,7 +997,7 @@
       var other = client.files.filter(function (f) { return f.area === 'files'; });
       var approvalFiles = client.files.filter(function (f) { return f.area === 'approvals'; });
       clear(fileList);
-      other.forEach(function (file) { fileList.appendChild(fileRow(file, [moveFileButton(client, file, 'compliance'), deleteFileButton(client, file)])); });
+      other.forEach(function (file) { fileList.appendChild(fileRowWithNotes(client, file, [moveFileButton(client, file, 'compliance'), deleteFileButton(client, file)])); });
       filesEmpty.hidden = other.length > 0;
       fileList.hidden = other.length === 0;
       clear(complianceList);
@@ -800,7 +1006,7 @@
       complianceList.hidden = compliance.length === 0;
       complianceCount.textContent = compliance.length ? plural(compliance.length, 'file') : '';
       clear(approvalFileList);
-      approvalFiles.forEach(function (file) { approvalFileList.appendChild(fileRow(file, [deleteFileButton(client, file)])); });
+      approvalFiles.forEach(function (file) { approvalFileList.appendChild(fileRowWithNotes(client, file, [deleteFileButton(client, file)])); });
       approvalFileList.hidden = approvalFiles.length === 0;
       renderPastSummary(client);
       fileCount.textContent = client.files.length ? plural(client.files.length, 'file') : '';
@@ -981,7 +1187,7 @@
       return api('PATCH', '/api/portal/admin/clients/' + encodeURIComponent(client.id), { name: values.name }).then(function (data) {
         client.name = data.client.name;
         sortClients();
-        render();
+        renderDetail();
         setStatus(status, 'Renamed to ' + client.name + '.', 'success');
         detailName.focus();
       });

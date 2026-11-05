@@ -37,7 +37,7 @@ export async function createDeck({ root, slides, copy, assets, chapters, audio =
   const names = chapters || slides.map((s, i) => s.title || `Slide ${i + 1}`)
   const chapterBtns = chromeMode === 'minimal' ? [] : names.map((name, i) => el('button', { class: 'chapter mono', type: 'button', 'aria-label': `${L.chapterGoTo} ${name}`, onclick: (e) => { e.stopPropagation(); sound.start(); go(i) } }, el('i'), el('span', { text: name })))
   const counterN = el('span', { class: 'counter-n' })
-  const counter = el('div', { class: 'counter mono', 'aria-live': 'polite' }, counterN, el('span', { class: 'counter-sep', text: '/' }), el('span', { class: 'counter-total', text: L.counterTotal }))
+  const counter = el('div', { class: 'counter mono' }, counterN, el('span', { class: 'counter-sep', text: '/' }), el('span', { class: 'counter-total', text: L.counterTotal }))
   // Chrome minimal: una flecha de filete junto al contador es el único control visible para avanzar. Existe porque una escena
   // puede ocupar toda su superficie con un control propio (S03 del Deck M) y "click en cualquier sitio" deja de ser cierto ahí.
   const nextBtn = chromeMode === 'minimal' ? el('button', { class: 'next', type: 'button', 'aria-label': L.next, title: L.nextTitle, onclick: (e) => { e.stopPropagation(); next() }, html: "<svg viewBox=\"0 0 28 12\" width=\"28\" height=\"12\" aria-hidden=\"true\"><path d=\"M0 6h26M21 1l5 5-5 5\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1\"/></svg>" }) : null
@@ -45,7 +45,11 @@ export async function createDeck({ root, slides, copy, assets, chapters, audio =
   const hint = el('p', { class: 'hint', text: isCoarse() ? L.hintTouch : L.hint })
   const footer = el('footer', { class: 'footer mono' }, legal, hint)
   const notes = el('aside', { class: 'notes mono', hidden: !presenter })
-  const chrome = el('div', { class: 'chrome' }, el('nav', { class: 'chapters', 'aria-label': 'Chapters' }, ...chapterBtns), el('div', { class: 'topright' }, counter, ...(nextBtn ? [nextBtn] : [])), footer, notes)
+  // What a screen reader hears when a slide changes: its name and position, once.
+  // (The counter used to be the live region, but its flap-digit animation
+  // announced fragments of digits and never the slide's name.)
+  const announcer = el('div', { class: 'visually-hidden', 'aria-live': 'polite', 'aria-atomic': 'true' })
+  const chrome = el('div', { class: 'chrome' }, announcer, el('nav', { class: 'chapters', 'aria-label': 'Chapters' }, ...chapterBtns), el('div', { class: 'topright' }, counter, ...(nextBtn ? [nextBtn] : [])), footer, notes)
   root.append(stage, chrome)
   const counterFlap = FlapDigits(counterN, { value: pad2(1), digits: 2, clack: false, dur: T[3], flip: 90, cascade: 50 })
 
@@ -94,6 +98,11 @@ export async function createDeck({ root, slides, copy, assets, chapters, audio =
     if (fromEl) await Transition(slides[to].transition || 'fade', { dur: T[4], sound }).run(fromEl, toEl, dir)
     if (fromEl) { fromEl.classList.remove('is-active', 'is-leaving'); fromEl.setAttribute('aria-hidden', 'true'); fromEl.removeAttribute('tabindex') }
     current = to
+    announcer.textContent = `${names[to]}, slide ${to + 1} of ${total}`
+    // Focus follows the slide (it is the one tab stop), unless the person is in
+    // the nav or on a control — a menu must not have focus pulled out from under it.
+    const ae = document.activeElement
+    if (from >= 0 && !(ae && ae !== document.body && ae.closest('nav, a, button, input, select, textarea'))) { try { toEl.focus({ preventScroll: true }) } catch (e) {} }
     try { onChange?.(to, { from, total, slide: slides[to], next: slides[to + 1] || null }) } catch (e) { console.warn('[deck] onChange', e) }
     const p = new URLSearchParams(location.search); p.set('slide', String(to + 1)); history.replaceState(null, '', `${location.pathname}?${p}`)
     toEl.classList.remove('is-replay') // enter() aplica sus estados iniciales en el mismo frame: no hay parpadeo

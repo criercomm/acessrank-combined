@@ -14,7 +14,7 @@ export default {
     const { copy, assets } = ctx
     this._notes = copy.s01.notes
     // first line white, every later line in the accent colour; one array entry per rendered line so the h1 box shrink-wraps the text
-    const title = heading(copy.s01.title, { tag: 'h1', cls: 'h-display s01-title', accent: copy.s01.title.map((_, i) => i).slice(1), accentClass: 'is-accent' })
+    const title = heading(copy.s01.title, { tag: 'h2', /* the page's h1 is the pre-rendered text's, same words (scripts/prerender-deck.mjs) */ cls: 'h-display s01-title', accent: copy.s01.title.map((_, i) => i).slice(1), accentClass: 'is-accent' })
     const sub = el('p', { class: 's01-sub', text: copy.s01.sub })
     const stats = copy.s01.stats.map((s) => tile(s, { cls: 's01-stat tile--bare', size: 'm' }))
     const statsRow = el('div', { class: 's01-stats' }, ...stats.map((s) => s.el))

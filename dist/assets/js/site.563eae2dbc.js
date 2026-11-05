@@ -169,6 +169,15 @@
     applyMode('standard');
   }
 
+  /* The FORM 8826 button in the tax credit card: switches the pricing to the after-credit view; the link then
+   * scrolls to the pricing toggles, with the new prices below them. */
+  document.querySelectorAll('[data-apply-credit]').forEach(function (link) {
+    link.addEventListener('click', function () {
+      var creditButton = document.querySelector('#price-toggle [data-mode="credit"]');
+      if (creditButton) creditButton.click();
+    });
+  });
+
   /* ------------------------------------------- overview deck overlay --- */
   /* "Overview" in the primary nav (site.json: nav[].deck) and "Why stores get
    * sued" under the hero open the overview deck (built to /deck/) full-screen over
@@ -184,6 +193,13 @@
 
   var openDeck = function (opener) {
     if (!deckOverlay) return;
+    /* Phones never get the slide deck (server/app.js serves them the long-form
+       page at /); the overlay would show them exactly the experience we route
+       them away from. Send them to the deck's readable text version instead. */
+    if (window.matchMedia('(max-width: 767px)').matches) {
+      window.location.href = '/deck/#deck-text';
+      return;
+    }
     if (deckFrame && !deckFrame.getAttribute('src')) deckFrame.setAttribute('src', '/deck/');
     deckOpener = opener || null;
     deckOverlay.hidden = false;
@@ -217,10 +233,13 @@
   /* ------------------------------------------------ smooth anchors ----- */
 
   document.addEventListener('click', function (e) {
-    var link = e.target.closest('a[href^="#"], a[href^="/#"]');
+    var link = e.target.closest('a[href^="#"], a[href^="/#"], a[href^="/home#"]');
     if (!link) return;
 
-    var hash = link.getAttribute('href').replace(/^\//, '');
+    /* The long-form page's section links are written /home#section so they work
+       from the deck and from every other page. On the long-form page itself
+       (served at / for phones and at /home otherwise) they are in-page anchors. */
+    var hash = link.getAttribute('href').replace(/^\/(home)?/, '');
     if (hash === '#' || hash.length < 2) return;
 
     var target = document.querySelector(hash);
@@ -1223,7 +1242,7 @@
       var theirs = document.getElementById('audit-url');
       var submit = document.getElementById('audit-submit');
       var card = document.getElementById('audit-card');
-      if (!theirs || !submit) { window.location.href = '/#audit'; return; }
+      if (!theirs || !submit) { window.location.href = '/home#audit'; return; }
       theirs.value = mine ? mine.value.trim() : '';
       if (card && card.scrollIntoView) card.scrollIntoView({ behavior: 'smooth', block: 'center' });
       if (theirs.value) submit.click(); else theirs.focus();

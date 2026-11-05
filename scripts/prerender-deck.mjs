@@ -27,6 +27,8 @@
 //     node scripts/prerender-deck.mjs --text     # print just the words
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import path from 'node:path';
+import { createRequire } from 'node:module';
+const require = createRequire(import.meta.url);
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 
@@ -120,7 +122,7 @@ function slideBody(key, s) {
       if (!has(pl?.name)) return '';
       const price = [has(pl.once) ? `${esc(pl.once)} once` : '', has(pl.monthly) ? `${esc(pl.monthly)} a month` : '']
         .filter(Boolean).join(' · ');
-      return `<div class="dt-plan"><h4>${esc(pl.name)}</h4>`
+      return `<div class="dt-plan"><h3>${esc(pl.name)}</h3>`
         + (price ? `<p class="dt-price">${price}</p>` : '')
         + p(pl.who) + plainList(pl.items) + '</div>';
     }).filter(Boolean).join('');
@@ -161,25 +163,37 @@ function slideBody(key, s) {
   return out.join('\n      ');
 }
 
+// The page's one <h1> is the first slide's headline, here in the text; the slide
+// draws the same words as an <h2> styled as the hero (s01-cover.js), so a reader
+// with or without JavaScript meets exactly one h1 and it says the same thing.
+const DEFINITION = 'Accessrank is a US accessibility and discovery service for online stores. '
+  + 'We fix WCAG 2.2 Level AA failures in your theme code, prove the work in a dated record, '
+  + 'and rebuild the product data assistants rank.';
+
 export function renderDeckText(copy) {
   const chapters = copy.chapters || [];
+  const titleOf = (s) => Array.isArray(s?.title) ? s.title.filter(has).join(' ') : s?.title;
   const sections = SLIDES.map((key, i) => {
     const s = copy[key];
     if (!s) return '';
     for (const f of SKIP_FIELDS) delete s[f];
-    const heading = Array.isArray(s.title) ? s.title.filter(has).join(' ') : s.title;
+    const heading = titleOf(s);
     const label = chapters[i];
     const body = slideBody(key, s);
     if (!has(heading) && !body) return '';
-    return `    <section class="dt-section" aria-labelledby="dt-${key}">
+    // Slide 1's headline is the document's h1 above; its section carries no second heading.
+    const h = i === 0 ? '' : `<h2 id="dt-${key}">${esc(heading)}</h2>`;
+    return `    <section class="dt-section"${i === 0 ? '' : ` aria-labelledby="dt-${key}"`}>
       ${has(label) ? `<p class="dt-chapter">${esc(label)}</p>` : ''}
-      <h2 id="dt-${key}">${esc(heading)}</h2>
+      ${h}
       ${body}
     </section>`;
   }).filter(Boolean).join('\n');
 
   return `  <section id="deck-text" class="deck-text" aria-label="Text version of the Accessrank overview">
-    <h1>${esc(copy.brand || 'Accessrank')} overview</h1>
+    <p class="dt-eyebrow">${esc(copy.brand || 'Accessrank')} overview</p>
+    <h1>${esc(titleOf(copy.s01) || `${copy.brand || 'Accessrank'} overview`)}</h1>
+    <p class="dt-definition">${esc(DEFINITION)}</p>
     ${p(copy.spine)}
 ${sections}
     <p class="dt-back"><a href="#deck">Back to the slides</a></p>
@@ -222,7 +236,9 @@ export const DECK_TEXT_CSS = `
 
 .deck-text { max-width: 760px; margin: 0 auto; padding: 56px 24px 96px; color: #E8E6F0;
   font: 400 17px/1.7 Inter, system-ui, sans-serif; }
-.deck-text h1 { font-size: 34px; line-height: 1.15; letter-spacing: -.02em; margin: 0 0 12px; color: #fff; }
+.dt-eyebrow { font: 700 12px/1 Inter, system-ui, sans-serif; letter-spacing: .14em; text-transform: uppercase; color: #9A96B0; margin: 0 0 12px; }
+.deck-text h1 { font-size: 34px; line-height: 1.15; letter-spacing: -.02em; margin: 0 0 14px; color: #fff; }
+.dt-definition { font-size: 18px; line-height: 1.6; color: #fff; margin: 0 0 12px; }
 .deck-text h2 { font-size: 25px; line-height: 1.2; letter-spacing: -.02em; margin: 0 0 14px; color: #fff; }
 .deck-text h3 { font-size: 17px; margin: 24px 0 8px; color: #fff; }
 .deck-text h4 { font-size: 17px; margin: 0 0 4px; color: #fff; }
@@ -285,9 +301,45 @@ export function injectDeckText(html, copy, { cssHref } = {}) {
     .replace(new RegExp(`\\s*${LINK_START}[^\\n]*`, 'g'), '');
   const link = `${LINK_START}<link rel="stylesheet" href="${cssHref}">`;
   const block = `${START}\n`
-    + `<a class="deck-text-skip" href="#deck-text">Read this overview as text</a>\n`
+    + `<nav class="deck-text-skipnav" aria-label="Text version"><a class="deck-text-skip" href="#deck-text">Read this overview as text</a></nav>\n`
     + `${renderDeckText(copy)}\n${END}`;
   if (!out.includes('</head>') || !out.includes('</body>')) throw new Error('prerender-deck: deck HTML has no </head> or </body>');
   out = out.replace('</head>', `    ${link}\n  </head>`);
   return out.replace('</body>', `${block}\n  </body>`);
+}
+
+// ---------------------------------------------------------------------------
+// Drift check
+// ---------------------------------------------------------------------------
+// The slides are served from a committed Vite build in src/assets/static/deck;
+// the text version is generated from deck/src/copy.js at build time. Nothing
+// rebuilds the slides automatically, so after an edit to copy.js the page can
+// say one thing in its text and another on its slides until someone runs
+//     cd deck && DECK_BASE=/deck/ npm run build
+// and copies deck/dist over src/assets/static/deck. This compares a few
+// distinctive strings from copy.js against the bundle the page actually loads
+// and names the first one missing. Used by build.mjs (a warning) and by the
+// unit tests (a failure).
+export function deckBundleDrift(copy, staticDeckDir) {
+  const fs = require('node:fs');
+  const indexHtml = path.join(staticDeckDir, 'index.html');
+  if (!fs.existsSync(indexHtml)) return { ok: false, reason: `no ${indexHtml}` };
+  const ref = fs.readFileSync(indexHtml, 'utf8').match(/\/deck\/assets\/(index-[A-Za-z0-9_-]+\.js)/);
+  if (!ref) return { ok: false, reason: 'index.html references no index-*.js bundle' };
+  const bundlePath = path.join(staticDeckDir, 'assets', ref[1]);
+  if (!fs.existsSync(bundlePath)) return { ok: false, reason: `${ref[1]} is referenced but not on disk` };
+  const bundle = fs.readFileSync(bundlePath, 'utf8');
+  const probes = [
+    ['s01.sub', String(copy.s01?.sub || '').slice(0, 48)],
+    ['s02.title', String(copy.s02?.title?.[0] || '')],
+    ['s03.lede', String(copy.s03?.lede || '').slice(0, 48)],
+    ['s07.express.name', String(copy.s07?.express?.name || '')],
+    ['s07.express.line', String(copy.s07?.express?.line || '').slice(0, 48)],
+    ['s12.people[0].name', String(copy.s12?.people?.[0]?.name || '')],
+    ['s12.people[1].name', String(copy.s12?.people?.[1]?.name || '')],
+  ].filter(([, v]) => v.length >= 3);
+  for (const [field, text] of probes) {
+    if (!bundle.includes(text)) return { ok: false, reason: `copy.js ${field} says "${text}" but ${ref[1]} does not contain it`, bundle: ref[1] };
+  }
+  return { ok: true, bundle: ref[1], probes: probes.length };
 }

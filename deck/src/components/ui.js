@@ -12,6 +12,9 @@ export function heading(lines, { tag = 'h2', cls = 'h-statement', accent = 1, ac
   let at = 0
   lines.forEach((line, i) => {
     const span = el('span', { class: 'h-line' + ((Array.isArray(accent) ? accent.includes(i) : i === accent) ? ' ' + accentClass : ''), text: line })
+    // A real space between lines: the spans are stacked by CSS, but to a screen
+    // reader or a crawler the heading's text is the spans run together ("THELAWSUITHIDINGIN").
+    if (i) h.append(' ')
     h.append(span)
     const k = KineticType(span, { per, from: 300, to: 800, dur, delay, y: 10, paused: true })
     tl.add(k.play(), at)

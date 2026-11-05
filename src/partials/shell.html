@@ -37,10 +37,13 @@
        and -700 while the hero's LCP text is weight 800 — warming two copies of
        the same bytes and leaving the copy that decided LCP to load last. -->
   <link rel="preload" href="/assets/fonts/inter-latin-400.woff2" as="font" type="font/woff2" crossorigin>
-  <!-- The stylesheet is inlined by build.mjs (see inlineCss there): one fewer
-       render-blocking round trip, allowed by CSP via a sha256 hash the build
-       writes to dist/csp.json and the server folds into style-src. -->
-  <style>{{{ inlineCss }}}</style>
+  <!-- The stylesheet is one hashed, immutable file (build.mjs: cssHref). It used
+       to be inlined here to save a round trip, but at 143 KB that put 150+ KB of
+       uncacheable CSS into every page and downloaded it again on each one. A
+       same-origin file is allowed by CSP's style-src 'self' with no hash, is
+       fetched once per deploy, and the first paint waits on one small request
+       over the same connection. -->
+  <link rel="stylesheet" href="{{ cssHref }}">
   <!-- Client-portal pages only (site.json: page.portal). Kept out of the inlined
        block above so the marketing pages do not carry styles they never use;
        style-src 'self' already allows a same-origin stylesheet. -->
