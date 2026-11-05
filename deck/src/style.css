@@ -431,6 +431,7 @@ a.contact-line:hover { color: var(--accent); }
 .s12-foot { position: absolute; left: var(--margin); right: var(--margin); bottom: 88px; display: flex; align-items: center; justify-content: space-between; gap: 24px; z-index: 3; }
 .s12-site { display: inline-flex; align-items: center; height: 48px; padding: 0 24px; border: 1px solid rgba(255, 255, 255, .4); border-radius: 24px; color: var(--fg); text-decoration: none; font-size: 14px; letter-spacing: .04em; transition: border-color var(--t-2), color var(--t-2); will-change: transform; }
 .s12-site:hover, .s12-site:focus-visible { border-color: var(--accent); color: var(--accent); outline: none; }
+.s12-exit { cursor: pointer; } /* the whole closing slide clicks through to the main site (s12-contact.js) */
 
 /* ---- presenter view (?presenter=1) ---- */
 .deck .notes { display: none; }

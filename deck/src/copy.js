@@ -210,7 +210,7 @@ export const copy = {
       { name: 'JP Lincoln', role: 'Co-founder and CEO', email: 'jp@accessrank.ai', phone: '+1 310 408 1881' },
       { name: 'Carlos Marruffo', role: 'Co-founder and CTO', email: 'carlos@accessrank.ai', phone: '+51 958 967 616' },
     ],
-    site: 'Main website', siteHref: 'https://accessrank.ai/',
+    site: 'Main website', siteHref: '/home', // not '/': on desktop that is this deck again. /home is the long-form site on every device.
     notes: 'Close with the question on screen and stop. Two ways to reach us: the CEO in the US, the CTO in Peru; both numbers are in international format.',
   },
 }

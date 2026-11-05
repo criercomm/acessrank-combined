@@ -26,6 +26,11 @@ export default {
     const beam = el('div', { class: 'beam beam--bg', 'aria-hidden': 'true' })
     root.append(beam, el('div', { class: 's12-copy' }, title.el, sub), el('div', { class: 's12-cards' }, ...cards), el('div', { class: 's12-foot' }, site))
     this.els = { title, sub, cards, site, beam }
+    // The whole closing slide is a way out to the main site: a click anywhere that is not a link
+    // (the contact lines, the button itself) goes where the button goes. The button stays the
+    // keyboard and screen-reader route; this is the mouse and touch shortcut.
+    root.classList.add('s12-exit')
+    root.addEventListener('click', (e) => { if (e.target.closest('a, button')) return; location.href = C.siteHref })
     gsap.set([sub, ...cards, site], { opacity: 0 })
   },
   enter(ctx) {
