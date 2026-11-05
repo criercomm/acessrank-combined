@@ -168,7 +168,7 @@ function slideBody(key, s) {
 // with or without JavaScript meets exactly one h1 and it says the same thing.
 const DEFINITION = 'Accessrank is a US accessibility and discovery service for online stores. '
   + 'We fix WCAG 2.2 Level AA failures in your theme code, prove the work in a dated record, '
-  + 'and rebuild the product data assistants rank.';
+  + 'and rebuild the product data Google and AI search need to recommend you.';
 
 export function renderDeckText(copy) {
   const chapters = copy.chapters || [];
