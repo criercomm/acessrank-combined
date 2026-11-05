@@ -1,0 +1,50 @@
+# Excluded from the Docker build context, which Fly uploads in full on every
+# deploy. Without this file the context is ~614 MB; with it, about 35 MB.
+#
+# Two things to keep in mind when editing this:
+#   · src/assets/static/deck is the deck that actually gets served. It must
+#     stay in the context — build.mjs copies it into dist/. The `dist` and
+#     `deck/dist` rules below do not touch it.
+#   · deck/src must stay too: build.mjs reads deck/src/copy.js to pre-render
+#     the deck's text (see scripts/prerender-deck.mjs).
+
+# Installed inside the image by `npm ci`, for the image's own platform. Copying
+# a macOS node_modules over that install is how "works locally, breaks in the
+# container" starts; it is survivable today only because build.mjs imports
+# nothing from node_modules, which is not a guarantee worth leaning on.
+**/node_modules
+
+# Build output. build.mjs removes and recreates dist/ itself, and the deck's
+# dist/ is not what is served.
+dist
+deck/dist
+
+# Playwright run output. The single biggest thing in the repo and of no use to
+# a build (see npm run test:mobile).
+test-results
+
+# Vite source art for the deck. Never bundled — vite.config.js ships only
+# assets/final and assets/audio — and the deck is not built in this image
+# anyway. If the deck build is ever wired into the Dockerfile, those two
+# directories are still here; this line stays correct.
+deck/assets/cutouts
+deck/assets/source
+
+# History, editor noise, local scratch.
+.git
+.gitignore
+.github
+**/.DS_Store
+*.log
+npm-debug.log*
+.env
+.env.*
+!.env.example
+
+# Preview pages and source archives that live at the repo root. They are not
+# part of the site — build.mjs never copies them into dist/ — but they are
+# tracked, so without this they ride along in every upload.
+*.tgz
+*.tar.gz
+accessrank-aeo-visible-preview.html
+deck-copy-before-after.html

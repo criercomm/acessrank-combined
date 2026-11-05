@@ -10,7 +10,7 @@ export const copy = {
 
   s01: {
     title: ['THE LAWSUIT', 'HIDING IN', 'YOUR WEBSITE.'],
-    sub: "Nearly 96% of websites fail accessibility standards, shutting out shoppers with blindness, low vision or mobility issues. Most brands don't find out until a demand letter arrives. We open your store to every shopper, then make sure Google and AI assistants recommend it.",
+    sub: "Most websites fail accessibility standards, shutting out shoppers with blindness, low vision or mobility issues. Most brands don't find out until a demand letter arrives. We open your store to every shopper, then make sure Google and AI assistants recommend it.",
     stats: [
       { value: '95.9%', label: 'of the top 1M sites fail WCAG' },
       { value: '70M+', label: 'U.S. adults live with a disability' },
@@ -140,7 +140,7 @@ export const copy = {
       { id: 'scale', name: 'Scale', once: '$6,500', monthly: '$599', who: 'Heavily customized theme, 15+ apps', items: ['Everything in Growth', 'Regressions fixed within 2 business days, core path re-tested within 10 days of a theme change (up to 4 a year)', 'Twice-yearly human testing (up to 16 shopping tasks), alt text up to 150/mo, named specialist'], time: '4–6 weeks' },
       { id: 'enterprise', name: 'Enterprise', once: 'Custom', monthly: null, who: 'Shopify Plus, multi-storefront, headless', items: ['Everything in Scale', 'Contracted fix window, unlimited alt text', 'Quarterly human testing, security review, cross-storefront monitoring'], time: '8–12 weeks' },
     ],
-    express: { name: 'Lawsuit response', price: '$5,900', line: 'From $5,900, delivered in 7 days: emergency audit, source-code remediation of the cited issues, barrier-by-barrier response to the letter, signed human testing and settlement-terms review.' },
+    express: { name: 'Already been served', price: '$5,900', line: 'Everything, now: from $5,900, in about 7 days. Emergency audit, source-code fixes to the items the letter cites, a barrier-by-barrier response for your counsel, a signed human testing record, and a review of settlement terms.' },
     today: 'Today: an operated service with a client portal.',
     next: 'Next: self-serve billing and an agency tier.',
     notes: '"A one-time project to raise the score, then a monthly plan to hold it there. The lawsuit-response lane is the fastest path to a first check: brands that were served this week." Be transparent: today the service is operated by our team; billing automation is on the roadmap.',
@@ -207,8 +207,8 @@ export const copy = {
     title: ["Let's talk."],
     sub: 'Which of your portfolio brands should we scan first?',
     people: [
-      { name: '', role: 'Co-founder and CEO', email: 'jp@accessrank.ai', phone: '+1 310 408 1881' },
-      { name: '', role: 'Co-founder and CTO', email: 'carlos@accessrank.ai', phone: '+51 958 967 616' },
+      { name: 'JP Lincoln', role: 'Co-founder and CEO', email: 'jp@accessrank.ai', phone: '+1 310 408 1881' },
+      { name: 'Carlos Marruffo', role: 'Co-founder and CTO', email: 'carlos@accessrank.ai', phone: '+51 958 967 616' },
     ],
     site: 'Main website', siteHref: 'https://accessrank.ai/',
     notes: 'Close with the question on screen and stop. Two ways to reach us: the CEO in the US, the CTO in Peru; both numbers are in international format.',

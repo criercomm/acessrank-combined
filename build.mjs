@@ -203,7 +203,7 @@ function structuredData(page) {
     .join('\n  ');
 }
 
-function build() {
+async function build() {
   const started = Date.now();
   fs.rmSync(DIST, { recursive: true, force: true });
   fs.mkdirSync(DIST, { recursive: true });
@@ -273,8 +273,28 @@ function build() {
   // The home page is the site root (accessrank.ai/). The overview deck keeps
   // its own build at DIST/deck (copied above from src/assets/static/deck) and
   // is reachable at /deck/; the nav's "Overview" item opens it in an overlay.
-  if (!fs.existsSync(path.join(DIST, 'deck', 'index.html'))) {
+  const deckIndex = path.join(DIST, 'deck', 'index.html');
+  if (!fs.existsSync(deckIndex)) {
     console.warn('  ! dist/deck/index.html not found — /deck/ will not serve the overview');
+  } else {
+    // The deck ships as `<main id="deck"></main>` with every word inside its
+    // JavaScript bundle, so anything that reads raw HTML — the AI crawlers
+    // robots.txt invites, and any visitor whose bundle has not arrived — finds
+    // an empty page. Write a readable version of deck/src/copy.js into it here,
+    // at build time, so the deck's own committed build stays untouched and the
+    // text can never drift from the copy it is generated from.
+    // See scripts/prerender-deck.mjs for what is rendered and what is skipped.
+    try {
+      const { renderDeckText, injectDeckText, loadCopy } = await import('./scripts/prerender-deck.mjs');
+      const deckCopy = await loadCopy();
+      const before = fs.readFileSync(deckIndex, 'utf8');
+      fs.writeFileSync(deckIndex, injectDeckText(before, deckCopy));
+      const words = renderDeckText(deckCopy).replace(/<[^>]*>/g, ' ').split(/\s+/).filter(Boolean).length;
+      console.log(`  deck ${words} words pre-rendered into /deck/`);
+    } catch (err) {
+      // A deck that fails to pre-render is still a deck; do not fail the build.
+      console.warn(`  ! deck pre-render skipped: ${err.message}`);
+    }
   }
 
   // --- pages --------------------------------------------------------------
@@ -397,4 +417,7 @@ function build() {
   return written;
 }
 
-build();
+build().catch((err) => {
+  console.error(err);
+  process.exit(1);
+});
