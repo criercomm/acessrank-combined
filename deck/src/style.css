@@ -133,10 +133,15 @@ html, body { font-family: var(--display); }
 /* ============ S04 · The fix (signature) ============ */
 /* headline at the shared .h-statement size, both halves on one line (the old clamp(22px, 2.3vw, 38px) read a size
    smaller than every other slide); one line frees 32 px, so the store and panel move up */
-.s04-copy { position: absolute; left: var(--margin); top: var(--pad-y); width: calc(100% - 2 * var(--margin)); z-index: 4; transform: translateY(130px); }
+/* The headline used to sit 130px down, over the top of the stage. Fine while the
+   storefront is full size; once the store splits and the evidence card and the
+   findings panel rise into that band, the headline cut straight through both. It
+   now sits in the band above the stage, which was empty, and the body drops to
+   meet it (see .s04-body). JP, 2026-11-04. */
+.s04-copy { position: absolute; left: var(--margin); top: var(--pad-y); width: calc(100% - 2 * var(--margin)); z-index: 4; transform: translateY(40px); }
 .s04-title .h-line { display: inline; }
 .s04-title .h-line + .h-line::before { content: ' '; }
-.s04-body { position: absolute; left: var(--margin); right: var(--margin); top: calc(var(--pad-y) + 80px); bottom: 88px; display: grid; grid-template-columns: 1fr 248px; column-gap: 32px; align-items: center; transform: translateY(-44px); }
+.s04-body { position: absolute; left: var(--margin); right: var(--margin); top: calc(var(--pad-y) + 80px); bottom: 88px; display: grid; grid-template-columns: 1fr 248px; column-gap: 32px; align-items: center; transform: translateY(16px); }
 .s04-stage { position: relative; height: 560px; z-index: 2; }
 .s04-storewrap { position: absolute; inset: 0; }
 .store { position: absolute; left: 0; top: 0; width: 100%; height: 100%; border-radius: 12px; overflow: hidden; background: #0E1435; border: 1px solid var(--line); box-shadow: 0 30px 80px rgba(0, 0, 0, .45); transition: transform var(--t-5) var(--in-out-quart); transform-origin: 0 50%; }
@@ -210,7 +215,9 @@ html, body { font-family: var(--display); }
 .rollback { height: 44px; padding: 0 20px; border: 1px solid var(--line); border-radius: 22px; color: var(--fg); font-size: 12px; letter-spacing: .12em; text-transform: uppercase; display: inline-flex; align-items: center; gap: 10px; justify-self: start; transition: border-color var(--t-2), color var(--t-2), background var(--t-2); }
 .rollback::before { content: ''; width: 14px; height: 14px; border: 1.5px solid currentColor; border-radius: 50%; border-right-color: transparent; transform: rotate(-45deg); }
 .rollback:hover, .rollback:focus-visible { border-color: var(--bad); color: var(--bad); background: rgba(248, 113, 113, .08); outline: none; }
-.card { position: absolute; right: 0; top: 2%; width: 37%; max-height: 96%; overflow: hidden; border-radius: 12px; background: rgba(12, 19, 48, .94); border: 1px solid var(--line); box-shadow: 0 30px 80px rgba(0, 0, 0, .45); backdrop-filter: blur(8px); z-index: 4; }
+/* top: 19% puts the card's top edge on the same line as the split store's, which
+   scale(.62) from a left-centre origin lowers by (1 - .62) / 2 of the stage. */
+.card { position: absolute; right: 0; top: 19%; width: 37%; max-height: 96%; overflow: hidden; border-radius: 12px; background: rgba(12, 19, 48, .94); border: 1px solid var(--line); box-shadow: 0 30px 80px rgba(0, 0, 0, .45); backdrop-filter: blur(8px); z-index: 4; }
 .evi, .fix { padding: 24px; display: grid; row-gap: 12px; }
 .evi-head { display: flex; gap: 8px; flex-wrap: wrap; }
 .evi-title { font-size: 22px; font-weight: 700; letter-spacing: -.02em; line-height: 1.15; color: var(--fg); }
@@ -658,7 +665,12 @@ a.contact-line:hover { color: var(--accent); }
 .ar-nav-logo { display: inline-flex; align-items: center; gap: 8px; color: var(--fg); text-decoration: none; font-weight: 700; font-size: 14px; letter-spacing: -.01em; transform: scale(1.2544); transform-origin: left center; }
 .ar-nav-mark { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 6px; background: var(--ar-yellow); color: var(--ar-ink); }
 .ar-nav-word { font-family: var(--display); }
-.ar-nav-right { display: flex; align-items: center; gap: 20px; }
+/* Pinned columns: in the portrait / phone layout the chapter dots leave the bar
+   for the bottom strip, and without these the right-hand block would fall into
+   the empty middle column and land on the logo. */
+.ar-nav-logo { grid-column: 1; }
+.ar-nav .chapters { grid-column: 2; }
+.ar-nav-right { grid-column: 3; justify-self: end; display: flex; align-items: center; gap: 20px; }
 /* The deck's chapter dots (lib/deck.css .chapters) are moved in here, right
  * after the logo, by src/main.js once the deck is ready. .ar-nav is a 3-column
  * grid (logo / dots / right links) so the middle column can center them in
@@ -669,9 +681,47 @@ a.contact-line:hover { color: var(--accent); }
 .ar-nav-link.is-active { color: var(--ar-yellow); font-weight: 600; }
 .ar-nav-cta { background: var(--ar-yellow); color: var(--ar-ink); padding: 8px 14px; border-radius: 6px; font-weight: 700; }
 .ar-nav-cta:hover { color: var(--ar-ink); opacity: .88; }
+/* "Full site": the quiet twin of the yellow CTA. Same height, plain border. */
+.ar-nav-site { padding: 7px 13px; border: 1px solid rgba(242, 240, 235, .22); border-radius: 6px; color: var(--fg); }
+.ar-nav-site:hover { border-color: rgba(242, 240, 235, .45); color: var(--fg); }
+
+/* Bar links (the row itself hides below 1280px; see the media query below). */
+.ar-nav-links { display: flex; align-items: center; gap: 20px; list-style: none; margin: 0; padding: 0; }
+.ar-nav-logo:focus-visible, .ar-nav-link:focus-visible, .ar-nav-menu-btn:focus-visible, .ar-nav-menu-link:focus-visible {
+  outline: 2px solid var(--ar-yellow); outline-offset: 3px; border-radius: 4px;
+}
+
+/* Menu button: a visible word, not an icon alone. Hidden while the full row fits. */
+.ar-nav-menu-btn {
+  display: none; align-items: center; gap: 8px; height: 36px; padding: 0 12px;
+  border: 1px solid rgba(242, 240, 235, .22); border-radius: 6px; background: transparent;
+  color: var(--fg); font: inherit; font-size: 12px; letter-spacing: .04em; text-transform: uppercase; cursor: pointer;
+}
+.ar-nav-menu-btn:hover { border-color: rgba(242, 240, 235, .45); }
+.ar-nav-menu-bars { display: inline-grid; gap: 3px; width: 14px; }
+.ar-nav-menu-bars span { display: block; height: 2px; background: currentColor; border-radius: 1px; }
+.ar-nav.is-menu-open .ar-nav-menu-btn { border-color: var(--ar-yellow); }
+
+/* Menu panel, under the bar's right edge. A plain border, no accent edge. */
+.ar-nav-menu {
+  position: absolute; top: calc(100% + 8px); right: var(--margin); min-width: 244px; padding: 8px;
+  background: rgba(20, 20, 42, .98); border: 1px solid rgba(242, 240, 235, .16); border-radius: 10px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, .45);
+}
+.ar-nav-menu ul { list-style: none; margin: 0; padding: 0; }
+.ar-nav-menu-link { display: block; padding: 10px 12px; border-radius: 6px; color: var(--fg); text-decoration: none; font-size: 13px; letter-spacing: .03em; text-transform: uppercase; }
+.ar-nav-menu-link:hover { background: rgba(242, 240, 235, .08); }
+
+/* Below 1280px the bar cannot hold logo, nine chapter dots and the link row with
+   the dots still centred, so the row folds into the Menu button. Covers iPad in
+   both orientations and small laptops. */
+@media (max-width: 1279px) {
+  .ar-nav-links { display: none; }
+  .ar-nav-menu-btn { display: inline-flex; }
+}
 @media (max-width: 767px), (max-height: 620px) {
   .ar-nav { height: 52px; padding: 0 var(--margin); }
-  .ar-nav-link:not(.ar-nav-cta) { display: none; }
+  .ar-nav-link:not(.ar-nav-cta):not(.ar-nav-site) { display: none; }
   .ar-nav-word { display: none; }
 }
 

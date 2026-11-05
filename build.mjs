@@ -417,7 +417,17 @@ async function build() {
     ].join('\n'),
   );
 
-  console.log(`  html ${written.length} pages`);
+  // The long-form home page is also served at /home (see server/app.js: the deck
+  // takes / for tablets and desktops). A real file there keeps the link checker
+  // honest about /home#pricing-style anchors and lets static hosting serve it.
+  // Same bytes, same rel=canonical "/", so the two addresses consolidate.
+  const homeCopy = path.join(DIST, 'home', 'index.html');
+  if (fs.existsSync(path.join(DIST, 'index.html'))) {
+    fs.mkdirSync(path.dirname(homeCopy), { recursive: true });
+    fs.copyFileSync(path.join(DIST, 'index.html'), homeCopy);
+  }
+
+  console.log(`  html ${written.length} pages (+ /home alias)`);
   console.log(`\nBuilt to dist/ in ${Date.now() - started}ms`);
 
   return written;

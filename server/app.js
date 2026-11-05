@@ -291,10 +291,47 @@ app.use('/assets', express.static(path.join(DIST, 'assets'), {
   fallthrough: true,
 }));
 
-// The home page moved from /home back to the root; keep the old address alive.
+// ---------------------------------------------------------------------------
+// Two home pages, one address.
+//
+// The overview deck is the home page for tablets and desktops: a fixed-viewport
+// slide experience that is at its best there. Phones get the long-form page
+// instead — it has had its own mobile work, and on a phone the deck degrades to
+// scrolling stacks. Both are complete, honest pages, so this is "dynamic
+// serving" in Google's terms; the Vary header tells caches the two differ, and
+// because Google indexes mobile-first, the page it treats as / is the long-form
+// one with the FAQ and Offer schema.
+//
+// The long-form page is also always at /home, for desktop visitors following
+// the deck's nav and for the /home#pricing-style anchors. It carries
+// rel=canonical "/", so the two addresses consolidate.
+//
+// Detection is by device class, not viewport: Android phones carry "Mobile" in
+// the UA and Android tablets do not; iPhone/iPod name themselves; iPadOS Safari
+// reports as a Mac and so gets the deck, which suits it. Chrome also sends the
+// Sec-CH-UA-Mobile client hint. ?view=deck / ?view=site override either way,
+// for testing and for anyone who wants the other one.
+const PHONE_UA = /\bMobile\b|iPhone|iPod|Windows Phone/i;
+const TABLET_UA = /iPad|Tablet|PlayBook|Silk/i;
+function wantsLongForm(req) {
+  const view = typeof req.query.view === 'string' ? req.query.view : '';
+  if (view === 'site') return true;
+  if (view === 'deck') return false;
+  if (req.get('sec-ch-ua-mobile') === '?1') return true;
+  const ua = req.get('user-agent') || '';
+  return PHONE_UA.test(ua) && !TABLET_UA.test(ua);
+}
+const HOME_HTML = path.join(DIST, 'index.html');
+const DECK_HTML = path.join(DIST, 'deck', 'index.html');
+app.get('/', (req, res) => {
+  res.setHeader('Vary', 'User-Agent, Sec-CH-UA-Mobile');
+  res.setHeader('Cache-Control', 'public, max-age=0, must-revalidate');
+  const deckAvailable = fs.existsSync(DECK_HTML);
+  return res.sendFile(wantsLongForm(req) || !deckAvailable ? HOME_HTML : DECK_HTML);
+});
 app.get(['/home', '/home/'], (req, res) => {
-  const suffix = req.originalUrl.slice(req.path.length);
-  return res.redirect(301, `/${suffix}`);
+  res.setHeader('Cache-Control', 'public, max-age=0, must-revalidate');
+  return res.sendFile(HOME_HTML);
 });
 
 app.use(express.static(DIST, {

@@ -66,7 +66,7 @@ const nav = Navbar({
   step: (d) => (d > 0 ? deckRef?.next() : deckRef?.prev()),
 })
 root.append(nav.el)
-const siteNav = SiteNav({ mainSiteHref: '/' })
+const siteNav = SiteNav({ homeHref: '/' })
 root.append(siteNav.el)
 
 // Sound removed deck-wide (JP, 2026-10-19): force-mute regardless of any mute cookie a returning visitor may already

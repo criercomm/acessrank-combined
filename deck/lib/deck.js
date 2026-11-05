@@ -133,6 +133,11 @@ export async function createDeck({ root, slides, copy, assets, chapters, audio =
   }
   addEventListener('keydown', (e) => {
     if (e.metaKey || e.ctrlKey || e.altKey) return
+    // A focused link or button owns Enter and Space — otherwise a keyboard user
+    // who tabs to the nav and presses Enter advances the deck instead of
+    // following the link, and can never open the menu at all. Arrow keys are
+    // left to the control too, so a focused chapter dot does not page the deck.
+    if (e.target !== document.body && e.target.closest?.('a, button, input, select, textarea, [contenteditable="true"]')) return
     switch (e.key) {
       case 'ArrowDown': case ' ': case 'PageDown': e.preventDefault(); if (!scrollKey(e, 1)) next(); break
       case 'ArrowUp': case 'PageUp': e.preventDefault(); if (!scrollKey(e, -1)) prev(); break

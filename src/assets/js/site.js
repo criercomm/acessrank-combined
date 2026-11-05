@@ -192,6 +192,13 @@
 
   var openDeck = function (opener) {
     if (!deckOverlay) return;
+    /* Phones never get the slide deck (server/app.js serves them the long-form
+       page at /); the overlay would show them exactly the experience we route
+       them away from. Send them to the deck's readable text version instead. */
+    if (window.matchMedia('(max-width: 767px)').matches) {
+      window.location.href = '/deck/#deck-text';
+      return;
+    }
     if (deckFrame && !deckFrame.getAttribute('src')) deckFrame.setAttribute('src', '/deck/');
     deckOpener = opener || null;
     deckOverlay.hidden = false;
@@ -225,10 +232,13 @@
   /* ------------------------------------------------ smooth anchors ----- */
 
   document.addEventListener('click', function (e) {
-    var link = e.target.closest('a[href^="#"], a[href^="/#"]');
+    var link = e.target.closest('a[href^="#"], a[href^="/#"], a[href^="/home#"]');
     if (!link) return;
 
-    var hash = link.getAttribute('href').replace(/^\//, '');
+    /* The long-form page's section links are written /home#section so they work
+       from the deck and from every other page. On the long-form page itself
+       (served at / for phones and at /home otherwise) they are in-page anchors. */
+    var hash = link.getAttribute('href').replace(/^\/(home)?/, '');
     if (hash === '#' || hash.length < 2) return;
 
     var target = document.querySelector(hash);

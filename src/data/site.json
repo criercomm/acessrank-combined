@@ -39,15 +39,15 @@
     },
     {
       "label": "What we fix",
-      "href": "/#product"
+      "href": "/home#product"
     },
     {
       "label": "Pricing",
-      "href": "/#pricing"
+      "href": "/home#pricing"
     },
     {
       "label": "Free audit",
-      "href": "/#audit",
+      "href": "/home#audit",
       "cta": true
     }
   ],
@@ -98,15 +98,15 @@
         },
         {
           "label": "WCAG 2.2 explained",
-          "href": "/#wcag"
+          "href": "/home#wcag"
         },
         {
           "label": "How it works",
-          "href": "/#process"
+          "href": "/home#process"
         },
         {
           "label": "FAQ",
-          "href": "/#faq"
+          "href": "/home#faq"
         },
         {
           "label": "Resources",

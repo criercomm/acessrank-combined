@@ -41,7 +41,7 @@
       var theirs = document.getElementById('audit-url');
       var submit = document.getElementById('audit-submit');
       var card = document.getElementById('audit-card');
-      if (!theirs || !submit) { window.location.href = '/#audit'; return; }
+      if (!theirs || !submit) { window.location.href = '/home#audit'; return; }
       theirs.value = mine ? mine.value.trim() : '';
       if (card && card.scrollIntoView) card.scrollIntoView({ behavior: 'smooth', block: 'center' });
       if (theirs.value) submit.click(); else theirs.focus();
