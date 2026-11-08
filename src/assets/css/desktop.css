@@ -252,7 +252,7 @@
   /* ---- Pricing: same tiles, square with a yellow edge ---- */
   .site[data-page="/"] .pricing { max-width: 1280px; margin-left: auto; margin-right: auto; padding-left: 64px; padding-right: 64px; box-sizing: border-box; }
   .site[data-page="/"] .pricing .section-sub { margin-bottom: 40px; }
-  .site[data-page="/"] .price-card, .site[data-page="/"] .price-card.featured { border-radius: 0; border: 1px solid var(--brand); }
+  .site[data-page="/"] .price-card, .site[data-page="/"] .price-card.featured { border-radius: 12px; border: 1px solid var(--brand); }
   [data-theme="light"] .site[data-page="/"] .price-card, [data-theme="light"] .site[data-page="/"] .price-card.featured { border-color: var(--hairline-strong); }
   .site[data-page="/"] .price-card:hover { transform: translateY(-4px); }
   .site[data-page="/"] .price-every { display: block; padding: 0; margin: 0 0 40px; border: 0; background: none; border-radius: 0; }
