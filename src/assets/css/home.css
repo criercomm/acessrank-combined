@@ -853,3 +853,10 @@ html:not([data-theme="light"]) .overlay-content p strong { background: var(--bra
   .site .risk-title { animation: arHeroFadeUp .8s cubic-bezier(.16, 1, .3, 1) .1s both; }
   .site .risk-sub { animation: arHeroFadeUp .8s cubic-bezier(.16, 1, .3, 1) .3s both; }
 }
+
+/* Phones: the hero headline is one colour, and no hairline after the "Already served?" row or above the section under it. */
+@media (max-width: 767px) {
+  .site .risk-title .red, .site .risk-title .h-line.red { color: var(--text); }
+  .site .risk-links { border-bottom: 0; padding-bottom: 0; }
+  .site .top-stack .hero-copy { border-top: 0; border-bottom: 0; }
+}
