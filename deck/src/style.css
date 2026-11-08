@@ -686,7 +686,7 @@ a.contact-line:hover { color: var(--accent); }
  * grid (logo / dots / right links) so the middle column can center them in
  * the gap between the logo and the leftmost nav link, at any nav width. */
 .ar-nav .chapters { position: static; height: auto; justify-self: center; }
-.ar-nav .chapter { font-family: var(--display); font-size: 13px; letter-spacing: 0; text-transform: uppercase; white-space: nowrap; } /* the label beside the dots: Inter, all caps */
+.ar-nav .chapter { font-family: var(--mono); white-space: nowrap; } /* the label beside the dots: the original monospace all caps (size, spacing and caps come from lib/deck.css); nowrap keeps it on one line */
 .ar-nav-link { color: var(--ar-soft); text-decoration: none; font-size: 13px; font-weight: 400; letter-spacing: 0; text-transform: none; } /* the main site's nav: 13px, sentence case */
 .ar-nav-link:hover { color: var(--fg); }
 /* "Client login": the main site's quiet utility link, set apart by a hairline. */
