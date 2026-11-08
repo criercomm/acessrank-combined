@@ -9,6 +9,7 @@ import { copy } from './copy.js'
 import { Presenter } from './components/presenter.js'
 import { Navbar } from './components/navbar.js'
 import { SiteNav } from './components/site-nav.js'
+import { trackCopyHeights } from './components/copy-gap.js'
 import s01 from './slides/s01-cover.js'
 import s02 from './slides/s02-letter.js'
 import s03 from './slides/s03-widget.js'
@@ -80,12 +81,8 @@ createDeck({
   onChange: (i) => { presenter?.update(i); nav.update(i) },
 }).then((deck) => {
   deckRef = deck
-  // Chapter dots move into the site nav bar itself, right after the logo,
-  // instead of their own row in the deck's chrome (see lib/deck.css .chapters
-  // and src/style.css's .ar-nav .chapters override for the layout side of this).
-  const chaptersEl = root.querySelector('.chapters')
-  const arNavRight = siteNav.el.querySelector('.ar-nav-right')
-  if (chaptersEl && arNavRight) siteNav.el.insertBefore(chaptersEl, arNavRight)
+  trackCopyHeights(root)
+  // Chapter dots stay in the bottom strip (lib/deck.css .chapters), so the top nav is identical to the main site's.
   const s = assets.stats()
   console.info(`[deck R] ${deck.total} scenes${short ? ' (short path)' : ''} · assets ${s.final} final / ${s.placeholder} placeholder`)
 })

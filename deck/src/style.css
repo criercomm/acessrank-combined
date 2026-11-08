@@ -665,7 +665,7 @@ a.contact-line:hover { color: var(--accent); }
   display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 24px;
   /* Same box as the main site's nav (.site-nav in layout.css and desktop.css): 40px above, 18px below, and the
      home page's --edge on the left and right, so the logo sits where it does on the main site. */
-  --ar-edge: max(40px, calc((100% - 1200px) / 2 + 40px));
+  --ar-edge: max(40px, calc((100% - 1280px) / 2 + 64px));
   height: auto; padding: 40px var(--ar-edge) 18px;
   background: none; /* no bar: the main site's nav sits straight on the page (was a dark translucent bar with a blur and a bottom rule) */
   font-family: var(--display); /* Inter, as the main site's nav (was the mono face) */
@@ -687,7 +687,7 @@ a.contact-line:hover { color: var(--accent); }
  * after the logo, by src/main.js once the deck is ready. .ar-nav is a 3-column
  * grid (logo / dots / right links) so the middle column can center them in
  * the gap between the logo and the leftmost nav link, at any nav width. */
-.ar-nav .chapters { position: static; height: auto; justify-self: center; }
+
 .ar-nav .chapter { font-family: var(--mono); white-space: nowrap; } /* the label beside the dots: the original monospace all caps (size, spacing and caps come from lib/deck.css); nowrap keeps it on one line */
 .ar-nav-link { color: var(--ar-soft); text-decoration: none; font-size: 13px; font-weight: 400; letter-spacing: 0; text-transform: none; } /* the main site's nav: 13px, sentence case */
 .ar-nav-link:hover { color: var(--fg); }
@@ -798,3 +798,95 @@ a.contact-line:hover { color: var(--accent); }
 .cursor-dot { width: 6px; height: 6px; margin: -3px 0 0 -3px; }
 .cursor-ring { width: 24px; height: 24px; margin: -12px 0 0 -12px; }
 .cursor.is-hover .cursor-ring i { transform: scale(1.35); }
+
+/* ---- One shared page column (same as the main site's --edge): 1280px max, gutters 24px phones / 40px tablets / 64px desktop.
+   The slide box itself is the column, so every %-based layout scales inside it; backgrounds (.bleed) and the slide
+   transitions still run full-width through the negative inset and clip-path. ---- */
+:root { --gx: max(0px, calc((100vw - 1280px) / 2)); }
+@media (min-width: 768px) {
+  .slide { left: var(--gx); right: var(--gx); overflow: visible; clip-path: inset(0 calc(var(--gx) * -1)); }
+  .slide .bleed { left: calc(var(--gx) * -1); right: calc(var(--gx) * -1); }
+  .chapters { left: calc(var(--gx) + var(--margin)); }
+}
+
+/* The slide counter (04 / 09) is removed from the deck chrome. */
+.topright .counter { display: none; }
+
+/* ---- Desktop tightening: smaller headlines, the stepper moved up under the nav, less empty space above the content,
+   and a smaller cover mockup that clears the copy. Phones, tablets in portrait and short windows keep their layouts. ---- */
+@media (min-width: 768px) and (min-height: 621px) and (min-aspect-ratio: 1/1) {
+  :root { --pad-y: 173px; }
+  .chapters { top: 104px; bottom: auto; height: 24px; }
+  .topright { top: 104px; right: calc(var(--gx) + var(--margin)); }
+  .h-display { font-size: clamp(44px, 4.6vw, 80px); }
+  .h-statement { font-size: clamp(26px, 2.8vw, 44px); }
+  .s01-title { font-size: clamp(40px, 4.2vw, 72px); }
+  .s01-copy { top: calc(50% + 28px); width: 44%; }
+  .s01-mock { width: 64%; right: calc(var(--margin) - 100px); }
+  .s01-mock img { max-height: 76vh; object-position: 100% 50%; }
+  .s02-copy { top: var(--pad-y); transform: none; }
+  .s02-tiles { top: calc(var(--pad-y) + 156px); transform: none; }
+  .s02-right { transform: none; }
+  .s07-copy { width: 26%; }
+  .s07-right { left: 31%; }
+  .plan-price { font-size: clamp(22px, 2.1vw, 32px); }
+  /* every slide's content starts the same distance under the stepper (--pad-y) */
+  .s01-copy, .s01-mock { top: var(--pad-y); transform: none; }
+  .s02-right { top: calc(var(--pad-y) + clamp(26px, 2.8vw, 44px) * 1.04 - 179px); bottom: 56px; }
+  .wall { padding: 316px var(--margin) 40px; align-content: start; }
+  .badge { background: rgba(255, 255, 255, .045); border-color: rgba(255, 255, 255, .08); }
+  .badge::before { opacity: .4; }
+  .s03-panel { bottom: 216px; }
+  .s04-copy { transform: none; }
+  .s04-body { top: calc(var(--pad-y) + 44px); transform: translateY(-75px); }
+  .s05-body { align-content: start; transform: none; row-gap: 56px; }
+  .s06-grid, .s06-right { top: calc(var(--pad-y) + 322px); }
+  #s07.is-active, #s07.is-leaving { display: grid; grid-template-columns: 26% minmax(0, 1fr); column-gap: 5%; align-items: center; align-content: start; }
+  .s07-copy, .s07-right { position: relative; inset: auto; left: auto; right: auto; top: auto; bottom: auto; width: auto; transform: none; align-content: center; }
+  .s07-copy { transform: translateY(-25px); }
+  #s08.is-active, #s08.is-leaving { justify-content: flex-start; }
+  .s12-cards { top: calc(var(--pad-y) + 152px); }
+  .s12-foot { top: calc(var(--pad-y) + 330px); bottom: auto; justify-content: flex-start; }
+  .s07-right { row-gap: 14px; }
+  .plan { padding: 16px; row-gap: 8px; }
+  .plan-items { row-gap: 5px; font-size: 13px; line-height: 18px; }
+  .express { padding: 14px 20px; }
+  .s06-copy { width: calc(100% - 2 * var(--margin)); }
+  .s06-title, .s06-lede { max-width: none; }
+  /* headlines and copy use the whole column wherever nothing sits beside them (slides 1, 2 and 7 share the row with an image or the plans) */
+  .s03-copy, .s05-copy, .s06-copy, .s10-copy, .s11-copy, .s12-copy { width: calc(100% - 2 * var(--margin)); max-width: none; }
+  .s04-copy, .s08-copy { max-width: none; }
+  .lede, .s03-lede, .s06-lede, .s11-lede, .s12-sub { max-width: none; }
+  .s02-right { bottom: 64px; }
+  /* one gap between a slide's copy and the content under it */
+  :root { --copy-gap: 24px; }
+  .s02-tiles { top: calc(var(--pad-y) + var(--copy-h-s02, 130px) + var(--copy-gap)); }
+  .s04-body { top: calc(var(--pad-y) + var(--copy-h-s04, 44px) + var(--copy-gap) - 7px); transform: none; }
+  .s06-grid, .s06-right { top: calc(var(--pad-y) + var(--copy-h-s06, 290px) + var(--copy-gap)); }
+  .s12-cards { top: calc(var(--pad-y) + var(--copy-h-s12, 114px) + var(--copy-gap)); }
+  .s12-foot { top: calc(var(--pad-y) + var(--copy-h-s12, 114px) + var(--copy-gap) + 125px + 24px); }
+  .s05-body { row-gap: var(--copy-gap); }
+  #s08.is-active, #s08.is-leaving { row-gap: var(--copy-gap); }
+  .s01-mock { top: calc(var(--pad-y) - 20px); }
+  .tile--xl .tile-num { font-size: clamp(48px, 5vw, 84px); }
+}
+
+/* No accent colours in headlines: every line is the foreground colour. */
+.h-line.is-accent, .h-line.is-signal { color: var(--fg) !important; }
+.h-display .is-accent, .h-statement .is-accent, .h-display .is-signal, .h-statement .is-signal { color: var(--fg) !important; }
+
+/* Standard system cursor for deck navigation: the custom dot and ring are hidden. */
+html.has-cursor, html.has-cursor * { cursor: auto !important; }
+html.has-cursor a, html.has-cursor button, html.has-cursor [role="button"], html.has-cursor .s12-exit { cursor: pointer !important; }
+.cursor, .cursor-dot, .cursor-ring { display: none !important; }
+
+/* Contact: the Main website button is a solid yellow button. */
+.s12-site, .s12-site:visited { background: var(--accent); border-color: var(--accent); color: #14142A; font-weight: 600; }
+.s12-site:hover, .s12-site:focus-visible { background: #FFE07A; border-color: #FFE07A; color: #14142A; outline: 2px solid var(--fg); outline-offset: 3px; }
+
+/* Slide 1 keeps its yellow accent lines. */
+.s01-title .h-line.is-accent { color: var(--accent) !important; }
+
+/* Widows: headlines balance their lines, running copy avoids a single word on the last line. */
+.h-display, .h-statement, .title, .statement, [class$="-title"] { text-wrap: balance; }
+p, li, .lede, .s01-sub, .s03-lede, .s06-lede, .s11-lede, .s12-sub, .tile-label, .plan-who, .express-line, .s02-micro, .s03-fact span { text-wrap: pretty; }
