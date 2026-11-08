@@ -29,15 +29,15 @@ html, body { font-family: var(--display); }
 .mono, .label, .counter, .mute, .hint, .legal { font-family: var(--mono); }
 
 /* ---- typography ---- */
-.h-display { font-weight: 800; font-size: clamp(56px, 6.4vw, 120px); line-height: .96; letter-spacing: -.04em; text-wrap: balance; color: var(--fg); }
-.h-statement { font-weight: 800; font-size: clamp(32px, 3.5vw, 58px); line-height: 1.04; letter-spacing: -.03em; text-wrap: balance; color: var(--fg); }
+.h-display { font-weight: 800; font-size: clamp(56px, calc(6.4 * var(--vw)), 120px); line-height: .96; letter-spacing: -.04em; text-wrap: balance; color: var(--fg); }
+.h-statement { font-weight: 800; font-size: clamp(32px, calc(3.5 * var(--vw)), 58px); line-height: 1.04; letter-spacing: -.03em; text-wrap: balance; color: var(--fg); }
 .h-line { display: block; }
 .h-line.is-signal { color: var(--signal-soft); }
 .h-line.is-accent { color: var(--accent); }
 .kt .kt-char, .kt .kt-word { font-variation-settings: 'wght' var(--wght, 800); }
 .label { font-family: var(--mono); font-weight: 500; font-size: 11px; line-height: 16px; letter-spacing: .18em; text-transform: uppercase; color: var(--muted); }
 .lede { font-family: var(--display); font-weight: 400; font-size: 18px; line-height: 28px; color: var(--soft); max-width: 44ch; }
-@media (max-width: 767px) { .h-display { font-size: clamp(40px, 11.5vw, 64px); } .h-statement { font-size: clamp(26px, 7.4vw, 36px); } }
+@media (max-width: 767px) { .h-display { font-size: clamp(40px, calc(11.5 * var(--vw)), 64px); } .h-statement { font-size: clamp(26px, calc(7.4 * var(--vw)), 36px); } }
 
 /* ---- aurora (the site's glow) ---- */
 .aurora { position: absolute; inset: 0; pointer-events: none; z-index: 0;
@@ -54,12 +54,12 @@ html, body { font-family: var(--display); }
 
 /* ---- tiles (accessrank.ai stat cards) ---- */
 .tile { padding: 24px; border: 1px solid var(--line); border-radius: 12px; background: rgba(16, 24, 56, .72); backdrop-filter: blur(6px); display: grid; row-gap: 8px; align-content: start; }
-.tile-num { font-size: clamp(36px, 3.4vw, 56px); line-height: 1; font-weight: 600; color: var(--fg); }
+.tile-num { font-size: clamp(36px, calc(3.4 * var(--vw)), 56px); line-height: 1; font-weight: 600; color: var(--fg); }
 .tile-label { font-size: 15px; line-height: 22px; color: var(--soft); }
 .tile-source { color: var(--accent); font-size: 10px; letter-spacing: .12em; }
-.tile--xl .tile-num { font-size: clamp(56px, 6.4vw, 104px); }
+.tile--xl .tile-num { font-size: clamp(56px, calc(6.4 * var(--vw)), 104px); }
 .tile--m { padding: 16px; row-gap: 6px; }
-.tile--m .tile-num { font-size: clamp(22px, 2.1vw, 32px); }
+.tile--m .tile-num { font-size: clamp(22px, calc(2.1 * var(--vw)), 32px); }
 .tile--m .tile-label { font-size: 12px; line-height: 16px; }
 .tile.is-tbd { border-style: dashed; }
 .tbd { display: inline-block; justify-self: start; padding: 6px 12px; border: 1px dashed var(--accent); border-radius: 6px; color: var(--accent); font: 500 12px/16px var(--mono); letter-spacing: .18em; }
@@ -76,7 +76,7 @@ html, body { font-family: var(--display); }
 /* ============ S01 · Cover ============ */
 .s01-copy { position: absolute; left: var(--margin); top: 50%; transform: translateY(-50%); width: 42%; display: grid; row-gap: 20px; z-index: 3; }
 .s01-brand { justify-self: start; margin-bottom: 8px; }
-.s01-title { font-size: clamp(48px, 5.4vw, 96px); }
+.s01-title { font-size: clamp(48px, calc(5.4 * var(--vw)), 96px); }
 /* Slide 1 headline effect (components/redact-heading.js): words roll up inside clipped wrappers, bars cover
    "lawsuit" and "hidden". Same rules as the home page's .risk-title in src/assets/css/home.css. */
 .s01-title .hw { display: inline-block; overflow: hidden; vertical-align: top; padding-bottom: .14em; margin-bottom: -.14em; }
@@ -93,7 +93,7 @@ html, body { font-family: var(--display); }
 }
 .s01-stats { display: flex; gap: 32px; margin-top: 29px; }
 .tile--bare { padding: 0; border: none; background: none; -webkit-backdrop-filter: none; backdrop-filter: none; text-align: center; row-gap: 4px; justify-items: center; }
-.s01-stat.tile--bare .tile-num { font-size: clamp(34px, 3.4vw, 50px); }
+.s01-stat.tile--bare .tile-num { font-size: clamp(34px, calc(3.4 * var(--vw)), 50px); }
 .s01-stat.tile--bare .tile-label { max-width: 15ch; font-size: 12px; line-height: 16px; }
 .s01-mock { position: absolute; right: calc(var(--margin) - 16px); top: 50%; width: 58%; transform: translateY(-50%); margin: 0; z-index: 2; }
 .s01-mock-inner, .s01-mock-anim { position: relative; }
@@ -137,7 +137,7 @@ html, body { font-family: var(--display); }
 .s03-fact b { color: var(--accent); font-weight: 600; font-size: 16px; }
 
 /* ============ S04 · The fix (signature) ============ */
-/* headline at the shared .h-statement size, both halves on one line (the old clamp(22px, 2.3vw, 38px) read a size
+/* headline at the shared .h-statement size, both halves on one line (the old clamp(22px, calc(2.3 * var(--vw)), 38px) read a size
    smaller than every other slide); one line frees 32 px, so the store and panel move up */
 /* The headline used to sit 130px down, over the top of the stage. Fine while the
    storefront is full size; once the store splits and the evidence card and the
@@ -164,7 +164,7 @@ html, body { font-family: var(--display); }
 .st-icon i { width: 12px; height: 10px; border: 1.5px solid currentColor; border-top-width: 3px; border-radius: 2px; }
 .st-hero { display: grid; row-gap: 6px; padding: 14px 0 12px; justify-items: start; }
 .st-eyebrow { font-size: 11px; letter-spacing: .18em; text-transform: uppercase; color: rgba(232, 230, 240, .42); }
-.st-h { font-size: clamp(16px, 1.6vw, 24px); font-weight: 800; letter-spacing: -.02em; }
+.st-h { font-size: clamp(16px, calc(1.6 * var(--vw)), 24px); font-weight: 800; letter-spacing: -.02em; }
 .st-btn { display: inline-flex; align-items: center; height: 28px; padding: 0 14px; border-radius: 6px; background: var(--accent); color: #14142A; font-weight: 600; font-size: 12px; white-space: nowrap; cursor: default; }
 .st-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; padding: 4px 0 10px; }
 .st-card { display: grid; row-gap: 4px; padding: 10px; border-radius: 10px; background: rgba(255, 255, 255, .04); border: 1px solid rgba(255, 255, 255, .06); }
@@ -275,7 +275,7 @@ html, body { font-family: var(--display); }
 .s06-lede { font-size: 17px; line-height: 26px; color: var(--soft); max-width: none; } /* spans the copy column, the same width as the headline */
 .s06-grid { position: absolute; left: var(--margin); top: 46%; width: calc(var(--span) * .55); display: grid; grid-template-columns: 1fr 1fr; gap: 12px; z-index: 3; }
 .s06-grid .tile { padding: 18px 20px; }
-.s06-grid .tile-num { font-size: clamp(28px, 2.6vw, 40px); }
+.s06-grid .tile-num { font-size: clamp(28px, calc(2.6 * var(--vw)), 40px); }
 .s06-grid .tile-label { font-size: 13px; line-height: 18px; }
 .s06-right { position: absolute; right: var(--margin); top: 46%; width: calc(var(--span) * .45); display: grid; row-gap: 0; z-index: 3; }
 .s06-std { display: grid; grid-template-columns: 152px 1fr; column-gap: 12px; align-items: baseline; padding: 12px 0; border-top: 1px solid var(--line); transition: transform var(--t-2) var(--ease-reveal); }
@@ -285,7 +285,7 @@ html, body { font-family: var(--display); }
 .s06-platforms { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding-top: 16px; border-top: 1px solid var(--line); }
 .s06-plat-label { margin-right: 8px; }
 .s06-foot { position: absolute; left: var(--margin); bottom: 88px; width: 46%; display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px 16px; padding: 0; border: 0; background: none; backdrop-filter: none; z-index: 3; }
-.s06-foot .tile-num { font-size: clamp(28px, 2.8vw, 40px); color: var(--accent); }
+.s06-foot .tile-num { font-size: clamp(28px, calc(2.8 * var(--vw)), 40px); color: var(--accent); }
 .s06-foot .tile-label { flex: 1 1 260px; }
 .s06-foot .tile-source { flex-basis: 100%; }
 
@@ -301,7 +301,7 @@ html, body { font-family: var(--display); }
 .plan-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
 .plan-name { color: var(--fg); }
 .plan-tag { color: var(--accent); }
-.plan-price { font-size: clamp(32px, 3vw, 48px); line-height: 1; font-weight: 600; margin-top: 8px; min-height: 1em; color: var(--fg); }
+.plan-price { font-size: clamp(32px, calc(3 * var(--vw)), 48px); line-height: 1; font-weight: 600; margin-top: 8px; min-height: 1em; color: var(--fg); }
 .plan-monthly { font-size: 13px; color: var(--soft); }
 .plan-monthly b { color: var(--fg); font-weight: 600; }
 .plan-who { font-size: 13px; color: var(--fg); padding-top: 10px; border-top: 1px solid var(--line); margin-top: 6px; }
@@ -370,7 +370,7 @@ html, body { font-family: var(--display); }
 .mile b { color: var(--accent); font-weight: 600; }
 .s10-end { position: absolute; left: var(--margin); right: var(--margin); bottom: 88px; display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; z-index: 3; }
 /* the closing line runs on one line on desktop: as two lines it took the height the five buckets need on a 720 px laptop */
-.s10-close { font-size: clamp(28px, 3.4vw, 56px); }
+.s10-close { font-size: clamp(28px, calc(3.4 * var(--vw)), 56px); }
 .s10-close .h-line { display: inline; }
 .s10-close .h-line + .h-line::before { content: ' '; }
 .s08-title .h-line { display: inline; }
@@ -385,7 +385,7 @@ html, body { font-family: var(--display); }
 #s11.is-active, #s11.is-leaving { display: grid; grid-template-columns: minmax(0, 46fr) minmax(0, 54fr); grid-template-rows: auto 1fr; column-gap: var(--gutter); row-gap: 32px; align-items: start; padding-bottom: 48px; }
 .s11-copy { position: relative; margin-top: 54px; display: grid; row-gap: 14px; z-index: 3; }
 .s11-eyebrow { color: var(--accent); }
-.s11-title { font-size: clamp(28px, 3vw, 50px); }
+.s11-title { font-size: clamp(28px, calc(3 * var(--vw)), 50px); }
 .s11-lede { font-size: 15px; line-height: 23px; color: var(--soft); max-width: 56ch; }
 .s11-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin-top: 10px; }
 .s11-stats .tile-label { font-size: 12px; line-height: 16px; }
@@ -484,7 +484,7 @@ a.contact-line:hover { color: var(--accent); }
   .s01-title .h-line.is-accent { display: inline; }
   .s01-sub { font-size: 16px; line-height: 24px; }
   .s01-stats { flex-wrap: wrap; gap: 20px 28px; }
-  .s01-title { font-size: clamp(36px, 10vw, 56px); }
+  .s01-title { font-size: clamp(36px, calc(10 * var(--vw)), 56px); }
   .s01-mock { position: relative; inset: auto; width: 100%; transform: none; margin-top: 16px; }
   .s02-copy, .s03-copy, .s04-copy, .s05-copy, .s06-copy, .s07-copy, .s08-copy, .s10-copy { position: relative; left: 0; top: 0; width: 100%; }
   .s07-copy { transform: none; }
@@ -544,7 +544,7 @@ a.contact-line:hover { color: var(--accent); }
   .rail-line { display: none; }
   .s10-uses, .s10-miles { position: relative; inset: auto; width: 100%; margin-top: 20px; }
   .s10-end { position: relative; inset: auto; flex-direction: column; align-items: flex-start; margin-top: 32px; padding-bottom: 24px; }
-  .s10-close { font-size: clamp(32px, 9.4vw, 48px); }
+  .s10-close { font-size: clamp(32px, calc(9.4 * var(--vw)), 48px); }
   .s10-close .h-line { display: block; }
   .s10-close .h-line + .h-line::before { content: none; }
   .s08-title .h-line { display: block; }
@@ -605,9 +605,9 @@ a.contact-line:hover { color: var(--accent); }
 @media (min-width: 768px) and (max-height: 620px) {
   :root { --margin: 32px; --pad-y: 44px; --bar: 72px; }
   .nav-legal { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .h-display { font-size: clamp(34px, 4.6vw, 56px); }
-  .h-statement { font-size: clamp(24px, 3.2vw, 36px); }
-  .s01-title { font-size: clamp(34px, 4.6vw, 56px); }
+  .h-display { font-size: clamp(34px, calc(4.6 * var(--vw)), 56px); }
+  .h-statement { font-size: clamp(24px, calc(3.2 * var(--vw)), 36px); }
+  .s01-title { font-size: clamp(34px, calc(4.6 * var(--vw)), 56px); }
   .s01-sub, .s03-lede, .s06-lede, .s11-lede { font-size: 15px; line-height: 23px; }
   .s01-copy, .s02-copy, .s03-copy, .s04-copy, .s05-copy, .s06-copy, .s07-copy, .s08-copy, .s10-copy, .s11-copy, .s12-copy { max-width: 68ch; }
   .s01-mock img { max-height: 320px; }
@@ -628,7 +628,7 @@ a.contact-line:hover { color: var(--accent); }
    viewport instead of leaving the right half empty. Short windows (<= 820px) keep the tighter sizes below. */
 @media (min-width: 1200px) and (min-height: 821px) {
   .s06-copy { width: 80%; row-gap: 20px; }
-  .s06-title { font-size: clamp(48px, 4.4vw, 76px); }
+  .s06-title { font-size: clamp(48px, calc(4.4 * var(--vw)), 76px); }
   .s06-lede { font-size: 18px; line-height: 28px; }
 }
 
@@ -642,7 +642,7 @@ a.contact-line:hover { color: var(--accent); }
   .s06-lede { max-width: none; font-size: 16px; line-height: 24px; }
   .s06-grid { gap: 8px; }
   .s06-grid .tile { padding: 12px 16px; row-gap: 6px; }
-  .s06-grid .tile-num { font-size: clamp(24px, 2.2vw, 32px); }
+  .s06-grid .tile-num { font-size: clamp(24px, calc(2.2 * var(--vw)), 32px); }
   .s06-grid .tile-label { font-size: 12px; line-height: 16px; }
   .s06-std { padding: 9px 0; }
 }
@@ -818,9 +818,9 @@ a.contact-line:hover { color: var(--accent); }
   :root { --pad-y: 173px; }
   .chapters { top: 104px; bottom: auto; height: 24px; }
   .topright { top: 104px; right: calc(var(--gx) + var(--margin)); }
-  .h-display { font-size: clamp(44px, 4.6vw, 80px); }
-  .h-statement { font-size: clamp(26px, 2.8vw, 44px); }
-  .s01-title { font-size: clamp(40px, 4.2vw, 72px); }
+  .h-display { font-size: clamp(44px, calc(4.6 * var(--vw)), 80px); }
+  .h-statement { font-size: clamp(26px, calc(2.8 * var(--vw)), 44px); }
+  .s01-title { font-size: clamp(40px, calc(4.2 * var(--vw)), 72px); }
   .s01-copy { top: calc(50% + 28px); width: 44%; }
   .s01-mock { width: 64%; right: calc(var(--margin) - 100px); }
   .s01-mock img { max-height: 76vh; object-position: 100% 50%; }
@@ -829,10 +829,10 @@ a.contact-line:hover { color: var(--accent); }
   .s02-right { transform: none; }
   .s07-copy { width: 26%; }
   .s07-right { left: 31%; }
-  .plan-price { font-size: clamp(22px, 2.1vw, 32px); }
+  .plan-price { font-size: clamp(22px, calc(2.1 * var(--vw)), 32px); }
   /* every slide's content starts the same distance under the stepper (--pad-y) */
   .s01-copy, .s01-mock { top: var(--pad-y); transform: none; }
-  .s02-right { top: calc(var(--pad-y) + clamp(26px, 2.8vw, 44px) * 1.04 - 179px); bottom: 56px; }
+  .s02-right { top: calc(var(--pad-y) + clamp(26px, calc(2.8 * var(--vw)), 44px) * 1.04 - 179px); bottom: 56px; }
   .wall { padding: 316px var(--margin) 40px; align-content: start; }
   .badge { background: rgba(255, 255, 255, .045); border-color: rgba(255, 255, 255, .08); }
   .badge::before { opacity: .4; }
@@ -868,7 +868,7 @@ a.contact-line:hover { color: var(--accent); }
   .s05-body { row-gap: var(--copy-gap); }
   #s08.is-active, #s08.is-leaving { row-gap: var(--copy-gap); }
   .s01-mock { top: calc(var(--pad-y) - 20px); }
-  .tile--xl .tile-num { font-size: clamp(48px, 5vw, 84px); }
+  .tile--xl .tile-num { font-size: clamp(48px, calc(5 * var(--vw)), 84px); }
 }
 
 /* No accent colours in headlines: every line is the foreground colour. */
@@ -902,3 +902,7 @@ p, li, .lede, .s01-sub, .s03-lede, .s06-lede, .s11-lede, .s12-sub, .tile-label, 
 .s06-title, .s06-title .h-line, .s06-lede { text-wrap: wrap; max-width: none; }
 .s06-title .h-line { display: inline; }
 .s06-title .h-line + .h-line::before { content: ' '; }
+
+/* Wide screens: type that scales with the window stops growing at 1440px, where the 1280px column is already full,
+   so headlines, numbers and tiles keep the proportions that look right at medium desktop widths. */
+:root { --vw: min(1vw, 14.4px); }
