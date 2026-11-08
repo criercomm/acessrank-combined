@@ -861,7 +861,7 @@ a.contact-line:hover { color: var(--accent); }
   /* one gap between a slide's copy and the content under it */
   :root { --copy-gap: 24px; }
   .s02-tiles { top: calc(var(--pad-y) + var(--copy-h-s02, 130px) + var(--copy-gap)); }
-  .s04-body { top: calc(var(--pad-y) + var(--copy-h-s04, 44px) + var(--copy-gap) - 7px); transform: none; }
+  .s04-body { top: calc(var(--pad-y) + var(--copy-h-s04, 44px) + var(--copy-gap)); align-items: start; transform: none; }
   .s06-grid, .s06-right { top: calc(var(--pad-y) + var(--copy-h-s06, 290px) + var(--copy-gap)); }
   .s12-cards { top: calc(var(--pad-y) + var(--copy-h-s12, 114px) + var(--copy-gap)); }
   .s12-foot { top: calc(var(--pad-y) + var(--copy-h-s12, 114px) + var(--copy-gap) + 125px + 54px); }
@@ -906,3 +906,8 @@ p, li, .lede, .s01-sub, .s03-lede, .s06-lede, .s11-lede, .s12-sub, .tile-label, 
 /* Wide screens: type that scales with the window stops growing at 1440px, where the 1280px column is already full,
    so headlines, numbers and tiles keep the proportions that look right at medium desktop widths. */
 :root { --vw: min(1vw, 14.4px); }
+
+/* Large windows: no focus frame around the slide (it traced the column edges), the plug-in wall stays inside the column so
+   its pills keep the size they have at medium widths, and the Fix slide's store hangs from the headline, not the window middle. */
+.slide:focus, .slide:focus-visible { outline: none; }
+@media (min-width: 768px) { .slide .bleed.s03-wall { left: 0; right: 0; } }

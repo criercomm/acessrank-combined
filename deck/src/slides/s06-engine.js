@@ -25,6 +25,7 @@ export default {
     // The lede's right edge follows the headline's longest rendered line, so copy and title read as one block
     // on wide viewports instead of the paragraph running past the headline. Compact mode lets it fill the column.
     const fitLede = () => {
+      lede.style.maxWidth = ''; return // the lede now spans the whole column, like the headline
       if (getComputedStyle(grid).position !== 'absolute') { lede.style.maxWidth = ''; return }
       // Measure the words, not the line wrappers: .h-line is a block that spans the whole column.
       const box = title.el.getBoundingClientRect()
@@ -39,8 +40,8 @@ export default {
       fitLede()
       if (getComputedStyle(grid).position !== 'absolute') { grid.style.top = right.style.top = ''; return }
       // Si al 46 % se comerían el pie (tiles estrechas a 1024), suben hacia el copy, nunca por encima de él.
-      const floor = root.clientHeight - 88 - Math.max(grid.offsetHeight, right.offsetHeight)
-      const top = Math.max(Math.min(root.clientHeight * .46, floor), copyEl.offsetTop + copyEl.offsetHeight + 20)
+      // Always the same gap under the copy, whatever the window height (the old 46 % rule left a hole on tall windows).
+      const top = copyEl.offsetTop + copyEl.offsetHeight + 24
       grid.style.top = right.style.top = top + 'px'
     }
     window.addEventListener('resize', this.place)
