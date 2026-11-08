@@ -60,9 +60,13 @@
     display: none;
   }
   .site-nav .nav-right.is-open, .nav .nav-right.is-open { display: flex; }
-  .site-nav { position: relative; }
-  .nav-right .nav-link { padding: 12px 4px; }
-  .nav-right .cta-nav { text-align: center; margin-top: 6px; }
+  /* Lift the bar above the page so the open menu is not painted over by positioned hero copy. */
+  .site-nav { position: relative; z-index: 100; }
+  .site-nav .nav-right, .nav .nav-right { z-index: 100; gap: 0; }
+  /* One row height for every item, so spacing is even. */
+  .nav-right .nav-link { padding: 0 4px; min-height: 48px; display: flex; align-items: center; }
+  .nav-right .cta-nav { justify-content: center; text-align: center; min-height: 44px; margin: 8px 0; padding: 0 14px; border-radius: 8px; }
+  .nav-right .nav-utility { margin-left: 0; padding-left: 4px; border-left: 0; }
 }
 
 /* About us dropdown in the primary nav. Opens on hover/focus on desktop
@@ -103,9 +107,9 @@
   .nav-item.has-menu::after { display: none; }
   .nav-submenu {
     position: static; display: block; width: 100%; min-width: 0;
-    padding: 0 0 6px 14px; background: transparent; border: 0; box-shadow: none;
+    padding: 0 0 0 14px; background: transparent; border: 0; box-shadow: none;
   }
-  .nav-submenu a { padding: 10px 4px; color: var(--text-muted); }
+  .nav-right .nav-submenu a { padding: 0 4px; min-height: 48px; color: var(--text-muted); }
   .nav-item.has-menu:hover .nav-submenu, .nav-item.has-menu:focus-within .nav-submenu { display: block; }
   .nav-menu-toggle { display: none; }
 }
@@ -659,7 +663,7 @@ body.deck-open { overflow: hidden; }
 .theme-toggle-label { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 @media (max-width: 860px) {
   /* In the mobile menu it is a full row like the links around it, label showing. */
-  .nav-right .theme-toggle { justify-content: flex-start; min-height: 44px; padding: 10px 4px; border: 0; border-radius: 6px; }
+  .nav-right .theme-toggle { justify-content: flex-start; align-self: stretch; min-height: 48px; padding: 0 4px; border: 0; border-radius: 6px; }
   .nav-right .theme-toggle:hover { background: transparent; }
   .nav-right .theme-toggle-label { position: static; width: auto; height: auto; margin: 0; overflow: visible; clip: auto; }
 }
