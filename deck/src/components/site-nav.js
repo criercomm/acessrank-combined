@@ -67,8 +67,12 @@ export function SiteNav({ homeHref = '/' } = {}) {
     el('span', { class: 'ar-nav-mark', 'aria-hidden': 'true', html: MARK }),
     el('span', { class: 'ar-nav-word', text: 'Accessrank' }))
 
+  // The main site's brand block: logo with the Beta badge beside it.
+  const beta = el('a', { class: 'ar-nav-beta', href: '/beta', target: '_top', text: 'Beta' })
+  const brand = el('div', { class: 'ar-nav-brand' }, logo, beta)
+
   // Bar links (hidden below 1280px by CSS).
-  const row = el('ul', { class: 'ar-nav-links' }, ...LINKS.map((l) => (l.children ? dropdown(l) : el('li', {}, link(l)))))
+  const row = el('ul', { class: 'ar-nav-links' }, ...LINKS.map((l) => (l.children ? dropdown(l) : el('li', {}, link(l, l.label === 'Client login' ? 'ar-nav-link ar-nav-utility' : 'ar-nav-link')))))
 
   const site = link(SITE, 'ar-nav-link ar-nav-site')
   const cta = link(CTA, 'ar-nav-link ar-nav-cta')
@@ -82,7 +86,7 @@ export function SiteNav({ homeHref = '/' } = {}) {
     el('ul', {}, ...[...LINKS, ...MORE].map((l) => el('li', {}, link(l, 'ar-nav-menu-link')))))
 
   const right = el('div', { class: 'ar-nav-right' }, row, site, cta, button)
-  const root = el('nav', { class: 'ar-nav', 'aria-label': 'Site' }, logo, right, menu)
+  const root = el('nav', { class: 'ar-nav', 'aria-label': 'Site' }, brand, right, menu)
 
   // --- disclosure behaviour -------------------------------------------------
   let open = false
