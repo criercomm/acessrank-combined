@@ -663,9 +663,11 @@ a.contact-line:hover { color: var(--accent); }
 .ar-nav {
   position: fixed; inset: 0 0 auto 0; z-index: 60;
   display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 24px;
-  height: 64px; padding: 0 var(--margin);
-  background: rgba(20, 20, 42, .82); backdrop-filter: blur(10px);
-  border-bottom: 1px solid rgba(242, 240, 235, .12);
+  /* Same box as the main site's nav (.site-nav in layout.css and desktop.css): 40px above, 18px below, and the
+     home page's --edge on the left and right, so the logo sits where it does on the main site. */
+  --ar-edge: max(40px, calc((100% - 1200px) / 2 + 40px));
+  height: auto; padding: 40px var(--ar-edge) 18px;
+  background: none; /* no bar: the main site's nav sits straight on the page (was a dark translucent bar with a blur and a bottom rule) */
   font-family: var(--display); /* Inter, as the main site's nav (was the mono face) */
 }
 /* The main site's brand block (.site .site-nav .logo): 26px Inter 800, a 33px mark, the Beta badge beside it. */
@@ -743,7 +745,7 @@ a.contact-line:hover { color: var(--accent); }
 
 /* Menu panel, under the bar's right edge. A plain border, no accent edge. */
 .ar-nav-menu {
-  position: absolute; top: calc(100% + 8px); right: var(--margin); min-width: 244px; padding: 8px;
+  position: absolute; top: calc(100% + 8px); right: var(--ar-edge); min-width: 244px; padding: 8px;
   background: rgba(20, 20, 42, .98); border: 1px solid rgba(242, 240, 235, .16); border-radius: 10px;
   box-shadow: 0 24px 60px rgba(0, 0, 0, .45);
 }
@@ -760,7 +762,7 @@ a.contact-line:hover { color: var(--accent); }
   .ar-nav-menu-btn { display: inline-flex; }
 }
 @media (max-width: 767px), (max-height: 620px) {
-  .ar-nav { height: 52px; padding: 0 var(--margin); }
+  .ar-nav { --ar-edge: 24px; height: auto; padding: 24px var(--ar-edge) 18px; } /* the main site's phone nav: 24px edge, 24px above */
   .ar-nav-link:not(.ar-nav-cta):not(.ar-nav-site) { display: none; }
   .ar-nav-word { display: none; }
 }
