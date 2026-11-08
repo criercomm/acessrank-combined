@@ -864,7 +864,7 @@ a.contact-line:hover { color: var(--accent); }
   .s04-body { top: calc(var(--pad-y) + var(--copy-h-s04, 44px) + var(--copy-gap) - 7px); transform: none; }
   .s06-grid, .s06-right { top: calc(var(--pad-y) + var(--copy-h-s06, 290px) + var(--copy-gap)); }
   .s12-cards { top: calc(var(--pad-y) + var(--copy-h-s12, 114px) + var(--copy-gap)); }
-  .s12-foot { top: calc(var(--pad-y) + var(--copy-h-s12, 114px) + var(--copy-gap) + 125px + 24px); }
+  .s12-foot { top: calc(var(--pad-y) + var(--copy-h-s12, 114px) + var(--copy-gap) + 125px + 54px); }
   .s05-body { row-gap: var(--copy-gap); }
   #s08.is-active, #s08.is-leaving { row-gap: var(--copy-gap); }
   .s01-mock { top: calc(var(--pad-y) - 20px); }
@@ -890,3 +890,15 @@ html.has-cursor a, html.has-cursor button, html.has-cursor [role="button"], html
 /* Widows: headlines balance their lines, running copy avoids a single word on the last line. */
 .h-display, .h-statement, .title, .statement, [class$="-title"] { text-wrap: balance; }
 p, li, .lede, .s01-sub, .s03-lede, .s06-lede, .s11-lede, .s12-sub, .tile-label, .plan-who, .express-line, .s02-micro, .s03-fact span { text-wrap: pretty; }
+
+/* Process: the headline runs on as one sentence (no line break after "downtime."), and the flow sits 30px further below it. */
+.s05-title .h-line { display: inline; }
+.s05-title .h-line + .h-line::before { content: ' '; }
+@media (min-width: 768px) and (min-height: 621px) and (min-aspect-ratio: 1/1) {
+  .s05-body { row-gap: calc(var(--copy-gap) + 30px); }
+}
+
+/* Engine: the headline and paragraph fill the whole column. Balancing (above) shortens lines, so it is off here. */
+.s06-title, .s06-title .h-line, .s06-lede { text-wrap: wrap; max-width: none; }
+.s06-title .h-line { display: inline; }
+.s06-title .h-line + .h-line::before { content: ' '; }
