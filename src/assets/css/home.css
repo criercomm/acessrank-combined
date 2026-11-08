@@ -831,3 +831,16 @@ html:not([data-theme="light"]) .overlay-content p strong { background: var(--bra
   .site .overlay-card { align-items: center; text-align: center; }
   .site .overlay-content h3, .site .overlay-content p { text-align: center; }
 }
+
+/* Phones, round 3 (Nov 2026): same order as desktop for the stats, then the check, then the intro.
+ * Top of the page reads: headline and links, the three stats, the free check, then "Higher rank. Wider reach."
+ * .hero and .hero-split stop generating boxes so the check and the intro can be ordered next to the stats;
+ * the hero's side padding moves onto the two pieces. Desktop markup and layout are unchanged. */
+@media (max-width: 767px) {
+  .site .top-stack > .risk-strip { order: 1; }
+  .site .top-stack > .risk-stats { order: 2; }
+  .site .top-stack > .hero, .site .top-stack .hero-split { display: contents; }
+  .site .top-stack .hero-audit { order: 3; padding: 20px var(--edge) 0; }
+  .site .top-stack .hero-copy { order: 4; padding: 28px var(--edge) 16px; border-bottom: 0; border-top: 1px solid var(--keyline); margin: 28px var(--edge) 0; padding-inline: 0; }
+  .site .risk-stats { padding: 20px var(--edge) 8px; }
+}
