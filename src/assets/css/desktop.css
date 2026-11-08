@@ -48,7 +48,7 @@
   .site[data-page="/"] .risk-link-urgent:hover { color: var(--text); }
 
   /* ---- Hero stats: skewed tiles with a slow, flickering hot edge ---- */
-  .site[data-page="/"] .risk-stats { padding: 40px var(--edge) 64px; }
+  .site[data-page="/"] .risk-stats { padding: 40px var(--edge) 32px; }
   .site[data-page="/"] .risk-grid {
     grid-template-columns: 1.2fr 1fr 1fr; gap: 64px; padding: 0 8px; max-width: 1020px; margin-inline: auto;
   }
@@ -94,8 +94,8 @@
   }
 
   /* ---- Free check: open, no card ---- */
-  .site[data-page="/"] .hero { padding: 0; border-top: 1px solid var(--hairline); }
-  .site[data-page="/"] .hero-split { max-width: 1280px; margin: 0 auto; padding: 64px 64px 56px; gap: 56px; align-items: center; flex-wrap: wrap; }
+  .site[data-page="/"] .hero { padding: 0; }
+  .site[data-page="/"] .hero-split { max-width: 1280px; margin: 0 auto; padding: 8px 64px 56px; gap: 56px; align-items: center; flex-wrap: wrap; }
   .site[data-page="/"] .hero-copy { flex: 1 1 460px; min-width: 0; left: 0; top: 0; text-align: left; }
   .site[data-page="/"] .hero-audit { flex: 1 1 440px; min-width: 0; left: 0; }
   .site[data-page="/"] .hero-eyebrow { font-size: 13px; font-weight: 700; letter-spacing: .14em; margin-bottom: 18px; }
