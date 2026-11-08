@@ -844,3 +844,12 @@ html:not([data-theme="light"]) .overlay-content p strong { background: var(--bra
   .site .top-stack .hero-copy { order: 4; padding: 28px var(--edge) 16px; border-bottom: 0; border-top: 1px solid var(--keyline); margin: 28px var(--edge) 0; padding-inline: 0; }
   .site .risk-stats { padding: 20px var(--edge) 8px; }
 }
+
+/* Phones: a quick CSS-only fade up of the headline and subhead in place of the desktop GSAP effect (that script
+ * does not run under 768px). Half a second, opacity and transform only, no script and no extra download.
+ * Off under reduced motion. */
+@keyframes arHeroFadeUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+@media (max-width: 767px) and (prefers-reduced-motion: no-preference) {
+  .site .risk-title { animation: arHeroFadeUp .5s cubic-bezier(.16, 1, .3, 1) both; }
+  .site .risk-sub { animation: arHeroFadeUp .5s cubic-bezier(.16, 1, .3, 1) .12s both; }
+}
