@@ -313,7 +313,7 @@
       var wantsPlacement = payload.plan === 'audit' && payload.website;
 
       // Progress while the store is scanned: the button shows a spinner and the status line walks
-      // through the stages on a timer, since the scan itself is a single request of 15–30 seconds.
+      // through the stages on a timer, since the scan itself is a single request of up to about 45 seconds.
       var progressTimers = [];
       var setProgress = function (label, note) {
         if (submit) { submit.classList.add('is-busy'); submit.textContent = label; }

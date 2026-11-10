@@ -290,8 +290,9 @@ that was intended.
   translation table for ~90 rules, and a wrong translation on a compliance
   report is worse than an accurate technical one. The PDF carries the full
   explanation.
-- **The hero says "about 20 seconds".** A trivial page returns in ~2s; a real
-  storefront with 3 pages crawled takes longer. Deliberately under-promising.
+- **The checker copy says "under a minute".** Timed on the live checker on 2026-11-09 (first-time scans, 3 pages
+  crawled): kettleheroes.com 24.7s, allbirds.com 29.4s, freshemeals.com 44.5s, brooklinen.com 45.8s. The scan
+  budget is 45s, so heavy stores can time out. Do not go back to "about 20 seconds".
 - **No customer/case-study page.** Cannot be written without real customers.
 
 **Honest limitations, stated on `/methodology`, in the email and in the PDF:**
