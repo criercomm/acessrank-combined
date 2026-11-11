@@ -114,11 +114,11 @@ app.use(helmet({
   referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
 }));
 
-// The email-signature logo is hotlinked from other origins (mail clients, and
-// pages that preview a signature), so it is the one file that must opt out of
-// helmet's Cross-Origin-Resource-Policy: same-origin default.
+// Images under /assets/img/ (including the email-signature logos) are hotlinked
+// from other origins (mail clients, and pages that preview a signature), so they
+// opt out of helmet's Cross-Origin-Resource-Policy: same-origin default.
 app.use((req, res, next) => {
-  if (req.path === '/assets/img/email-logo.png') {
+  if (req.path.startsWith('/assets/img/')) {
     res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
   }
   next();
