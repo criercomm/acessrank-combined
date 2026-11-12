@@ -7,8 +7,8 @@
  * person asks it to.
  *
  * The scan runs in a dialog (#scan-modal) so the homepage never reflows under
- * the visitor: progress first, then the results on the left and the report form
- * on the right, or the reason the scan could not run. The card itself only keeps
+ * the visitor: progress first, then the scan summary beside the report form with
+ * Access and Rank results below, or the reason the scan could not run. The card itself only keeps
  * the address field — plus a "View your results" button if the visitor closed
  * the dialog before the scan finished.
  *
@@ -118,7 +118,7 @@
   var PHASES = [
     'Loading the page in a real browser',
     'Running axe-core against WCAG 2.2 A/AA',
-    'Checking colour contrast and focus order',
+    'Checking colour contrast and accessible names',
     'Reading SEO and AI agent signals',
     'Scoring'
   ];
@@ -139,160 +139,356 @@
 
   /* --------------------------------------------------------- render --- */
 
+  /*
+   * Result view: Access (accessibility) beside Rank (SEO and AI agent readiness).
+   * Both halves are written into one grid as cells with a column (c1 / c2) and a row
+   * (r1 heading, r2 headline, r3 first score and its caption, r4 second score, r5 findings), so their
+   * scores share one baseline whatever the copy above them wraps to.
+   * The Accessrank score is the accessibility score; SEO and AI agent readiness are
+   * reported beside it and never blended in.
+   */
+
+  /* Same thresholds as band() in server/lib/scoring.js. */
+  function toneOf(score) {
+    if (score == null) return 'neutral';
+    if (score >= 90) return 'good';
+    if (score >= 75) return 'ok';
+    if (score >= 50) return 'warn';
+    return 'bad';
+  }
+  /* Lighthouse's own colour bands: 90–100 green, 50–89 orange, 0–49 red. */
+  function lighthouseTone(score) {
+    if (score == null) return 'neutral';
+    if (score >= 90) return 'good';
+    if (score >= 50) return 'warn';
+    return 'bad';
+  }
+
+  function plural(n, one, many) { return n + ' ' + (n === 1 ? one : many); }
+
+  function scoreBar(label, detail, value, tone) {
+    var bar = el('div', 'ar-bar');
+    bar.setAttribute('data-tone', tone);
+    var top = el('div', 'ar-bar-top');
+    var lab = el('p', 'ar-bar-label');
+    lab.appendChild(el('strong', null, label));
+    if (detail) lab.appendChild(el('span', null, detail));
+    top.appendChild(lab);
+    top.appendChild(el('span', 'ar-bar-num', value == null ? '—' : String(value)));
+    bar.appendChild(top);
+    var track = el('div', 'ar-bar-track');
+    track.setAttribute('role', 'img');
+    track.setAttribute('aria-label', label + ': ' + (value == null ? 'not scored' : value + ' out of 100'));
+    var fill = el('span', 'ar-bar-fill');
+    fill.style.setProperty('--pct', (value || 0) + '%');
+    track.appendChild(fill);
+    bar.appendChild(track);
+    return bar;
+  }
+
+  /* One native disclosure (keyboard and screen-reader support come from the browser). */
+  function disclosure(badgeText, badgeKind, title, meta, body) {
+    var d = el('details', 'ar-acc');
+    var s = el('summary');
+    var badge = el('span', 'ar-badge', badgeText);
+    badge.setAttribute('data-kind', badgeKind);
+    s.appendChild(badge);
+    s.appendChild(el('span', 'ar-acc-title', title));
+    if (meta) s.appendChild(el('span', 'ar-acc-meta', meta));
+    var chev = el('span', 'ar-chev');
+    chev.setAttribute('aria-hidden', 'true');
+    s.appendChild(chev);
+    d.appendChild(s);
+    var b = el('div', 'ar-acc-body');
+    b.appendChild(body);
+    d.appendChild(b);
+    return d;
+  }
+
+  function cell(col, row, child) {
+    var c = el('div', 'ar-cell ar-' + col + ' ar-' + row);
+    if (child) c.appendChild(child);
+    return c;
+  }
+
+  function sectionHead(id, name, desc) {
+    var h = el('div', 'ar-head');
+    var t = el('h3', 'ar-name', name);
+    t.id = id;
+    h.appendChild(t);
+    h.appendChild(el('p', 'ar-desc', desc));
+    return h;
+  }
+
+  /*
+   * Plain-language sentence for the summary's "first to fix", built from a check's id
+   * and the scanner's short detail (e.g. "5 characters — aim for 20-65"). The detail
+   * strings are written for the report table; a shopper-facing sentence needs to say
+   * what the thing is and what good looks like.
+   */
+  function firstNum(text) {
+    var m = /(\d+)/.exec(text || '');
+    return m ? Number(m[1]) : null;
+  }
+  function plainFix(check) {
+    var d = check.detail || '';
+    var n = firstNum(d);
+    switch (check.id) {
+      case 'title':
+        return n ? 'Your page title, the clickable headline in search results (not the site name shown above it), is only ' +
+          plural(n, 'character', 'characters') + ' long. Aim for 20 to 65.'
+          : 'Your page has no title, the clickable headline in search results (not the site name shown above it).';
+      case 'description':
+        return n ? 'Your meta description, the summary shown under your headline in search results, is only ' +
+          plural(n, 'character', 'characters') + ' long. Aim for 70 to 165.'
+          : 'Your page has no meta description, the summary shown under your headline in search results.';
+      case 'h1':
+        return n ? 'Your page has ' + n + ' main headings (H1). It should have exactly one.'
+          : 'Your page has no main heading (H1).';
+      case 'headings':
+        return 'Your heading levels skip a step, which makes the page harder for search engines and screen readers to follow.';
+      case 'imageAlt': {
+        var m = /(\d+) of (\d+)/.exec(d);
+        return m ? m[1] + ' of ' + m[2] + ' images have no text description (alt text) for search engines and screen readers.'
+          : 'Images have no text description (alt text) for search engines and screen readers.';
+      }
+      case 'canonical':
+        return 'Your page does not tell search engines which address is its main one (a canonical link).';
+      case 'lang':
+        return 'Your page does not declare what language it is in.';
+      case 'viewport':
+        return 'Your page is not set up to fit phone screens.';
+      case 'structured':
+        return 'Your page has no structured data, the code that describes your products to search engines.';
+      case 'openGraph':
+        return 'Your page is missing sharing tags (Open Graph), which set the preview when someone shares a link.';
+      case 'https':
+        return 'Your page loads over plain HTTP, not a secure HTTPS connection.';
+      case 'indexable':
+        return 'Your page is marked noindex, so search engines leave it out.';
+      case 'linkText':
+        return n ? plural(n, 'link uses', 'links use') + ' vague text like "click here" that does not say where it goes.'
+          : 'Some links use vague text like "click here" that does not say where it goes.';
+      case 'favicon':
+        return 'Your page has no favicon, the small icon shown in browser tabs.';
+      /* AI agent readiness checks (server/lib/agent.js) */
+      case 'buttons':
+        return 'Some buttons have no name, so AI assistants and screen readers cannot tell what they do.';
+      case 'links':
+        return 'Some links do not say where they go, so AI assistants and screen readers cannot follow them with confidence.';
+      case 'forms':
+        return 'Some form fields have no label, so AI assistants and screen readers cannot tell what to enter.';
+      case 'structure':
+        return 'Your page lacks a clear main region and heading structure for AI assistants to navigate.';
+      case 'crawlableLinks':
+        return 'Some links have no real address, so search and AI crawlers cannot follow them.';
+      case 'crawlersAllowed':
+        return (d || 'Search or AI crawlers are blocked') + ', so they cannot read your store.';
+      case 'summary':
+        return 'Your page is missing a title or summary that AI assistants use to describe it.';
+      case 'language':
+        return 'Your page does not declare what language it is in.';
+      default:
+        return check.label + (d ? ': ' + d.charAt(0).toLowerCase() + d.slice(1) : '') + '.';
+    }
+  }
+
   function renderResult(data) {
     if (results) results.innerHTML = '';
 
     var scores = data.scores || {};
     var a11y = data.accessibility || {};
+    var seo = data.seo || {};
+    var agent = data.agent && data.agent.total ? data.agent : null;
     var host = hostOf(data.origin);
+    var issues = a11y.totalIssues || 0;
+    var list = a11y.issues || [];
 
-    /* Headline — the sentence the visitor reads first */
+    var seoChecks = seo.checks || [];
+    var seoWork = seoChecks.filter(function (c) { return c.status !== 'pass'; });
+    var agentWork = agent ? agent.checks.filter(function (c) { return !c.pass; }) : [];
+    var rankWork = seoWork.length + agentWork.length;
+    var rankTotal = seoChecks.length + (agent ? agent.checks.length : 0);
+
+    /* Title: the store */
     var headline = document.getElementById('scan-result-title');
-    if (headline) {
-      headline.textContent = '';
-      var issues = a11y.totalIssues || 0;
+    if (headline) headline.textContent = host;
+
+    /* Summary paragraph */
+    var summary = document.getElementById('scan-summary');
+    if (summary) {
+      summary.textContent = '';
+      var add = function (text, bold) {
+        summary.appendChild(bold ? el('strong', null, text) : document.createTextNode(text));
+      };
       if (issues) {
-        headline.appendChild(el('span', 'scan-headline-num', issues + (issues === 1 ? ' accessibility issue' : ' accessibility issues')));
-        headline.appendChild(document.createTextNode(' found on ' + host));
+        add('We found ');
+        add(plural(issues, 'accessibility issue', 'accessibility issues'), true);
+        add(' on ' + host + '. ');
+        if (list[0]) {
+          add('The most serious: ');
+          add(list[0].help.replace(/\.$/, ''), true);
+          add(' (' + plural(list[0].nodes, 'element', 'elements') + '). ');
+        }
       } else {
-        headline.appendChild(document.createTextNode('No automated WCAG failures found on ' + host));
+        add('Automated testing found no WCAG failures on ' + host + '. ');
       }
+      if (rankWork) {
+        add('Your ranking needs work on ');
+        var parts = [];
+        if (seoWork.length) parts.push(plural(seoWork.length, 'SEO check', 'SEO checks'));
+        if (agentWork.length) parts.push(plural(agentWork.length, 'AI agent check', 'AI agent checks'));
+        parts.forEach(function (p, i) {
+          if (i) add(' and ');
+          add(p, true);
+        });
+        add('. ');
+        var lead = seoWork[0] || agentWork[0];
+        if (lead) {
+          add('First to fix: ', true);
+          add(plainFix(lead));
+        }
+      } else {
+        add('Every SEO' + (agent ? ' and AI agent' : '') + ' check passed.');
+      }
+      // No widows: tie the last two words together so a lone word never ends the paragraph.
+      var tail = summary.lastChild;
+      if (tail && tail.nodeType === 3) tail.nodeValue = tail.nodeValue.replace(/ (\S+)\s*$/, '\u00a0$1');
     }
 
-    /* Headline score */
-    var head = el('div', 'result-head');
-    var ring = el('div', 'score-ring');
-    ring.setAttribute('data-tone', (scores.band && scores.band.tone) || 'neutral');
-    ring.appendChild(el('span', 'score-value', scores.overall == null ? '—' : String(scores.overall)));
-    ring.appendChild(el('span', 'score-outof', '/100'));
-    head.appendChild(ring);
+    var grid = el('div', 'ar-grid');
 
-    var headText = el('div', 'result-head-text');
-    // No "Fair"/"Strong" band: an automated check is a best case, and a word like "Fair" undersells the risk
-    // to a store the full audit will score lower. The ring keeps the band's colour.
-    headText.appendChild(el('p', 'result-band', 'Automated accessibility score · best case'));
-    headText.appendChild(el('p', 'result-host', host));
-    headText.appendChild(el(
-      'p',
-      'result-sub',
-      data.pagesScanned + (data.pagesScanned === 1 ? ' page' : ' pages') +
-      ' checked against WCAG 2.2 A/AA with axe-core ' + (data.axeVersion || '') +
-      (a11y.violationsTotal ? ' · ' + a11y.violationsTotal + (a11y.violationsTotal === 1 ? ' element' : ' elements') + ' affected' : '')
-    ));
-    head.appendChild(headText);
-    results.appendChild(head);
+    /* ---- Access ---- */
+    grid.appendChild(cell('c1', 'r1', sectionHead('ar-access-title', 'Access', 'Can every shopper use your store?')));
 
-    /* Two sub-scores */
-    var subs = el('div', 'score-split');
-    // The ring is the accessibility score (the Accessrank score). SEO and AI agent
-    // readiness are reported beside it and never blended in.
-    var subScores = [
-      { label: 'SEO', value: scores.seo }
-    ];
-    if (data.agent && data.agent.total) subScores.push({ label: 'AI agent readiness', value: data.agent.score });
-    subScores.forEach(function (item) {
-      var box = el('div', 'score-split-item');
-      box.appendChild(el('span', 'split-label', item.label));
-      box.appendChild(el('span', 'split-value', item.value == null ? '—' : String(item.value)));
-      var track = el('div', 'split-track');
-      var fill = el('span', 'split-fill');
-      fill.style.setProperty('--pct', (item.value || 0) + '%');
-      track.appendChild(fill);
-      box.appendChild(track);
-      subs.appendChild(box);
-    });
-    results.appendChild(subs);
+    var aHead = el('p', 'ar-headline');
+    if (issues) {
+      aHead.appendChild(el('span', 'ar-bad', plural(issues, 'accessibility issue', 'accessibility issues')));
+      aHead.appendChild(document.createTextNode(' found'));
+    } else {
+      aHead.textContent = 'No automated WCAG failures found';
+    }
+    grid.appendChild(cell('c1', 'r2', aHead));
 
-    /* Failed success criteria — the thing a demand letter cites */
-    if (a11y.failedCriteria && a11y.failedCriteria.length) {
-      var crit = el('div', 'result-criteria');
-      crit.appendChild(el('p', 'result-criteria-label',
-        a11y.criteriaFailed + ' of ' + a11y.criteriaEvaluated + ' checks not met'));
-      var list = el('ul', 'criteria-chips');
-      a11y.failedCriteria.slice(0, 10).forEach(function (id) {
-        list.appendChild(el('li', 'criteria-chip', 'WCAG ' + id));
-      });
-      crit.appendChild(list);
-      results.appendChild(crit);
+    var aBars = el('div', 'ar-bars');
+    // The caption describes OUR scan (axe-core, every page scanned, the element count), so it sits
+    // directly under the Accessrank bar. Under the Lighthouse bar it read as Lighthouse's numbers.
+    var arBar = scoreBar('Accessrank score', plural(data.pagesScanned || 1, 'page', 'pages'),
+      scores.overall, toneOf(scores.overall));
+    arBar.appendChild(el('p', 'ar-meta ar-bar-caption',
+      'Automated accessibility score · best case. WCAG 2.2 A/AA with axe-core ' + (data.axeVersion || '') +
+      (a11y.violationsTotal ? ' · ' + plural(a11y.violationsTotal, 'element', 'elements') + ' affected' : '')));
+    aBars.appendChild(arBar);
+    grid.appendChild(cell('c1', 'r3', aBars));
+    // Second score on its own row (r4), so Lighthouse lines up with AI agent readiness
+    // however many lines the caption above it wraps to.
+    var lh = data.lighthouse && data.lighthouse.accessibility != null ? data.lighthouse.accessibility : null;
+    if (lh != null) {
+      var lhBars = el('div', 'ar-bars');
+      lhBars.appendChild(scoreBar('Lighthouse score', '1 page', lh, lighthouseTone(lh)));
+      grid.appendChild(cell('c1', 'r4', lhBars));
     }
 
-    /* Top issues */
-    if (a11y.issues && a11y.issues.length) {
-      var issuesWrap = el('ul', 'audit-rows');
-      a11y.issues.forEach(function (issue, index) {
-        var row = el('li', 'audit-row');
-        var badge = el('span', 'impact-badge', IMPACT_LABEL[issue.impact] || issue.impact);
-        badge.setAttribute('data-impact', issue.impact);
-        row.appendChild(badge);
-
-        var body = el('span', 'row-body');
-        body.appendChild(el('span', 'row-label', issue.help));
-        var detail = issue.nodes + (issue.nodes === 1 ? ' element' : ' elements');
-        if (issue.criteria && issue.criteria.length) {
-          detail += ' · WCAG ' + issue.criteria.join(', ') + ' (' + issue.level + ')';
-        }
-        body.appendChild(el('span', 'row-meta', detail));
-        row.appendChild(body);
-
-        issuesWrap.appendChild(row);
-        // Stagger only as decoration; content is already in the DOM for AT.
-        if (!window.Accessrank.reducedMotion()) {
-          row.style.setProperty('--i', String(index));
-          row.classList.add('will-reveal');
-          requestAnimationFrame(function () { row.classList.add('visible'); });
-        }
+    var aFind = el('div', 'ar-findings');
+    if (list.length) {
+      aFind.appendChild(el('p', 'ar-grp', a11y.criteriaFailed + ' of ' + a11y.criteriaEvaluated + ' checks not met'));
+      ['critical', 'serious', 'moderate', 'minor'].forEach(function (impact) {
+        var group = list.filter(function (i) { return i.impact === impact; });
+        if (!group.length) return;
+        var ul = el('ul', 'ar-rows');
+        var elements = 0;
+        group.forEach(function (issue) {
+          elements += issue.nodes || 0;
+          var li = el('li', 'ar-row');
+          li.appendChild(el('span', 'ar-row-label', issue.help));
+          var detail = plural(issue.nodes, 'element', 'elements');
+          if (issue.criteria && issue.criteria.length) {
+            detail += ' · WCAG ' + issue.criteria.join(', ') + ' (' + issue.level + ')';
+          }
+          li.appendChild(el('span', 'ar-row-meta', detail));
+          ul.appendChild(li);
+        });
+        aFind.appendChild(disclosure(IMPACT_LABEL[impact], impact,
+          plural(group.length, 'finding', 'findings'), plural(elements, 'element', 'elements'), ul));
       });
-      results.appendChild(issuesWrap);
-
-      if (a11y.totalIssues > a11y.issues.length) {
-        results.appendChild(el(
-          'p', 'result-more',
-          '+ ' + (a11y.totalIssues - a11y.issues.length) + ' more issues in the full report'
-        ));
+      if (issues > list.length) {
+        aFind.appendChild(el('p', 'ar-more', '+ ' + (issues - list.length) + ' more issues in the full report'));
       }
     } else {
-      results.appendChild(el('p', 'result-clean',
-        'Automated testing found nothing to fix. The full report covers the SEO checks and what automated testing cannot see.'));
+      aFind.appendChild(el('p', 'ar-clean',
+        'Automated testing found nothing to fix. The full report covers what automated testing cannot see.'));
     }
-
     /* Overlay notice: the free check names the widget, because a plaintiff's firm will too. */
     var overlays = data.profile && data.profile.overlays ? data.profile.overlays : [];
     if (overlays.length) {
       var ov = el('p', 'result-overlay');
       ov.appendChild(el('strong', null, overlays.join(' and ') + ' accessibility overlay detected. '));
       ov.appendChild(document.createTextNode('A widget loads on top of the page and leaves the code underneath as it was, so the issues above are what a screen reader still meets.'));
-      results.appendChild(ov);
+      aFind.appendChild(ov);
+    }
+    grid.appendChild(cell('c1', 'r5', aFind));
+
+    /* ---- Rank ---- */
+    grid.appendChild(cell('c2', 'r1', sectionHead('ar-rank-title', 'Rank', 'Can search and AI assistants find and recommend it?')));
+
+    var rHead = el('p', 'ar-headline');
+    if (rankWork) {
+      rHead.appendChild(el('span', 'ar-warn', plural(rankWork, 'check', 'checks')));
+      rHead.appendChild(document.createTextNode(' need' + (rankWork === 1 ? 's' : '') + ' work'));
+    } else {
+      rHead.textContent = 'Every check passed';
+    }
+    grid.appendChild(cell('c2', 'r2', rHead));
+
+    var rBars = el('div', 'ar-bars');
+    var seoScore = seo.score != null ? seo.score : scores.seo;
+    var seoBar = scoreBar('SEO', 'on-page', seoScore, toneOf(seoScore));
+    seoBar.appendChild(el('p', 'ar-meta ar-bar-caption', 'Our checks and scoring differ from Lighthouse, so scores may differ.'));
+    rBars.appendChild(seoBar);
+    grid.appendChild(cell('c2', 'r3', rBars));
+    if (agent) {
+      var agBars = el('div', 'ar-bars');
+      agBars.appendChild(scoreBar('AI agent readiness', agent.passed + ' of ' + agent.total + ' checks', agent.score, toneOf(agent.score)));
+      grid.appendChild(cell('c2', 'r4', agBars));
     }
 
-    /* AI agent readiness — can assistants and browsing agents read and operate the store? */
-    if (data.agent && data.agent.total) {
-      var agentWrap = el('section', 'result-agent');
-      agentWrap.setAttribute('aria-labelledby', 'result-agent-title');
-      var agentTitle = el('h3', 'result-agent-title',
-        'AI agent readiness: ' + data.agent.passed + ' of ' + data.agent.total + ' checks passed');
-      agentTitle.id = 'result-agent-title';
-      agentWrap.appendChild(agentTitle);
-      agentWrap.appendChild(el('p', 'result-agent-intro',
-        'Can AI assistants and browsing agents read your store and complete tasks like finding a product or checking out?'));
-      var agentList = el('ul', 'agent-checks');
-      data.agent.checks.forEach(function (check) {
-        var li = el('li', 'agent-check' + (check.pass ? ' is-pass' : ' is-fail'));
-        var icon = el('span', 'agent-check-icon', check.pass ? '✓' : '✕');
-        icon.setAttribute('aria-hidden', 'true');
-        li.appendChild(icon);
-        var text = el('span', 'agent-check-text');
-        text.appendChild(el('span', 'agent-check-label', check.label));
-        if (!check.pass && check.detail) text.appendChild(el('span', 'agent-check-detail', check.detail));
-        li.appendChild(text);
-        li.appendChild(el('span', 'agent-check-status', check.pass ? 'Pass' : 'Needs work'));
-        agentList.appendChild(li);
+    var rFind = el('div', 'ar-findings');
+    if (rankTotal) rFind.appendChild(el('p', 'ar-grp', rankWork + ' of ' + rankTotal + ' checks need work'));
+
+    if (seoChecks.length) {
+      var seoUl = el('ul', 'ar-rows');
+      (seoWork.length ? seoWork : seoChecks).forEach(function (c) {
+        var li = el('li', 'ar-row');
+        li.appendChild(el('span', 'ar-row-label', c.label));
+        if (c.status !== 'pass' && c.detail) li.appendChild(el('span', 'ar-row-meta', c.detail));
+        seoUl.appendChild(li);
       });
-      agentWrap.appendChild(agentList);
-      results.appendChild(agentWrap);
+      rFind.appendChild(disclosure(seoWork.length ? 'Needs work' : 'Pass', seoWork.length ? 'work' : 'pass', 'SEO',
+        seoWork.length ? seoWork.length + ' of ' + seoChecks.length + ' checks need work' : 'All ' + seoChecks.length + ' checks passed',
+        seoUl));
     }
 
-    var site = document.getElementById('report-site');
-    if (site) site.textContent = host;
+    if (agent) {
+      var agentBody = el('div');
+      agentBody.appendChild(el('p', 'ar-intro',
+        'Can AI assistants and browsing agents read your store and complete tasks like finding a product or checking out?'));
+      var agUl = el('ul', 'ar-checks');
+      agent.checks.forEach(function (c) {
+        var li = el('li', 'ar-check' + (c.pass ? ' is-pass' : ' is-fail'));
+        var t = el('span', 'ar-check-text');
+        t.appendChild(el('span', 'ar-row-label', c.label));
+        if (!c.pass && c.detail) t.appendChild(el('span', 'ar-row-meta', c.detail));
+        li.appendChild(t);
+        li.appendChild(el('span', 'ar-check-status', c.pass ? 'Pass' : 'Needs work'));
+        agUl.appendChild(li);
+      });
+      agentBody.appendChild(agUl);
+      rFind.appendChild(disclosure(agentWork.length ? 'Needs work' : 'Pass', agentWork.length ? 'work' : 'pass',
+        'AI agent readiness', agent.passed + ' of ' + agent.total + ' checks passed', agentBody));
+    }
+    grid.appendChild(cell('c2', 'r5', rFind));
+
+    results.appendChild(grid);
   }
 
   /* ----------------------------------------------------------- scan --- */
@@ -594,7 +790,6 @@
     var problems = [];
     var name = form.querySelector('[name="name"]');
     var email = form.querySelector('[name="email"]');
-    var phone = form.querySelector('[name="phone"]');
     var consent = form.querySelector('[name="consent"]');
 
     if (!name.value.trim() || name.value.trim().length < 2) {
@@ -604,9 +799,6 @@
     // the obvious cases so the visitor is not told "invalid" for a valid address.
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email.value.trim())) {
       problems.push({ field: 'email', message: 'Enter a valid email address.' });
-    }
-    if (phone.value.trim() && phone.value.replace(/[^\d]/g, '').length < 7) {
-      problems.push({ field: 'phone', message: 'Enter a valid phone number, or leave it blank.' });
     }
     if (!consent.checked) {
       problems.push({ field: 'consent', message: 'Please agree to the privacy policy so we can send your report.' });
@@ -648,7 +840,14 @@
       modalForm.dataset.busy = '1';
       submit.disabled = true;
       submit.dataset.label = submit.dataset.label || submit.textContent;
-      submit.textContent = 'Sending…';
+      submit.textContent = 'Building your report…';
+      // Building the PDF and emailing it usually takes a few seconds, but can take longer when the
+      // server is busy. Nothing on this side times out (the request waits for the server), so tell
+      // the visitor it is still working rather than let a long wait look like a hang.
+      var slowNote = setTimeout(function () {
+        modalStatus.textContent = 'Still building your PDF report. This can take up to a minute, so keep this open.';
+        modalStatus.className = 'form-status';
+      }, 8000);
 
       var payload = { scanId: state.scanId };
       new FormData(modalForm).forEach(function (value, key) { payload[key] = value; });
@@ -680,6 +879,8 @@
         }
         resetTurnstileIn(modal);
       }).finally(function () {
+        clearTimeout(slowNote);
+        if (modalStatus.className === 'form-status') modalStatus.textContent = '';
         modalForm.dataset.busy = '0';
         submit.disabled = false;
         submit.textContent = submit.dataset.label || 'Email me the report';

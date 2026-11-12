@@ -43,7 +43,7 @@
        same-origin file is allowed by CSP's style-src 'self' with no hash, is
        fetched once per deploy, and the first paint waits on one small request
        over the same connection. -->
-  <link rel="stylesheet" href="/assets/css/site.86b489cb73.css">
+  <link rel="stylesheet" href="/assets/css/site.5925ac9984.css">
   <!-- Client-portal pages only (site.json: page.portal). Kept out of the inlined
        block above so the marketing pages do not carry styles they never use;
        style-src 'self' already allows a same-origin stylesheet. -->
@@ -56,7 +56,7 @@
   
   <!-- Cloudflare Turnstile is not loaded here: site.js loads it on demand (Accessrank.loadTurnstile) so visitors who never
        touch a form get no third-party cookie (Lighthouse Best Practices). -->
-  <script src="/assets/js/site.563eae2dbc.js" defer></script>
+  <script src="/assets/js/site.da7085a9d4.js" defer></script>
   
   <script src="/assets/js/hero.ad00d0ce66.js" defer></script>
 <link rel="stylesheet" href="/analytics-consent.css">
@@ -205,7 +205,7 @@
             <h2 class="audit-title" id="audit">Free accessibility check</h2>
             <p class="audit-hint" id="audit-hint">
               We load your page in a real browser and test it against all applicable
-              WCAG 2.2 Level A and AA success criteria. Takes about 20 seconds.
+              WCAG 2.2 Level A and AA success criteria. Takes under a minute.
             </p>
           </div>
 
@@ -256,7 +256,7 @@
             <ol class="scan-steps" id="scan-steps"></ol>
             
             <p class="visually-hidden" id="scan-live" role="status" aria-live="polite"></p>
-            <p class="scan-progress-note">Most stores take 15&ndash;30 seconds. You can close this; the result will wait for you.</p>
+            <p class="scan-progress-note">Most stores take under a minute. You can close this; the result will wait for you.</p>
           </section>
 
           <section class="scan-failed" id="scan-failed" hidden>
@@ -266,25 +266,26 @@
             <button class="submit-btn scan-retry" type="button" id="scan-retry">Try another address</button>
           </section>
 
+          <!-- Result view. One scrolling sheet: the scan summary beside the report form, then Access (accessibility)
+               and Rank (SEO and AI agent readiness) on shared rows so their scores line up, then how to read them. -->
           <div class="scan-result" id="scan-result" hidden>
-            <section class="scan-left" aria-labelledby="scan-result-title" tabindex="0"><!-- tabindex: the column scrolls on its own on desktop, so keyboard users must be able to reach it (axe scrollable-region-focusable) -->
-              <p class="scan-eyebrow">Scan complete</p>
-              <h2 class="scan-headline" id="scan-result-title" tabindex="-1"></h2>
-              <div class="audit-results" id="audit-results"></div>
-            </section>
+            <div class="sr-top">
+              <section class="sr-intro" aria-labelledby="scan-result-title">
+                <p class="scan-eyebrow">Scan complete</p>
+                <h2 class="scan-headline" id="scan-result-title" tabindex="-1"></h2>
+                <p class="sr-tsub">Access and Rank results, side by side.</p>
+                <p class="sr-summary" id="scan-summary"></p>
+              </section>
 
-            <section class="scan-right" aria-labelledby="report-modal-title">
+              <section class="scan-right sr-formtile" aria-labelledby="report-modal-title">
               <form class="modal-form" id="report-form" novalidate>
                 <h2 class="modal-title" id="report-modal-title">Get the full report</h2>
-                <p class="modal-sub">
-                  We will email the full PDF report for <strong id="report-site">your store</strong> —
-                  every finding, the elements affected, and how to fix each one.
-                </p>
 
                 <!-- Every field here is required, and each label says so. A field
                      that is quietly mandatory behind copy implying otherwise is
                      exactly the pattern this company audits out of other people's
                      checkouts. -->
+                <div class="sr-fgrid">
                 <div class="field">
                   <label for="report-name">Your name <span class="req">(required)</span></label>
                   <input id="report-name" name="name" type="text" autocomplete="name" required>
@@ -292,16 +293,8 @@
 
                 <div class="field">
                   <label for="report-email">Work email <span class="req">(required)</span></label>
-                  <input id="report-email" name="email" type="email" autocomplete="email" required
-                         aria-describedby="report-email-hint">
-                  <p class="field-hint" id="report-email-hint">The report is delivered here, so use a real inbox.</p>
+                  <input id="report-email" name="email" type="email" autocomplete="email" required>
                 </div>
-
-                <div class="field">
-                  <label for="report-phone">Phone <span class="req">(optional)</span></label>
-                  <input id="report-phone" name="phone" type="tel" autocomplete="tel"
-                         aria-describedby="report-phone-hint">
-                  <p class="field-hint" id="report-phone-hint">Only if you would like a specialist to call and talk the findings through. By providing it you agree we may call or text you about your report.</p>
                 </div>
 
                 <!--
@@ -334,11 +327,10 @@
 
                 <p class="form-status" id="report-status" role="alert" aria-live="assertive"></p>
 
-                <button class="submit-btn" type="submit">Email me the report</button>
-
-                <p class="modal-note">
-                  One report per email address. We never sell your details.
-                </p>
+                <div class="sr-submitrow">
+                  <button class="submit-btn" type="submit">Email me the report</button>
+                  <p class="modal-note">One report per email address.<br>We never sell your details.</p>
+                </div>
               </form>
 
               <div class="modal-success" id="report-success" hidden>
@@ -356,6 +348,14 @@
                 <button class="submit-btn" type="button" data-close-modal>Done</button>
               </div>
             </section>
+            </div>
+
+            <div class="audit-results" id="audit-results"></div>
+
+            <div class="sr-howto">
+              <h3>How to read these scores</h3>
+              <p>Predatory ADA lawyers pick targets with free automated scans, Lighthouse among them, and a Lighthouse accessibility score under 90 is a warning sign. We test 3 pages to Lighthouse's 1 page, and we test more than Lighthouse tests for. These scores are automated, and human testing finds more errors than any scan.</p>
+            </div>
           </div>
         </div>
       </div>
@@ -403,12 +403,12 @@
 <section class="process" id="process">
   <div class="section-eyebrow">HOW IT WORKS</div>
   <h2>How a store gets fixed,<br class="dbr"> and stays fixed.</h2>
-  <p class="section-sub">Four steps. The first takes about 20 seconds and costs nothing.</p>
+  <p class="section-sub">Four steps. The first takes under a minute and costs nothing.</p>
   <ol class="process-grid">
     <li class="process-step">
       <span class="process-num" aria-hidden="true">1</span>
       <h3 class="process-title">Free check</h3>
-      <p class="process-desc">Enter your store address. We load it in a real browser and score it against the WCAG 2.2 Level A and AA checks a demand letter cites, with the result on screen in about 20 seconds.</p>
+      <p class="process-desc">Enter your store address. We load it in a real browser and score it against the WCAG 2.2 Level A and AA checks a demand letter cites, with the result on screen in under a minute.</p>
     </li>
     <li class="process-step">
       <span class="process-num" aria-hidden="true">2</span>
@@ -799,7 +799,7 @@
   <div class="closing-band">
     <div class="section-eyebrow">FREE CHECK</div>
     <h2>See what a plaintiff's firm would see.</h2>
-    <p class="section-sub">The free check takes about 20 seconds and tests your store against the same WCAG 2.2 Level A and AA checks a demand letter cites. No account, no sales call unless you ask for one.</p>
+    <p class="section-sub">The free check takes under a minute and tests your store against the same WCAG 2.2 Level A and AA checks a demand letter cites. No account, no sales call unless you ask for one.</p>
     <div class="closing-actions">
       <a class="btn-primary" href="#audit">Check my store</a>
       <a class="btn-secondary" href="/contact-sales">Talk to sales</a>

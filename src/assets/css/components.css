@@ -160,12 +160,12 @@ body.modal-open { overflow: hidden; }
 
 /* ---------------------------------------------------------------------------
  * Scan dialog (#scan-modal, audit.js). Opens on "Check my store" so the
- * homepage never reflows under the visitor: progress, then results (left) with
- * the report form (right), or the reason the scan could not run. Full-screen
- * sheet on phones, results above the form.
+ * homepage never reflows under the visitor: progress, then the result sheet
+ * (summary beside the report form, then Access and Rank), or the reason the
+ * scan could not run. Full-screen sheet on phones.
  * ------------------------------------------------------------------------- */
 .modal--scan .scan-panel {
-  max-width: 1100px; padding: 0; overflow: hidden;
+  max-width: 960px; padding: 0; overflow: hidden;
   display: flex; flex-direction: column;
   max-height: calc(100dvh - 40px);
 }
@@ -212,15 +212,9 @@ body.modal-open { overflow: hidden; }
 .scan-failed-msg { max-width: 60ch; margin: 0 0 26px; font-size: 16px; line-height: 1.6; color: var(--text-soft); }
 .scan-retry { align-self: flex-start; width: auto; }
 
-.scan-result { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); flex: 1; min-height: 0; }
-.scan-left, .scan-right { min-height: 0; overflow-y: auto; }
-.scan-left { padding: 44px 44px 36px; }
-.scan-left:focus-visible { outline: 2px solid var(--focus); outline-offset: -4px; }
-.scan-right { padding: 44px 44px 32px; background: rgba(255, 255, 255, 0.035); border-left: 1px solid var(--hairline); }
-.scan-headline { margin: 0 0 22px; font-size: 28px; font-weight: 800; line-height: 1.2; letter-spacing: -0.8px; color: var(--text); overflow-wrap: anywhere; }
-.scan-headline-num { color: #FCA5A5; }
-.scan-left .audit-results { margin-top: 0; }
-.scan-right .modal-title { padding-right: 36px; }
+/* Result sheet: one scrolling region (it holds the form fields, so keyboard users can reach it). */
+.scan-result { flex: 1; min-height: 0; overflow-y: auto; padding: 0 0 18px; }
+.scan-headline { margin: 0 0 4px; font-size: 22px; font-weight: 800; line-height: 1.2; letter-spacing: -0.5px; color: var(--text); overflow-wrap: anywhere; }
 
 @media (prefers-reduced-motion: reduce) {
   .scan-bar-fill { transition: none; }
@@ -232,13 +226,127 @@ body.modal-open { overflow: hidden; }
   .modal--scan .scan-panel { max-width: none; height: 100dvh; max-height: 100dvh; border: 0; border-radius: 0; }
   .scan-progress, .scan-failed { min-height: 0; flex: 1; justify-content: flex-start; padding: 72px 24px 32px; }
   .scan-host { font-size: 24px; }
-  /* Plain stacked blocks in one scrolling sheet. As a one-column grid, the columns' min-height: 0 (needed for the
-   * desktop's independent scrolling) let WebKit squeeze each row below its content and the form drew over the findings. */
-  .scan-result { display: block; overflow-y: auto; }
-  .scan-left, .scan-right { min-height: auto; overflow: visible; }
-  .scan-left { padding: 64px 20px 28px; }
-  .scan-right { padding: 28px 20px 32px; border-left: 0; border-top: 1px solid var(--hairline); }
-  .scan-headline { font-size: 24px; }
+  .scan-headline { font-size: 20px; }
+}
+
+/* ---------------------------------------------------------------------------
+ * Scan result: Access and Rank (audit.js renderResult).
+ * Top band: summary beside the report-form tile. Below, Access (accessibility)
+ * and Rank (SEO, AI agent readiness) share row tracks r1–r5, so their score
+ * bars sit on one baseline. Native <details> accordions. No hairlines between
+ * the halves; plain tile border, no accent edge.
+ * ------------------------------------------------------------------------- */
+.sr-top { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: center; padding: 48px 0 6px; }
+.sr-intro { padding: 0 22px 0 18px; }
+.sr-tsub { margin: 0; font-size: 13px; color: var(--text-muted); }
+.sr-summary { margin: 10px 0 0; font-size: 14px; line-height: 1.6; color: var(--text-soft); text-wrap: pretty; }
+.sr-summary strong { color: var(--text); font-weight: 600; }
+
+.sr-formtile { margin: 0 18px 0 22px; padding: 12px 16px 10px; border: 1px solid var(--hairline); border-radius: 12px; background: var(--surface-2, #0C1330); }
+.sr-formtile .modal-title { font-size: 17px; margin: 0 0 8px; }
+.sr-formtile .field { margin-bottom: 8px; }
+.sr-formtile .field input { min-height: 34px; padding-top: 5px; padding-bottom: 5px; }
+.sr-formtile .field label { margin-bottom: 4px; }
+.sr-formtile .field-hint { font-size: 11.5px; }
+.sr-formtile .field-check { margin-bottom: 6px; }
+.sr-formtile .field-check label { font-size: 12.5px; }
+.sr-formtile .submit-btn { width: auto; min-height: 36px; margin-top: 6px; padding: 7px 18px; font-size: 14px; }
+.sr-submitrow { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; margin-top: 6px; }
+.sr-submitrow .submit-btn { flex: none; margin-top: 0; }
+.sr-formtile .sr-submitrow .modal-note { flex: 1 1 160px; margin: 0; font-size: 11.5px; line-height: 1.4; text-align: left; }
+@media (min-width: 861px) { .sr-formtile { position: relative; top: 5px; } }
+.sr-fgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 12px; }
+
+.ar-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); margin-top: 18px; }
+.ar-cell { min-width: 0; }
+.ar-c1 { grid-column: 1; padding: 0 22px 0 18px; }
+.ar-c2 { grid-column: 2; padding: 0 18px 0 22px; }
+.ar-r1 { grid-row: 1; } .ar-r2 { grid-row: 2; } .ar-r3 { grid-row: 3; } .ar-r4 { grid-row: 4; } .ar-r5 { grid-row: 5; }
+
+.ar-head { display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 12px; padding-bottom: 8px; margin-bottom: 14px; border-bottom: 2px solid #5B6391; }
+.ar-name { margin: 0; font-size: 22px; font-weight: 800; letter-spacing: -0.3px; color: var(--text); }
+.ar-desc { margin: 0; font-size: 12px; color: var(--text-muted); }
+.ar-headline { margin: 0 0 14px; font-size: 15px; font-weight: 700; color: var(--text); }
+.ar-bad { color: #F55A5A; }   /* 5.3:1 on the dialog surface */
+.ar-warn { color: var(--brand); }
+
+.ar-bars { display: flex; flex-direction: column; gap: 16px; margin-bottom: 10px; }
+.ar-bar { --tone: var(--text-muted); }
+.ar-bar[data-tone="good"] { --tone: #4ADE80; }
+.ar-bar[data-tone="ok"]   { --tone: var(--brand); }
+.ar-bar[data-tone="warn"] { --tone: #FB923C; }
+.ar-bar[data-tone="bad"]  { --tone: #F87171; }
+.ar-bar-top { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 6px; }
+.ar-bar-label { margin: 0; display: flex; align-items: baseline; flex-wrap: wrap; gap: 0 8px; }
+.ar-bar-label strong { font-size: 13px; color: var(--text); }
+.ar-bar-label span { font-size: 11.5px; color: var(--text-muted); }
+.ar-bar-num { font-size: 26px; font-weight: 800; line-height: 1; color: var(--tone); font-variant-numeric: tabular-nums; }
+.ar-bar-track { height: 12px; border-radius: 6px; background: rgba(255, 255, 255, 0.12); overflow: hidden; }
+.ar-bar-fill { display: block; height: 100%; width: var(--pct, 0%); border-radius: inherit; background: var(--tone); transition: width 0.6s var(--ease-out); }
+
+.ar-meta { margin: 0 0 10px; font-size: 11.5px; line-height: 1.45; color: var(--text-muted); }
+.ar-bar-caption { margin: 6px 0 0; }
+.ar-findings { padding-bottom: 6px; }
+.ar-grp { margin: 6px 0 6px; font-size: 13px; font-weight: 700; color: var(--text); }
+
+.ar-acc { border-top: 1px solid var(--hairline); }
+.ar-acc:last-of-type { border-bottom: 1px solid var(--hairline); }
+.ar-acc > summary { list-style: none; cursor: pointer; display: flex; align-items: center; gap: 10px; padding: 11px 2px; font-size: 12px; color: var(--text-muted); }
+.ar-acc > summary::-webkit-details-marker { display: none; }
+.ar-acc > summary:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; border-radius: 4px; }
+.ar-acc-title { font-size: 14px; font-weight: 700; color: var(--text); }
+.ar-chev { margin-left: auto; flex: none; width: 16px; height: 16px; }
+.ar-chev::before { content: ''; display: block; width: 7px; height: 7px; margin: 3px 0 0 4px; border-right: 2px solid var(--text-muted); border-bottom: 2px solid var(--text-muted); transform: rotate(45deg); }
+.ar-acc[open] > summary .ar-chev::before { transform: rotate(-135deg); margin-top: 7px; }
+.ar-acc > summary:hover .ar-chev::before { border-color: var(--text); }
+.ar-acc-body { padding: 0 2px 12px; }
+
+.ar-badge { flex: none; font-size: 10px; font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase; padding: 4px 8px; border-radius: 5px; color: var(--brand-ink); background: var(--text-muted); white-space: nowrap; }
+.ar-badge[data-kind="critical"] { background: #CC2F2F; color: #FFFFFF; }  /* 5.2:1 */
+.ar-badge[data-kind="serious"]  { background: #FB923C; }
+.ar-badge[data-kind="moderate"] { background: #FCD34D; }
+.ar-badge[data-kind="minor"]    { background: #9CA3AF; }
+.ar-badge[data-kind="work"]     { background: var(--brand); }
+.ar-badge[data-kind="pass"]     { background: #4ADE80; }
+
+.ar-rows, .ar-checks { list-style: none; margin: 0; padding: 0; }
+.ar-row { display: flex; flex-direction: column; gap: 2px; padding: 8px 0; border-top: 1px solid var(--hairline); }
+.ar-row:first-child { border-top: 0; }
+.ar-row-label { font-size: 13px; line-height: 1.4; color: var(--text); }
+.ar-row-meta { font-size: 11.5px; line-height: 1.4; color: var(--text-muted); }
+.ar-intro { margin: 0 0 6px; font-size: 13px; line-height: 1.5; color: var(--text-soft); }
+.ar-check { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding: 7px 0; border-top: 1px solid var(--hairline); }
+.ar-check-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.ar-check-status { flex: none; font-size: 12px; color: var(--text-muted); }
+.ar-check.is-fail .ar-check-status { color: var(--brand); font-weight: 700; }
+.ar-more, .ar-clean { margin: 8px 0 0; font-size: 12px; line-height: 1.5; color: var(--text-muted); }
+.ar-clean { color: var(--text-soft); }
+
+.sr-howto { margin: 16px 18px 0; padding-top: 14px; border-top: 1px solid var(--hairline); }
+.sr-howto h3 { margin: 0 0 6px; font-size: 14px; font-weight: 700; color: var(--text); text-align: left; }
+.sr-howto p { margin: 0; font-size: 13px; line-height: 1.6; color: var(--text-muted); }
+
+@media (prefers-reduced-motion: reduce) { .ar-bar-fill { transition: none; } }
+
+/* Tablet: the top band stacks; the score columns stay side by side and the findings run full width. */
+@media (max-width: 860px) {
+  .sr-top { grid-template-columns: 1fr; padding-top: 56px; }
+  .sr-intro { padding: 0 18px; }
+  .sr-formtile { margin: 18px 18px 0; }
+}
+@media (min-width: 600px) and (max-width: 860px) {
+  .ar-c1.ar-r5 { grid-column: 1 / -1; grid-row: 5; padding: 0 18px; }
+  .ar-c2.ar-r5 { grid-column: 1 / -1; grid-row: 6; padding: 12px 18px 0; }
+  .sr-howto { border-top: 0; padding-top: 4px; }
+}
+/* Phone: one column, Access fully before Rank. */
+@media (max-width: 599px) {
+  .sr-fgrid { grid-template-columns: 1fr; }
+  .ar-grid { grid-template-columns: 1fr; }
+  .ar-c1, .ar-c2 { grid-column: 1; padding: 0 18px; }
+  .ar-c1.ar-r1 { grid-row: 1; } .ar-c1.ar-r2 { grid-row: 2; } .ar-c1.ar-r3 { grid-row: 3; } .ar-c1.ar-r4 { grid-row: 4; } .ar-c1.ar-r5 { grid-row: 5; }
+  .ar-c2.ar-r1 { grid-row: 6; padding-top: 12px; } .ar-c2.ar-r2 { grid-row: 7; } .ar-c2.ar-r3 { grid-row: 8; } .ar-c2.ar-r4 { grid-row: 9; } .ar-c2.ar-r5 { grid-row: 10; }
+  .sr-howto { border-top: 0; padding-top: 4px; }
 }
 
 /* Honeypot: removed from the accessibility tree and from view, but still a real

@@ -648,6 +648,22 @@
       });
     }
 
+    /** Owners only: Delete on each row. Two steps (Delete, then Confirm), the same as on the client's own page; removes the client, its logins and its files. */
+    function deleteButton(c) {
+      var remove = h('button', { type: 'button', class: 'btn-small btn-small--danger', 'aria-label': 'Delete ' + c.name, text: 'Delete' });
+      confirmable(remove, 'Confirm: delete client, logins and files', function () {
+        return api('DELETE', '/api/portal/admin/clients/' + encodeURIComponent(c.id)).then(function () {
+          state.clients = state.clients.filter(function (x) { return x.id !== c.id; });
+          render();
+          setStatus(status, 'Deleted ' + c.name + ', its logins and its files.', 'success');
+        }).catch(function (error) {
+          if (error.code === 'signed_out') return;
+          setStatus(status, error.message, 'error');
+        });
+      });
+      return remove;
+    }
+
     function render() {
       loading.hidden = true;
       var rows = visible();
@@ -670,7 +686,9 @@
           var names = state.workers[c.id] || [];
           cells.push(h('td', { text: names.length ? names.join(', ') : 'Every master' }));
         }
-        cells.push(h('td', {}, [h('a', { class: 'btn-small', href: '/portal/client#client=' + encodeURIComponent(c.id), 'aria-label': 'Open ' + c.name, text: 'Open' })]));
+        var actions = [h('a', { class: 'btn-small', href: '/portal/client#client=' + encodeURIComponent(c.id), 'aria-label': 'Open ' + c.name, text: 'Open' })];
+        if (state.master) actions.push(deleteButton(c));
+        cells.push(h('td', {}, [h('div', { class: 'row-actions' }, actions)]));
         body.appendChild(h('tr', {}, cells));
       });
     }

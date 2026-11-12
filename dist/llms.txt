@@ -6,7 +6,7 @@ Accessrank, Inc. is based in Los Angeles, California (+1 310-408-1881; info@acce
 
 ## What Accessrank does
 
-- Free check: loads a store page in a real browser and scores it against the WCAG 2.2 Level A and AA checks that ADA demand letters cite, in about 20 seconds. Automated testing catches roughly a third to a half of real-world barriers; it does not prove compliance.
+- Free check: loads a store page in a real browser and scores it against the WCAG 2.2 Level A and AA checks that ADA demand letters cite, in under a minute. Automated testing catches roughly a third to a half of real-world barriers; it does not prove compliance.
 - Fixed-scope plan: a specialist reviews the result and returns a remediation plan, timeline and price.
 - Remediation in the theme code: Accessrank fixes the cause in the theme code, most of it within the first remediation cycle. Findings that need a judgment call (alt text, media descriptions, control behavior) are written and reviewed by an Accessrank staff member. Every change is recorded.
 - Accessibility Compliance Record: a dated file for the client's attorney or insurer containing a baseline audit, remediation log, VPAT-format conformance report against WCAG 2.2 AA, published accessibility statement, monitoring certificates, human (screen-reader and keyboard) testing record, and a demand-letter playbook.
