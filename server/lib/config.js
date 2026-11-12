@@ -128,6 +128,12 @@ const config = Object.freeze({
     /** Salt for hashing client IPs. MUST be set in production and MUST NOT rotate
      *  casually — rotating it resets every per-IP quota. */
     ipHashSalt: env.IP_HASH_SALT || '',
+    /**
+     * Staff pass code (server/lib/staff.js). Opening /staff?pass=<code> once gives that browser
+     * unlimited daily scans and reports. Unset = feature off. Set with `fly secrets set STAFF_PASS=...`;
+     * changing it revokes every pass already issued.
+     */
+    staffPass: env.STAFF_PASS || '',
     /** Bearer token guarding /api/admin/*. */
     adminToken: env.ADMIN_TOKEN || '',
     /** Hosts the scanner is never allowed to touch, on top of the IP-range blocklist. */

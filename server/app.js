@@ -14,6 +14,7 @@ import rateLimit from 'express-rate-limit';
 import config, { readiness } from './lib/config.js';
 import { log, requestId } from './lib/logger.js';
 import api from './routes/api.js';
+import { isStaff, passMatches, setStaffCookie } from './lib/staff.js';
 import portal, { portalPageGate, loginPageGate, reportPage } from './routes/portal.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -254,6 +255,30 @@ app.use('/api/scan', burst(
   'scan_burst_limit',
   'That is a lot of scans at once. Wait a minute and try again.',
 ));
+
+/*
+ * Staff pass. /staff?pass=<code> sets the cookie, then redirects to /staff so the code leaves the
+ * address bar; /staff alone reports whether this browser has a pass. A wrong or missing code gets
+ * the same page as no pass at all, so the endpoint reveals nothing.
+ */
+app.use('/staff', burst(10, 'too_many_requests', 'Too many attempts. Wait a minute and try again.'));
+app.get(['/staff', '/staff/'], (req, res) => {
+  res.setHeader('Cache-Control', 'no-store');
+  res.setHeader('Referrer-Policy', 'no-referrer');
+  res.setHeader('X-Robots-Tag', 'noindex, nofollow');
+  if (typeof req.query.pass === 'string') {
+    if (passMatches(req.query.pass)) setStaffCookie(res);
+    return res.redirect(303, '/staff');
+  }
+  const active = isStaff(req);
+  res.type('html').send(`<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>Accessrank staff pass</title></head>
+<body style="font-family:system-ui,sans-serif;max-width:560px;margin:60px auto;padding:0 20px;line-height:1.5">
+<h1 style="font-size:22px">${active ? 'This browser has unlimited scans' : 'No staff pass in this browser'}</h1>
+<p>${active
+    ? 'Free scans and report requests from this browser skip the daily limits for the next year. Clearing cookies or using a private window removes the pass.'
+    : 'Open your private staff link in this browser to turn it on.'}</p>
+<p><a href="/">Go to the checker</a></p></body></html>`);
+});
 
 app.use('/api/report', burst(
   config.limits.reportBurstPerMinute,

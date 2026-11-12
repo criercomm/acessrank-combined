@@ -255,6 +255,11 @@ with our own scan). Restrict the key to the PageSpeed Insights API in Google Clo
 Without it, scans work as before and the dialog leaves the Lighthouse bar out.
 `PAGESPEED_TIMEOUT_MS` (default 50000) caps how long a scan waits for Google.
 
+Optional: `fly secrets set STAFF_PASS="..."` turns on the staff pass. Opening
+`/staff?pass=<code>` once gives that browser unlimited daily scans and reports for a
+year (the per-minute burst limits still apply); `/staff` shows whether a browser has
+one. Changing the secret revokes every pass already issued.
+
 Set `TURNSTILE_SITE_KEY` in `fly.toml` under `[build.args]` — it is public and
 must be present at build time to render into the forms.
 

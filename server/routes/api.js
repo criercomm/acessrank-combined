@@ -5,6 +5,7 @@ import { getStore, QuotaError, isUuid } from '../lib/store.js';
 import { consumeScanQuota, reserveReport, releaseReport, quotaStatus } from '../lib/quota.js';
 import { runScan, ScanError, AXE_VERSION } from '../lib/scanner.js';
 import { fetchLighthouseAccessibility } from '../lib/pagespeed.js';
+import { isStaff } from '../lib/staff.js';
 import { BlockedTargetError, normalizeTargetUrl } from '../lib/ssrf.js';
 import { hashIp, clientIp, cleanText } from '../lib/identity.js';
 import {
@@ -99,7 +100,8 @@ router.post('/scan', wrap(async (req, res) => {
     return res.json({ ok: true, scanId: row.id, cached: true, ...publicScan(cachedResult) });
   }
 
-  await consumeScanQuota(store, ipHash);
+  // Staff browsers (server/lib/staff.js) skip the daily scan cap; the burst limit still applies.
+  if (!isStaff(req)) await consumeScanQuota(store, ipHash);
 
   const started = Date.now();
   // Google's Lighthouse run happens in parallel with ours, so it adds little to the wait.
@@ -239,9 +241,11 @@ router.post('/report', wrap(async (req, res) => {
   const result = typeof scan.result === 'string' ? JSON.parse(scan.result) : scan.result;
   const context = marketingContext(req);
 
+  const staff = isStaff(req);
   const { lead, report } = await reserveReport(store, {
     identity: contact.identity,
     ipHash,
+    staff,
     scan,
     lead: {
       name: contact.name,
@@ -276,7 +280,7 @@ router.post('/report', wrap(async (req, res) => {
     notifySales({ lead, result, kind: 'audit_report' });
   } catch (err) {
     log.error('report delivery failed', { err: err.message, reportId: report.id });
-    await releaseReport(store, { report, ipHash, reason: err.message });
+    await releaseReport(store, { report, ipHash: staff ? null : ipHash, reason: err.message });
     const failure = new Error("We couldn't email your report just now. Please try again in a few minutes.");
     failure.public = true;
     failure.status = 502;

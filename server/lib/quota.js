@@ -67,7 +67,9 @@ export async function consumeScanQuota(store, ipHash) {
  *
  * @returns {{ lead: object, report: object }}
  */
-export async function reserveReport(store, { identity, lead: leadInput, scan, ipHash }) {
+export async function reserveReport(store, { identity, lead: leadInput, scan, ipHash, staff = false }) {
+  // A staff browser skips both caps below (no per-IP count is taken, so none is refunded either).
+  if (staff) ipHash = null;
   const locks = [`lead:${identity.normalized}`];
   if (ipHash) locks.push(`${SCOPE.REPORT_IP}:${ipHash}`);
 
@@ -77,7 +79,7 @@ export async function reserveReport(store, { identity, lead: leadInput, scan, ip
     const alreadySent = await store.countReportsForLead(client, lead.id);
     const internal = config.limits.internalEmailDomains.includes(identity.domain);
 
-    if (!internal && alreadySent >= config.limits.reportsPerEmail) {
+    if (!internal && !staff && alreadySent >= config.limits.reportsPerEmail) {
       throw new QuotaError(
         'email_limit',
         config.limits.reportsPerEmail === 1
