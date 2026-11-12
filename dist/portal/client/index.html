@@ -55,7 +55,7 @@
   <!-- Cloudflare Turnstile is not loaded here: site.js loads it on demand (Accessrank.loadTurnstile) so visitors who never
        touch a form get no third-party cookie (Lighthouse Best Practices). -->
   <script src="/assets/js/site.ea531f0bde.js" defer></script>
-  <script src="/assets/js/portal.715653ee5e.js" defer></script>
+  <script src="/assets/js/portal.0beb69b9f9.js" defer></script>
   
 <link rel="stylesheet" href="/analytics-consent.css">
 <script defer src="/analytics-consent.js" data-measurement-id="G-870R91HD7W" data-pages="/|/beta|/overlays|/human-testing|/about|/methodology|/guide/ada-eaa|/resources|/careers|/contact-sales|/privacy|/terms|/disclosure|/citations" data-privacy="/privacy"></script>
@@ -261,10 +261,10 @@
             <div class="files-head">
               <h4>ACR draft</h4>
               <label class="btn-small upload-button" for="acr-draft-input">Upload new draft</label>
-              <input class="visually-hidden" type="file" id="acr-draft-input" accept=".docx,.doc,.pdf,.odt,.rtf" data-acr-draft-input>
+              <input class="visually-hidden" type="file" id="acr-draft-input" accept=".html,.htm,.pdf,.docx,.doc,.odt,.rtf" data-acr-draft-input>
             </div>
             <div class="acr-draft" data-acr-draft></div>
-            <p class="field-hint">Queued changes apply to the newest draft. Earlier drafts are kept; the client never sees drafts.</p>
+            <p class="field-hint">Queued changes apply to the newest draft. Upload the ACR as its HTML page and Build merges the changes into it; a PDF or Word draft gets a list of changes to apply by hand. Earlier drafts are kept; the client never sees drafts.</p>
             <ul class="acr-history" data-acr-history hidden></ul>
           </div>
           <div>
@@ -273,10 +273,11 @@
             <ul class="approval-items acr-queue" data-acr-queue hidden></ul>
             <div class="row-actions acr-actions">
               <button class="btn-small btn-small--brand" type="button" data-acr-build disabled>Build ACR update</button>
-              <label class="btn-small upload-button" for="acr-publish-input">Publish to client</label>
-              <input class="visually-hidden" type="file" id="acr-publish-input" accept=".docx,.doc,.pdf,.odt,.rtf" data-acr-publish-input>
+              <button class="btn-small" type="button" data-acr-publish-merge hidden>Publish to client</button>
+              <label class="btn-small upload-button" for="acr-publish-input" data-acr-publish-upload>Publish to client</label>
+              <input class="visually-hidden" type="file" id="acr-publish-input" accept=".pdf,.html,.htm,.docx,.doc,.odt,.rtf" data-acr-publish-input>
             </div>
-            <p class="field-hint">Build ACR update downloads the queued changes as a dated PDF. Publish to client takes the updated ACR: it goes to the client&rsquo;s Compliance files, becomes the new draft, and the queued changes are marked as applied.</p>
+            <p class="field-hint" data-acr-hint></p>
             <p class="form-status" data-acr-status role="status" aria-live="polite"></p>
           </div>
         </div>

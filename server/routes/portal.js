@@ -15,11 +15,11 @@ import {
   addReport, listReports, getReport, deleteReport, saveApprovals, currentApprovals, adminApprovals, approvalHistory,
   setReportStatus, approvalsRecordCsv, loginClientId, isStaff, clientScope, canAccessClient, listOperators, createOperator, setOperatorRole, resetOperatorPassword,
   deleteOperator, setOperatorClients, changeOwnOperatorPassword,
-  setWorkItem, clientAcr, acrUpdateText, addAcrDraft, getAcrDraft, publishAcr, CONFORMANCE_LEVELS,
+  setWorkItem, clientAcr, acrUpdateText, addAcrDraft, getAcrDraft, publishAcr, mergedAcr, publishMergedAcr, CONFORMANCE_LEVELS,
 } from '../lib/portal.js';
 import { notifyApprovals } from '../lib/email.js';
 import { reportCsp } from '../lib/reportCsp.js';
-import { generateAcrUpdatePdf } from '../lib/pdf.js';
+import { generateAcrUpdatePdf, generateAcrPdf } from '../lib/pdf.js';
 
 /**
  * Client portal API, mounted at /api/portal.
@@ -472,11 +472,34 @@ admin.get('/acr-drafts/:id', wrap(async (req, res) => {
   res.end(data);
 }));
 
-/** The queued changes as a dated PDF (or ?format=txt for plain text), to apply to the current draft. */
+/** Tests swap the Chromium renderer for a stub through app.locals. */
+const acrPdf = (req, merged, clientName) => (req.app.locals.renderAcrPdf ?? generateAcrPdf)(merged.html, {
+  header: merged.header, footer: merged.footer, clientName, version: merged.version, dateText: merged.dateText,
+});
+
+/**
+ * Build. With an HTML draft: the draft with every queued change merged in, as a PDF
+ * (?format=html gives the merged HTML). With any other draft: the queued changes as a
+ * dated PDF to apply by hand (?format=txt for plain text).
+ */
 admin.get('/clients/:id/acr/update', wrap(async (req, res) => {
   await assertClient(req, req.params.id);
-  const acr = await clientAcr(await getStore(), req.params.id);
+  const store = await getStore();
   const builtAt = new Date();
+  const { acr, merged } = await mergedAcr(store, req.portal, req.params.id, builtAt);
+  if (merged) {
+    if (req.query.format === 'html') {
+      res.setHeader('Content-Type', 'text/html; charset=utf-8');
+      res.setHeader('Content-Disposition', contentDisposition(`${merged.base}.html`));
+      return res.end(merged.html);
+    }
+    const pdf = await acrPdf(req, merged, acr.client.name);
+    log.info('portal acr merged', { clientId: req.params.id, items: acr.queue.length, version: merged.version, bytes: pdf.length, by: req.portal.email });
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Length', String(pdf.length));
+    res.setHeader('Content-Disposition', contentDisposition(`${merged.base}.pdf`));
+    return res.end(pdf);
+  }
   const stamp = builtAt.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'America/Los_Angeles' }).replace(',', '');
   const name = `${acr.client.name} ACR Update ${stamp}`;
   if (req.query.format === 'txt') {
@@ -497,10 +520,28 @@ admin.get('/clients/:id/acr/update', wrap(async (req, res) => {
   res.end(pdf);
 }));
 
-/** Publish the updated ACR to the client's Compliance files and mark the queued changes as applied. */
+/**
+ * Publish the updated ACR to the client's Compliance files and mark the queued changes as applied.
+ * With an HTML draft and no upload, the server merges and prints the ACR itself; otherwise the
+ * uploaded file is published as it is.
+ */
 admin.post('/clients/:id/acr/publish', rawUpload, wrap(async (req, res) => {
   await assertClient(req, req.params.id);
-  const out = await publishAcr(await getStore(), req.portal, req.params.id, {
+  const store = await getStore();
+  const uploaded = Buffer.isBuffer(req.body) && req.body.length > 0;
+  if (!uploaded) {
+    const { acr, merged } = await mergedAcr(store, req.portal, req.params.id);
+    if (merged) {
+      if (!acr.queue.length) throw new PortalError('No changes are queued, so there is nothing new to publish.', { code: 'acr_nothing_queued', status: 409 });
+      const pdf = await acrPdf(req, merged, acr.client.name);
+      const out = await publishMergedAcr(store, req.portal, req.params.id, {
+        pdfName: `${merged.base}.pdf`, pdf, htmlName: `${merged.base}.html`, html: merged.html,
+      });
+      log.info('portal acr published', { clientId: req.params.id, fileId: out.file.id, applied: out.applied, version: merged.version, by: req.portal.email });
+      return res.status(201).json({ ok: true, version: merged.version, ...out });
+    }
+  }
+  const out = await publishAcr(store, req.portal, req.params.id, {
     filename: typeof req.query.name === 'string' ? req.query.name : '', data: uploadedBytes(req),
   });
   log.info('portal acr published', { clientId: req.params.id, fileId: out.file.id, applied: out.applied, by: req.portal.email });

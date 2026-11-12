@@ -5,6 +5,7 @@ import { log } from './logger.js';
 import { cleanText } from './identity.js';
 import { isUuid } from './store.js';
 import { extractStatement, isStatementItem, statementPlaceholders } from './acr-statement.js';
+import { isHtmlDraft, mergeAcr, pdfTemplates } from './acr-merge.js';
 
 /**
  * Client portal: passwords, sessions, and the storage behind /portal.
@@ -1945,6 +1946,8 @@ const acrDraftOut = (row) => ({
   uploadedByName: row.uploaded_by_name || '',
   uploadedByEmail: row.uploaded_by_email || '',
   published: Boolean(row.published),
+  // An HTML draft can have approved changes merged into it; any other file gets a change list.
+  mergeable: isHtmlDraft(row.filename),
 });
 
 /**
@@ -2099,6 +2102,40 @@ export async function getAcrDraft(store, id) {
 export async function publishAcr(store, session, clientId, { filename, data }) {
   const file = await addFile(store, clientId, { filename, data, area: 'compliance' });
   const draft = await addAcrDraft(store, session, clientId, { filename, data, published: true });
+  const applied = await repoFor(store).markWorkApplied(clientId);
+  return { file, draft, applied };
+}
+
+const longDay = (value) => (value ? new Date(value).toLocaleDateString('en-US', { dateStyle: 'long', timeZone: 'America/Los_Angeles' }) : '');
+
+/**
+ * Merge the queued changes into the newest draft, when that draft is HTML.
+ * Returns null when there is no HTML draft (the team then gets a change list instead).
+ */
+export async function mergedAcr(store, session, clientId, now = new Date()) {
+  const acr = await clientAcr(store, clientId);
+  const latest = acr.drafts[0];
+  if (!latest?.mergeable) return { acr, merged: null };
+  const row = await repoFor(store).getAcrDraft(latest.id);
+  const draftHtml = Buffer.from(row.data).toString('utf8');
+  const merged = mergeAcr(draftHtml, acr, {
+    builtAt: now,
+    builtBy: session.name || session.email || 'Accessrank',
+    day: longDay,
+    decisions: DECISION_LABEL,
+    conformance: CONFORMANCE_LEVELS,
+  });
+  const base = `${acr.client.name} Accessibility Compliance Record Version ${merged.version}`;
+  return { acr, merged: { ...merged, ...pdfTemplates(merged.html), dateText: longDay(now), base } };
+}
+
+/**
+ * Publish a merged ACR: the PDF goes to the client's Compliance files, the merged HTML
+ * becomes the newest draft (so the next update builds on it), and the queue is marked applied.
+ */
+export async function publishMergedAcr(store, session, clientId, { pdfName, pdf, htmlName, html }) {
+  const file = await addFile(store, clientId, { filename: pdfName, data: pdf, area: 'compliance' });
+  const draft = await addAcrDraft(store, session, clientId, { filename: htmlName, data: Buffer.from(html, 'utf8'), published: true });
   const applied = await repoFor(store).markWorkApplied(clientId);
   return { file, draft, applied };
 }

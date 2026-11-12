@@ -1421,3 +1421,50 @@ test('ACR update: an approved accessibility statement goes in word for word', as
   assert.match(text, /Fill in before publishing: \[date of publication\]/);
   assert.ok(!text.includes('Proposed footer text'));
 });
+
+test('ACR merge: an HTML draft gets the approved changes merged in, and publishing needs no upload', async () => {
+  const admin = await adminBrowser();
+  const a = await clientWithLogin(admin, 'Freshe', 'lisa@freshe.test');
+  const report = await publish(admin, a.client.id, 'Statement approval', `<!DOCTYPE html><html lang="en"><head><title>S</title></head><body><main>
+    <div class="statement"><h3>Accessibility Statement</h3><p>Freshe wants everyone in.</p></div></main></body></html>`);
+  await a.person.post(`/api/portal/reports/${report.id}/approvals`, {
+    name: 'Lisa Park', items: [{ key: 'statement', title: 'Section 1: the proposed accessibility statement', decision: 'approve' }],
+  });
+  const draftHtml = `<!DOCTYPE html><html><body><main><p><span data-acr="version">Version 1.0</span></p>
+    <table data-acr="remediation-log"><tbody><tr><td>Oct 26</td><td>Alt text</td><td>Done</td></tr></tbody></table>
+    <div data-acr="statement"><p>Old proposed wording</p></div></main></body></html>`;
+  const up = await admin.upload(`/api/portal/admin/clients/${a.client.id}/acr/drafts?name=${encodeURIComponent('Freshe ACR Draft.html')}`, Buffer.from(draftHtml));
+  assert.equal(up.status, 201);
+  assert.equal(up.body.draft.mergeable, true);
+  assert.equal((await admin.put(`/api/portal/admin/reports/${report.id}/work/statement`, { done: true, queue: true })).status, 200);
+
+  const merged = await admin.get(`/api/portal/admin/clients/${a.client.id}/acr/update?format=html`);
+  assert.equal(merged.status, 200);
+  const html = merged.body.toString('utf8');
+  assert.match(html, /Version 1\.1</);
+  assert.match(html, /<p>Freshe wants everyone in\.<\/p>/);
+  assert.ok(!html.includes('Old proposed wording'));
+  assert.match(html, /<td>Section 1: the proposed accessibility statement<\/td>/);
+
+  const rendered = [];
+  app.locals.renderAcrPdf = async (h, opts) => { rendered.push({ h, opts }); return Buffer.from('%PDF-1.4 merged'); };
+  try {
+    const built = await admin.get(`/api/portal/admin/clients/${a.client.id}/acr/update`);
+    assert.equal(built.status, 200);
+    assert.match(decodeURIComponent(built.headers.get('content-disposition')), /Freshe Accessibility Compliance Record Version 1\.1\.pdf/);
+    const pub = await admin.post(`/api/portal/admin/clients/${a.client.id}/acr/publish`);
+    assert.equal(pub.status, 201, JSON.stringify(pub.body));
+    assert.equal(pub.body.version, '1.1');
+    assert.equal(pub.body.applied, 1);
+    assert.equal(rendered.at(-1).opts.version, '1.1');
+  } finally {
+    delete app.locals.renderAcrPdf;
+  }
+  const files = (await a.person.get('/api/portal/me')).body.files;
+  assert.ok(files.some((f) => f.name === 'Freshe Accessibility Compliance Record Version 1.1.pdf' && f.area === 'compliance'));
+  const after = (await admin.get(`/api/portal/admin/clients/${a.client.id}/acr`)).body;
+  assert.equal(after.queue.length, 0);
+  assert.equal(after.drafts[0].name, 'Freshe Accessibility Compliance Record Version 1.1.html', 'the merged ACR is the next draft');
+  assert.equal(after.drafts[0].mergeable, true);
+  assert.equal((await admin.post(`/api/portal/admin/clients/${a.client.id}/acr/publish`)).status, 409, 'nothing queued');
+});

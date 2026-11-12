@@ -465,3 +465,44 @@ export async function generateAcrUpdatePdf(acr, meta) {
     await page.close().catch(() => {});
   }
 }
+
+/**
+ * Print an ACR written as HTML (a merged draft) to PDF.
+ * The draft is team-written, but the renderer still loads nothing from the network:
+ * images and fonts must be inlined (data: URLs), as they are in the drafts we build.
+ * The draft may supply <template data-acr-pdf-header> / <template data-acr-pdf-footer>;
+ * otherwise a footer with the client, version, date and page numbers is used.
+ */
+export async function generateAcrPdf(html, { header, footer, clientName, version, dateText }) {
+  const e = escapeHtml;
+  const browser = await getBrowserForRendering();
+  const context = await browser.newContext({ javaScriptEnabled: false });
+  try {
+    await context.route('**/*', (route) => (route.request().url().startsWith('data:') ? route.continue() : route.abort()));
+    const page = await context.newPage();
+    // A draft that writes its own page headers and footers in CSS (@page margin boxes) gets no others.
+    const ownMargins = /@(top|bottom)-(left|center|right)\b/.test(html);
+    const print = async (doc) => {
+      await page.setContent(doc, { waitUntil: 'load', timeout: 60_000 });
+      await page.emulateMedia({ media: 'print' });
+      return page.pdf({
+        format: 'Letter',
+        printBackground: true,
+        preferCSSPageSize: true,
+        displayHeaderFooter: !ownMargins && footer !== 'none',
+        headerTemplate: header || '<span></span>',
+        footerTemplate: footer && footer !== 'none' ? footer : defaultFooter,
+      });
+    };
+    const defaultFooter = `<div style="font-size:8px;color:#6A6F7D;width:100%;padding:0 0.75in;display:flex;justify-content:space-between;font-family:Helvetica,Arial,sans-serif">
+      <span>${e(clientName)} · Accessibility Compliance Record · Version ${e(version)} · ${e(dateText)}</span>
+      <span>Prepared by Accessrank.ai · Page <span class="pageNumber"></span> of <span class="totalPages"></span></span></div>`;
+    if (!html.includes('{{TOTAL}}')) return await print(html);
+    // "Page 3 of {{TOTAL}}" in a CSS footer: print once to count the pages, then again with the count.
+    const first = await print(html.split('{{TOTAL}}').join('99'));
+    const pages = (first.toString('latin1').match(/\/Type\s*\/Page(?![s\w])/g) || []).length || 1;
+    return await print(html.split('{{TOTAL}}').join(String(pages)));
+  } finally {
+    await context.close().catch(() => {});
+  }
+}

@@ -836,7 +836,7 @@
     function count() {
       var queued = report.items.filter(function (i) { return i.work && i.work.acrState === 'queued'; }).length;
       next.hidden = queued === 0;
-      nextText.textContent = plural(queued, 'change') + ' waiting in ' + report.clientName + '\u2019s ACR update. Next: build the update, apply it to the ACR draft, then publish.';
+      nextText.textContent = plural(queued, 'change') + ' waiting in ' + report.clientName + '\u2019s ACR update. Next: build the updated ACR, check it, then publish it to the client.';
       var done = report.items.filter(function (i) { return i.work && i.work.done; }).length;
       summary.textContent = done + ' of ' + report.items.length + ' done';
       bar.style.width = (report.items.length ? (done / report.items.length) * 100 : 0) + '%';
@@ -903,7 +903,11 @@
     var draftInput = section.querySelector('[data-acr-draft-input]');
     var publishInput = section.querySelector('[data-acr-publish-input]');
     var status = section.querySelector('[data-acr-status]');
+    var publishMerge = section.querySelector('[data-acr-publish-merge]');
+    var publishUpload = section.querySelector('[data-acr-publish-upload]');
+    var hint = section.querySelector('[data-acr-hint]');
     var busy = false;
+    var current = null;
 
     function draftLink(d) {
       return h('a', { href: '/api/portal/admin/acr-drafts/' + encodeURIComponent(d.id), text: d.name });
@@ -941,6 +945,16 @@
       // A button, not a link: the address needs the client id, and a placeholder href trips the link check.
       build.setAttribute('data-href', '/api/portal/admin/clients/' + encodeURIComponent(acr.client.id) + '/acr/update');
       build.disabled = !acr.queue.length;
+      // An HTML draft is merged on the server: Build downloads the updated ACR, and Publish needs no upload.
+      var merge = Boolean(d && d.mergeable);
+      current = acr;
+      build.textContent = merge ? 'Build updated ACR' : 'Build ACR update';
+      publishMerge.hidden = !merge;
+      publishMerge.disabled = !acr.queue.length;
+      publishUpload.hidden = merge;
+      hint.textContent = merge
+        ? 'Build updated ACR downloads the draft with every queued change merged in, as a PDF with the next version number. Check it, then Publish to client: the PDF goes to the client’s Compliance files, the merged version becomes the new draft, and the queued changes are marked as applied.'
+        : 'This draft is not HTML, so Build ACR update downloads the queued changes as a dated PDF to apply by hand. Publish to client takes the updated ACR file: it goes to the client’s Compliance files, becomes the new draft, and the queued changes are marked as applied.';
     }
 
     function load() {
@@ -969,6 +983,21 @@
     });
     draftInput.addEventListener('change', function () {
       upload(draftInput, '/acr/drafts', function (file) { return file.name + ' is the new ACR draft. Queued changes apply to it.'; });
+    });
+    publishMerge.addEventListener('click', function () {
+      var client = getClient();
+      if (!client || busy || publishMerge.disabled) return;
+      busy = true;
+      publishMerge.disabled = true;
+      setStatus(status, 'Merging and publishing the ACR…');
+      api('POST', '/api/portal/admin/clients/' + encodeURIComponent(client.id) + '/acr/publish')
+        .then(function (data) {
+          if (notify) notify();
+          setStatus(status, 'Version ' + data.version + ' published to the client’s Compliance files as ' + data.file.name + '. ' + plural(data.applied, 'queued change') + ' marked as applied.', 'success');
+          return load();
+        })
+        .catch(function (error) { setStatus(status, error.message, 'error'); publishMerge.disabled = !(current && current.queue.length); })
+        .then(function () { busy = false; });
     });
     publishInput.addEventListener('change', function () {
       upload(publishInput, '/acr/publish', function (file, data) {
