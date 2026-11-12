@@ -818,13 +818,24 @@
     var list = h('ul', { class: 'work-list' });
     wrap.appendChild(h('div', { class: 'work-head' }, [
       summary,
-      h('a', { class: 'work-acr-link', href: '/portal/client#client=' + encodeURIComponent(report.clientId), text: 'ACR for ' + report.clientName })
+      h('a', { class: 'work-acr-link', href: '/portal/client#client=' + encodeURIComponent(report.clientId) + '&acr', text: 'ACR for ' + report.clientName })
     ]));
     wrap.appendChild(h('div', { class: 'work-bar', 'aria-hidden': 'true' }, [bar]));
     wrap.appendChild(h('p', { class: 'field-hint', text: 'Tick an item only when the change is live on the store, not just finished in a test theme.' }));
     wrap.appendChild(list);
+    // The next step, once something is queued: build the ACR update on the client's page.
+    var acrHref = '/portal/client#client=' + encodeURIComponent(report.clientId) + '&acr';
+    var nextText = h('span', {});
+    var next = h('div', { class: 'work-next', hidden: true }, [
+      nextText,
+      h('a', { class: 'btn-small btn-small--brand', href: acrHref, text: 'Go to ACR update' })
+    ]);
+    wrap.appendChild(next);
 
     function count() {
+      var queued = report.items.filter(function (i) { return i.work && i.work.acrState === 'queued'; }).length;
+      next.hidden = queued === 0;
+      nextText.textContent = plural(queued, 'change') + ' waiting in ' + report.clientName + '\u2019s ACR update. Next: build the update, apply it to the ACR draft, then publish.';
       var done = report.items.filter(function (i) { return i.work && i.work.done; }).length;
       summary.textContent = done + ' of ' + report.items.length + ' done';
       bar.style.width = (report.items.length ? (done / report.items.length) * 100 : 0) + '%';
@@ -1672,6 +1683,11 @@
         state.selectedId = state.clients.some(function (c) { return c.id === wanted[1]; }) ? wanted[1] : null;
         hideCredential();
         renderDetail();
+        // Arriving from Work to do (#client=…&acr): land on the ACR section.
+        if (/[#&]acr\b/.test(location.hash || '') && selected()) {
+          var acrHeading = root.querySelector('#admin-acr-heading');
+          if (acrHeading) { acrHeading.scrollIntoView({ block: 'start' }); acrHeading.focus({ preventScroll: true }); }
+        }
       }).catch(function (error) {
         if (error.code === 'signed_out') return;
         // A client login that reaches this page is told nothing about it.

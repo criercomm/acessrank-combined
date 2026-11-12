@@ -19,6 +19,7 @@ import {
 } from '../lib/portal.js';
 import { notifyApprovals } from '../lib/email.js';
 import { reportCsp } from '../lib/reportCsp.js';
+import { generateAcrUpdatePdf } from '../lib/pdf.js';
 
 /**
  * Client portal API, mounted at /api/portal.
@@ -471,14 +472,29 @@ admin.get('/acr-drafts/:id', wrap(async (req, res) => {
   res.end(data);
 }));
 
-/** The queued changes as a dated text file, to apply to the current draft. */
+/** The queued changes as a dated PDF (or ?format=txt for plain text), to apply to the current draft. */
 admin.get('/clients/:id/acr/update', wrap(async (req, res) => {
   await assertClient(req, req.params.id);
   const acr = await clientAcr(await getStore(), req.params.id);
-  const stamp = new Date().toISOString().slice(0, 10);
-  res.setHeader('Content-Type', 'text/plain; charset=utf-8');
-  res.setHeader('Content-Disposition', contentDisposition(`${acr.client.name} ACR Update ${stamp}.txt`));
-  res.end(acrUpdateText(acr, req.portal));
+  const builtAt = new Date();
+  const stamp = builtAt.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'America/Los_Angeles' }).replace(',', '');
+  const name = `${acr.client.name} ACR Update ${stamp}`;
+  if (req.query.format === 'txt') {
+    res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+    res.setHeader('Content-Disposition', contentDisposition(`${name}.txt`));
+    return res.end(acrUpdateText(acr, req.portal));
+  }
+  const pdf = await generateAcrUpdatePdf(acr, {
+    builtAt,
+    builtBy: req.portal.name || req.portal.email || 'Accessrank',
+    conformance: CONFORMANCE_LEVELS,
+    decisions: { approve: 'Approved', changes: 'Changes requested', comment: 'Comment' },
+  });
+  log.info('portal acr update built', { clientId: req.params.id, items: acr.queue.length, bytes: pdf.length, by: req.portal.email });
+  res.setHeader('Content-Type', 'application/pdf');
+  res.setHeader('Content-Length', String(pdf.length));
+  res.setHeader('Content-Disposition', contentDisposition(`${name}.pdf`));
+  res.end(pdf);
 }));
 
 /** Publish the updated ACR to the client's Compliance files and mark the queued changes as applied. */

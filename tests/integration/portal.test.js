@@ -1362,7 +1362,7 @@ test('work to do: ticking approved items, queuing them for the ACR, and publishi
   assert.equal(acr.queue[0].title, 'Add alt text to product images');
   assert.equal(acr.drafts.length, 1);
 
-  const update = await admin.get(`/api/portal/admin/clients/${a.client.id}/acr/update`);
+  const update = await admin.get(`/api/portal/admin/clients/${a.client.id}/acr/update?format=txt`);
   assert.equal(update.status, 200);
   const text = update.body.toString('utf8');
   assert.match(text, /Apply to: Top Seedz ACR v3\.docx/);
@@ -1383,4 +1383,41 @@ test('work to do: ticking approved items, queuing them for the ACR, and publishi
   const undone = await admin.put(work('d1'), { done: false });
   assert.equal(undone.body.work.done, false);
   assert.equal(undone.body.work.acrState, 'none');
+});
+
+test('ACR update: an approved accessibility statement goes in word for word', async () => {
+  const admin = await adminBrowser();
+  const a = await clientWithLogin(admin, 'Freshe', 'lisa@freshe.test');
+  const html = `<!DOCTYPE html><html lang="en"><head><title>Statement</title></head><body><main>
+    <h2>The proposed statement</h2>
+    <div class="statement"><h3>Accessibility Statement</h3><p>Freshe Meals wants freshemeals.com to work for everyone &amp; every device.</p>
+      <h3>What we have done</h3><ul><li>Clear focus outlines</li><li>Alt text on photos</li></ul>
+      <p>Last reviewed <mark>[date of publication]</mark>.</p></div>
+    <div class="stmt"><p>Proposed footer text</p></div>
+  </main></body></html>`;
+  const report = await publish(admin, a.client.id, 'Statement and footer approval', html);
+  await a.person.post(`/api/portal/reports/${report.id}/approvals`, {
+    name: 'Lisa Park',
+    items: [
+      { key: 'statement', title: 'Section 1: the proposed accessibility statement', decision: 'approve' },
+      { key: 'footer', title: 'Section 3: the Accessrank footer addition', decision: 'approve' },
+    ],
+  });
+  await admin.upload(`/api/portal/admin/clients/${a.client.id}/acr/drafts?name=${encodeURIComponent('Freshe ACR v1.docx')}`, PDF);
+  const work = (key) => `/api/portal/admin/reports/${report.id}/work/${key}`;
+  assert.equal((await admin.put(work('statement'), { done: true, queue: true })).status, 200);
+  assert.equal((await admin.put(work('footer'), { done: true, queue: true })).status, 200);
+
+  const acr = (await admin.get(`/api/portal/admin/clients/${a.client.id}/acr`)).body;
+  const st = acr.queue.find((w) => w.key === 'statement').statement;
+  assert.deepEqual(st.blocks.map((b) => b.type), ['heading', 'paragraph', 'heading', 'item', 'item', 'paragraph']);
+  assert.equal(st.blocks[1].text, 'Freshe Meals wants freshemeals.com to work for everyone & every device.');
+  assert.deepEqual(st.placeholders, ['[date of publication]']);
+  assert.equal(acr.queue.find((w) => w.key === 'footer').statement, undefined, 'only the statement item carries text');
+
+  const text = (await admin.get(`/api/portal/admin/clients/${a.client.id}/acr/update?format=txt`)).body.toString('utf8');
+  assert.match(text, /Approved statement text, word for word:/);
+  assert.match(text, /- Alt text on photos/);
+  assert.match(text, /Fill in before publishing: \[date of publication\]/);
+  assert.ok(!text.includes('Proposed footer text'));
 });

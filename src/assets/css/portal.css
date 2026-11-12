@@ -501,3 +501,5 @@ a.btn-small--brand, a.btn-small--brand:hover { color: var(--brand-ink); backgrou
 .acr-queue { margin: 0 0 12px; border-top: 1px solid var(--hairline); }
 .acr-empty { padding: 10px 0; border-top: 1px solid var(--hairline); border-bottom: 1px solid var(--hairline); margin: 0 0 12px; }
 .acr-actions .is-disabled { opacity: 0.55; cursor: default; }
+.work-next { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px 16px; margin-top: 14px; padding: 12px 0 2px; }
+.work-next span { color: var(--text); font-weight: 600; }

@@ -4,6 +4,7 @@ import config from './config.js';
 import { log } from './logger.js';
 import { cleanText } from './identity.js';
 import { isUuid } from './store.js';
+import { extractStatement, isStatementItem, statementPlaceholders } from './acr-statement.js';
 
 /**
  * Client portal: passwords, sessions, and the storage behind /portal.
@@ -2020,6 +2021,16 @@ export async function clientAcr(store, clientId) {
       };
     })
     .sort((x, y) => String(x.doneAt).localeCompare(String(y.doneAt)));
+  // An approved accessibility statement goes into the ACR word for word, taken from the report the client approved.
+  const htmlCache = new Map();
+  for (const w of queue) {
+    if (!isStatementItem(w.key, w.title) || !['approve', 'changes'].includes(w.decision)) continue;
+    if (!htmlCache.has(w.reportId)) htmlCache.set(w.reportId, (await repo.getReport(w.reportId))?.html ?? '');
+    const blocks = extractStatement(htmlCache.get(w.reportId));
+    w.statement = blocks
+      ? { blocks, placeholders: statementPlaceholders(blocks), asProposed: w.decision === 'changes' }
+      : { blocks: [], placeholders: [], asProposed: w.decision === 'changes', missing: true };
+  }
   return { client: clientOut(client), drafts: drafts.map(acrDraftOut), queue };
 }
 
@@ -2045,6 +2056,19 @@ export function acrUpdateText(acr, session, now = new Date()) {
     }
     lines.push(`   Remediation log: done and live ${day(w.doneAt)}${w.doneByName ? `, marked by ${w.doneByName}` : ''}.`);
     if (w.note) lines.push(`   Team note: ${w.note}`);
+    if (w.statement) {
+      if (w.statement.missing) {
+        lines.push('   Statement text: not found in the report. Copy the approved wording into the ACR by hand.');
+      } else {
+        lines.push(w.statement.asProposed
+          ? '   Statement text, as proposed (apply the client\'s requested changes above):'
+          : '   Approved statement text, word for word:');
+        for (const b of w.statement.blocks) {
+          lines.push(b.type === 'heading' ? `     ${b.text.toUpperCase()}` : b.type === 'item' ? `     - ${b.text}` : `     ${b.text}`);
+        }
+        if (w.statement.placeholders.length) lines.push(`   Fill in before publishing: ${w.statement.placeholders.join(', ')}`);
+      }
+    }
     lines.push('');
   });
   if (!acr.queue.length) lines.push('No changes are queued.');

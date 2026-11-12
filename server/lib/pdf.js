@@ -359,3 +359,109 @@ export async function renderReportHtml(context) {
 }
 
 export default { generateReportPdf, buildReportContext, renderReportHtml, describeCriteria, complaintPatterns, criteriaTable };
+
+/**
+ * The ACR update as a dated PDF: the queued changes to apply to the client's current ACR draft,
+ * each with the client's answer, who marked it live and when, and any team note. Self-contained
+ * HTML (nothing remote), rendered by the same Chromium as the report.
+ *
+ * @param {object} acr   clientAcr() output: { client, drafts, queue }
+ * @param {object} meta  { builtBy, builtAt: Date, conformance: { key: label }, decisions: { key: label } }
+ * @returns {Promise<Buffer>}
+ */
+export async function generateAcrUpdatePdf(acr, meta) {
+  const e = escapeHtml;
+  const day = (v) => (v ? new Date(v).toLocaleDateString('en-US', { dateStyle: 'long', timeZone: 'America/Los_Angeles' }) : '');
+  const draft = acr.drafts[0];
+  const items = acr.queue.map((w, i) => {
+    const answer = (meta.decisions[w.decision] ?? w.decision) + (w.choice ? `: ${w.choice}` : '');
+    const rows = [
+      ['Client answer', `${answer}${w.signerName ? ` (${w.signerName}, ${day(w.decidedAt)})` : ''}`],
+      w.comment ? ['Client comment', w.comment] : null,
+      w.criterion || w.conformance ? ['Conformance', `${w.criterion || 'Criterion not given'}${w.conformance ? ` → ${meta.conformance[w.conformance]}` : ''}`] : null,
+      ['Remediation log', `Done and live on the store ${day(w.doneAt)}${w.doneByName ? `, marked by ${w.doneByName}` : ''}.`],
+      w.note ? ['Team note', w.note] : null,
+    ].filter(Boolean);
+    return `<section class="item${w.statement ? ' item--long' : ''}">
+      <h2>${i + 1}. ${e(w.title)}</h2>
+      ${w.reportTitle ? `<p class="from">From the approval: ${e(w.reportTitle)}</p>` : ''}
+      <dl>${rows.map(([k, v]) => `<dt>${e(k)}</dt><dd>${e(v)}</dd>`).join('')}</dl>
+      ${w.statement ? statementHtml(w.statement) : ''}
+    </section>`;
+  }).join('');
+
+  function statementHtml(st) {
+    if (st.missing) {
+      return `<div class="stmt"><h3>Statement text</h3><p class="none">The statement wording could not be found in the report. Copy the approved wording into the ACR by hand.</p></div>`;
+    }
+    const parts = [];
+    let list = [];
+    const flush = () => { if (list.length) parts.push(`<ul>${list.join('')}</ul>`); list = []; };
+    for (const b of st.blocks) {
+      if (b.type === 'item') { list.push(`<li>${e(b.text)}</li>`); continue; }
+      flush();
+      parts.push(b.type === 'heading' ? `<h4>${e(b.text)}</h4>` : `<p>${e(b.text)}</p>`);
+    }
+    flush();
+    return `<div class="stmt">
+      <h3>${st.asProposed ? 'Statement text as proposed' : 'Approved statement text'}</h3>
+      <p class="stmt-note">${st.asProposed
+        ? 'The client asked for changes (see their comment above). Apply those changes to this wording before it goes into the ACR.'
+        : 'Add this wording to the ACR word for word. It is the statement the client approved.'}</p>
+      ${st.placeholders.length ? `<p class="stmt-note"><strong>Fill in before publishing:</strong> ${e(st.placeholders.join(', '))}</p>` : ''}
+      <div class="stmt-body">${parts.join('')}</div>
+    </div>`;
+  }
+
+  const html = `<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><title>ACR update for ${e(acr.client.name)}</title>
+<style>
+  @page { size: Letter; margin: 0.8in 0.75in 0.9in; }
+  body { font: 11pt/1.5 -apple-system, "Segoe UI", Helvetica, Arial, sans-serif; color: #23262F; margin: 0; }
+  .kicker { margin: 0 0 4pt; font-size: 9pt; font-weight: 700; letter-spacing: 1.5pt; text-transform: uppercase; color: #5064B4; }
+  h1 { margin: 0 0 6pt; font-size: 22pt; line-height: 1.15; }
+  .meta { margin: 0 0 3pt; color: #4A4F5C; }
+  .intro { margin: 14pt 0 18pt; padding-top: 12pt; border-top: 1px solid #D5D8DF; }
+  .item { break-inside: avoid; padding: 10pt 0; border-top: 1px solid #E3E5EA; }
+  h2 { margin: 0 0 2pt; font-size: 13pt; }
+  .from { margin: 0 0 6pt; color: #6A6F7D; font-size: 9.5pt; }
+  dl { display: grid; grid-template-columns: 1.4in 1fr; gap: 3pt 12pt; margin: 0; }
+  dt { color: #6A6F7D; font-size: 9.5pt; padding-top: 1pt; }
+  dd { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+  .none { color: #6A6F7D; }
+  .item--long { break-inside: auto; }
+  .stmt { margin-top: 10pt; padding-top: 8pt; border-top: 1px dashed #D5D8DF; }
+  h3 { margin: 0 0 2pt; font-size: 11.5pt; }
+  .stmt-note { margin: 0 0 6pt; color: #4A4F5C; font-size: 9.5pt; }
+  .stmt-body { font-size: 10.5pt; }
+  .stmt-body h4 { margin: 8pt 0 2pt; font-size: 10.5pt; break-after: avoid; }
+  .stmt-body p { margin: 0 0 5pt; }
+  .stmt-body ul { margin: 0 0 5pt; padding-left: 16pt; }
+  .stmt-body li { margin: 0 0 2pt; }
+</style></head><body>
+  <p class="kicker">Accessibility Compliance Record</p>
+  <h1>ACR update for ${e(acr.client.name)}</h1>
+  <p class="meta">Built ${e(day(meta.builtAt))} by ${e(meta.builtBy)}</p>
+  <p class="meta">Applies to: ${draft ? `${e(draft.name)} (uploaded ${e(day(draft.createdAt))})` : 'no ACR draft on file'}</p>
+  <p class="intro">The changes below were approved by the client and marked as live on the store by the Accessrank team. Apply each one to the ACR draft named above, then publish the updated ACR to the client.</p>
+  ${items || '<p class="none">No changes are queued.</p>'}
+</body></html>`;
+
+  const browser = await getBrowserForRendering();
+  const page = await browser.newPage();
+  try {
+    await page.setContent(html, { waitUntil: 'load', timeout: 30_000 });
+    await page.emulateMedia({ media: 'print' });
+    return await page.pdf({
+      format: 'Letter',
+      printBackground: true,
+      preferCSSPageSize: true,
+      displayHeaderFooter: true,
+      headerTemplate: '<span></span>',
+      footerTemplate: `<div style="font-size:8px;color:#6A6F7D;width:100%;padding:0 0.75in;display:flex;justify-content:space-between;font-family:Helvetica,Arial,sans-serif">
+        <span>${e(acr.client.name)} · ACR update · ${e(day(meta.builtAt))}</span>
+        <span>Prepared by Accessrank.ai · Page <span class="pageNumber"></span> of <span class="totalPages"></span></span></div>`,
+    });
+  } finally {
+    await page.close().catch(() => {});
+  }
+}
