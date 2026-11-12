@@ -459,3 +459,45 @@ select#new-op-role { min-height: 44px; }
    only loaded on portal pages, so the marketing site is unchanged. `.site` raises specificity above base.css. */
 .site .aurora { position: fixed; height: 100vh; }
 .site .aurora span { filter: none; }
+
+/* ---- Work to do (Approvals) and the ACR section (client page) ---- */
+.work-panel { margin-top: 14px; }
+.work-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px 16px; flex-wrap: wrap; }
+.work-progress { margin: 0; font-weight: 600; }
+.work-acr-link { font-size: 13.5px; }
+.work-bar { height: 8px; margin: 8px 0 10px; border-radius: 4px; background: rgba(255, 255, 255, 0.12); overflow: hidden; }
+.work-bar-fill { display: block; height: 100%; width: 0; border-radius: inherit; background: #4ADE80; transition: width 0.3s; }
+@media (prefers-reduced-motion: reduce) { .work-bar-fill { transition: none; } }
+.work-list { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--hairline); }
+.work-row { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 4px 14px; align-items: start; padding: 12px 0; border-bottom: 1px solid var(--hairline); }
+.work-row input[type="checkbox"] { width: 20px; height: 20px; margin: 2px 0 0; accent-color: #4ADE80; cursor: pointer; }
+.work-row label { display: grid; gap: 2px; cursor: pointer; min-width: 0; font-weight: 400; font-size: 14.5px; line-height: 1.45; color: var(--text-soft); }
+.work-row label .file-meta { font-weight: 400; }
+a.btn-small--brand, a.btn-small--brand:hover { color: var(--brand-ink); background: var(--brand); border-color: var(--brand); }
+.work-title { font-weight: 700; color: var(--text); }
+.work-row.is-done .work-title { color: var(--text-soft); }
+.work-comment { color: var(--text-soft); font-size: 13.5px; white-space: pre-wrap; overflow-wrap: anywhere; }
+.work-side { display: grid; justify-items: end; gap: 2px; text-align: right; }
+.work-badge { display: inline-block; padding: 3px 8px; border-radius: 5px; font-size: 10.5px; font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase; color: #14142A; background: #4ADE80; }
+.work-badge--queued { background: #A5B4FC; }
+.work-badge--applied { background: var(--text-muted); }
+.link-button { min-height: 24px; padding: 2px 0; border: 0; background: none; color: var(--brand-text, var(--brand)); font: inherit; font-size: 13px; font-weight: 600; text-decoration: underline; cursor: pointer; }
+@media (max-width: 640px) {
+  .work-row { grid-template-columns: auto minmax(0, 1fr); }
+  .work-side { grid-column: 2; justify-items: start; text-align: left; }
+}
+.work-dialog { width: min(560px, calc(100vw - 32px)); }
+.work-dialog-item { margin: 0 0 2px; }
+.work-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 0 12px; margin-top: 14px; }
+@media (max-width: 560px) { .work-fields { grid-template-columns: 1fr; } }
+.work-dialog textarea { width: 100%; min-height: 60px; resize: vertical; }
+.acr-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 40px; }
+@media (max-width: 760px) { .acr-grid { grid-template-columns: 1fr; gap: 24px; } }
+.acr-section h4 { margin: 0 0 8px; }
+.acr-draft { padding: 10px 0; border-top: 1px solid var(--hairline); border-bottom: 1px solid var(--hairline); }
+.acr-draft-name { margin: 0; font-weight: 700; overflow-wrap: anywhere; }
+.acr-history { list-style: none; margin: 8px 0 0; padding: 0; font-size: 13.5px; }
+.acr-history li { padding: 3px 0; }
+.acr-queue { margin: 0 0 12px; border-top: 1px solid var(--hairline); }
+.acr-empty { padding: 10px 0; border-top: 1px solid var(--hairline); border-bottom: 1px solid var(--hairline); margin: 0 0 12px; }
+.acr-actions .is-disabled { opacity: 0.55; cursor: default; }

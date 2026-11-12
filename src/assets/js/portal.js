@@ -729,6 +729,245 @@
     return { load: load };
   }
 
+  /* ------------------------------------------------ work to do and the ACR --- */
+
+  var CONFORMANCE = [
+    ['', 'Not part of the conformance table'],
+    ['supports', 'Supports'],
+    ['partially_supports', 'Partially supports'],
+    ['does_not_support', 'Does not support'],
+    ['not_applicable', 'Not applicable']
+  ];
+  var CONFORMANCE_TEXT = {};
+  CONFORMANCE.forEach(function (c) { if (c[0]) CONFORMANCE_TEXT[c[0]] = c[1]; });
+
+  function saveWork(report, item, body) {
+    return api('PUT', '/api/portal/admin/reports/' + encodeURIComponent(report.id) + '/work/' + encodeURIComponent(item.key), body)
+      .then(function (data) { item.work = data.work; return data.work; });
+  }
+
+  /**
+   * The dialog shown when an item is ticked as done: what goes into the ACR, plus the optional
+   * conformance entry and team note. Resolves with the saved work, or null when the tick is cancelled.
+   */
+  function openWorkDialog(report, item, trigger) {
+    return new Promise(function (resolve) {
+      var draft = report.acrDraft;
+      var w = item.work || {};
+      var id = 'work-' + report.id.slice(0, 8) + '-' + item.key;
+      var status = h('p', { class: 'form-status', role: 'alert', 'aria-live': 'assertive' });
+      var select = h('select', { id: id + '-conf', name: 'conformance' }, CONFORMANCE.map(function (c) {
+        return h('option', { value: c[0], text: c[1], selected: (w.conformance || '') === c[0] });
+      }));
+      var criterion = h('input', { type: 'text', id: id + '-crit', name: 'criterion', maxlength: '200', autocomplete: 'off', placeholder: 'e.g. 1.1.1 Non-text Content (A)', value: w.criterion || '' });
+      var note = h('textarea', { id: id + '-note', name: 'note', rows: '2', maxlength: '2000', placeholder: 'e.g. Checked with VoiceOver on iPhone' });
+      note.value = w.note || '';
+      var answer = (DECISION_TEXT[item.decision] || item.decision) + (item.choice ? ': ' + item.choice : '');
+      var add = h('button', { type: 'button', class: 'btn-small btn-small--brand', text: 'Add to ACR update', disabled: !draft });
+      var later = h('button', { type: 'button', class: 'btn-small', text: 'Done, not in ACR yet' });
+      var cancel = h('button', { type: 'button', class: 'btn-small', text: 'Cancel, it is not live' });
+      var dialog = h('dialog', { class: 'team-dialog work-dialog', 'aria-labelledby': id + '-title' }, [
+        h('h2', { id: id + '-title', tabindex: '-1', text: 'Update the ACR for this item?' }),
+        h('p', { class: 'work-dialog-item' }, [h('strong', { text: item.title || item.key })]),
+        h('p', { class: 'file-meta' }, [h('span', { text: answer + ' · ' + item.signerName + (item.decidedAt || item.savedAt ? ', ' + formatDate(item.decidedAt || item.savedAt) : '') })]),
+        item.comment ? h('p', { class: 'approval-comment', text: (item.decision === 'changes' ? 'Change requested: ' : item.decision === 'comment' ? 'Answer: ' : 'Client comment: ') + item.comment }) : null,
+        h('div', { class: 'work-fields' }, [
+          h('div', { class: 'field' }, [h('label', { for: id + '-crit', text: 'WCAG criterion (optional)' }), criterion]),
+          h('div', { class: 'field' }, [h('label', { for: id + '-conf', text: 'Conformance after this change' }), select])
+        ]),
+        h('div', { class: 'field' }, [h('label', { for: id + '-note', text: 'Team note for the ACR (optional)' }), note]),
+        h('p', { class: 'field-hint', text: draft
+          ? 'Applied to ' + draft.name + ', uploaded ' + formatDate(draft.createdAt) + '.'
+          : 'This client has no ACR draft yet. Upload one on the client’s page (Approvals tab) to add changes to the ACR.' }),
+        status,
+        h('div', { class: 'row-actions' }, [add, later, cancel])
+      ]);
+      var settled = false;
+      function close(result) {
+        if (settled) return;
+        settled = true;
+        if (dialog.open && dialog.close) dialog.close();
+        dialog.remove();
+        if (trigger && trigger.focus) trigger.focus();
+        resolve(result);
+      }
+      function save(queue) {
+        add.disabled = true; later.disabled = true;
+        setStatus(status, 'Saving…');
+        saveWork(report, item, { done: true, queue: queue, criterion: criterion.value, conformance: select.value, note: note.value })
+          .then(close, function (error) {
+            add.disabled = !draft; later.disabled = false;
+            setStatus(status, error.message, 'error');
+          });
+      }
+      add.addEventListener('click', function () { save(true); });
+      later.addEventListener('click', function () { save(false); });
+      cancel.addEventListener('click', function () { close(null); });
+      dialog.addEventListener('cancel', function (e) { e.preventDefault(); close(null); });
+      document.body.appendChild(dialog);
+      if (dialog.showModal) dialog.showModal(); else dialog.setAttribute('open', '');
+      dialog.querySelector('h2').focus();
+    });
+  }
+
+  /** The Work to do list for one report: every answered item with a "done and live" tick. */
+  function workPanel(report, onProgress) {
+    var wrap = h('div', { class: 'work-panel', hidden: true });
+    var summary = h('p', { class: 'work-progress', 'aria-live': 'polite' });
+    var bar = h('span', { class: 'work-bar-fill' });
+    var list = h('ul', { class: 'work-list' });
+    wrap.appendChild(h('div', { class: 'work-head' }, [
+      summary,
+      h('a', { class: 'work-acr-link', href: '/portal/client#client=' + encodeURIComponent(report.clientId), text: 'ACR for ' + report.clientName })
+    ]));
+    wrap.appendChild(h('div', { class: 'work-bar', 'aria-hidden': 'true' }, [bar]));
+    wrap.appendChild(h('p', { class: 'field-hint', text: 'Tick an item only when the change is live on the store, not just finished in a test theme.' }));
+    wrap.appendChild(list);
+
+    function count() {
+      var done = report.items.filter(function (i) { return i.work && i.work.done; }).length;
+      summary.textContent = done + ' of ' + report.items.length + ' done';
+      bar.style.width = (report.items.length ? (done / report.items.length) * 100 : 0) + '%';
+      if (onProgress) onProgress(done, report.items.length);
+    }
+
+    function row(item) {
+      var w = item.work || {};
+      var id = 'done-' + report.id.slice(0, 8) + '-' + item.key;
+      var box = h('input', { type: 'checkbox', id: id, checked: !!w.done });
+      var answer = (DECISION_TEXT[item.decision] || item.decision) + (item.choice ? ': ' + item.choice : '');
+      var stateText = !w.done ? '' : w.acrState === 'queued' ? 'In ACR update' : w.acrState === 'applied' ? 'In published ACR' : 'Done';
+      var side = h('div', { class: 'work-side' }, w.done ? [
+        h('span', { class: 'work-badge work-badge--' + (w.acrState || 'none'), text: stateText }),
+        h('span', { class: 'file-meta', text: 'Live ' + formatDate(w.doneAt) + (w.doneByName ? ' · ' + w.doneByName : '') }),
+        w.acrState === 'none' ? h('button', { type: 'button', class: 'link-button', text: 'Add to ACR update', 'data-add-acr': true }) : null
+      ] : [h('span', { class: 'file-meta', text: 'Done and live on the store' })]);
+      var li = h('li', { class: 'work-row' + (w.done ? ' is-done' : '') }, [
+        box,
+        h('label', { for: id }, [
+          h('span', { class: 'work-title', text: item.title || item.key }),
+          h('span', { class: 'file-meta', text: answer + ' · ' + item.signerName + (item.decidedAt || item.savedAt ? ', ' + formatDate(item.decidedAt || item.savedAt) : '') }),
+          item.comment ? h('span', { class: 'work-comment', text: (item.decision === 'changes' ? 'Change requested: ' : item.decision === 'comment' ? 'Answer: ' : 'Client comment: ') + item.comment }) : null,
+          w.done && (w.criterion || w.conformance) ? h('span', { class: 'file-meta', text: (w.criterion || 'Criterion not given') + (w.conformance ? ' → ' + CONFORMANCE_TEXT[w.conformance] : '') }) : null,
+          w.done && w.note ? h('span', { class: 'file-meta', text: 'Team note: ' + w.note }) : null
+        ]),
+        side
+      ]);
+      box.addEventListener('change', function () {
+        if (box.checked) {
+          openWorkDialog(report, item, box).then(function (saved) { if (!saved) box.checked = false; render(); });
+        } else {
+          box.disabled = true;
+          saveWork(report, item, { done: false }).then(render, function (error) { box.checked = true; box.disabled = false; alertError(error); });
+        }
+      });
+      var addAcr = li.querySelector('[data-add-acr]');
+      if (addAcr) addAcr.addEventListener('click', function () { openWorkDialog(report, item, addAcr).then(render); });
+      return li;
+    }
+
+    function alertError(error) { summary.textContent = error.message; }
+
+    function render() {
+      clear(list);
+      report.items.forEach(function (item) { list.appendChild(row(item)); });
+      count();
+    }
+
+    render();
+    return wrap;
+  }
+
+  /** The ACR section on a client's page: the draft, the queued changes, build and publish. */
+  function initAcrSection(root, getClient, notify) {
+    var section = root.querySelector('[data-acr]');
+    if (!section) return { load: function () {} };
+    var draftBox = section.querySelector('[data-acr-draft]');
+    var history = section.querySelector('[data-acr-history]');
+    var queueList = section.querySelector('[data-acr-queue]');
+    var queueEmpty = section.querySelector('[data-acr-queue-empty]');
+    var queueCount = section.querySelector('[data-acr-count]');
+    var build = section.querySelector('[data-acr-build]');
+    var draftInput = section.querySelector('[data-acr-draft-input]');
+    var publishInput = section.querySelector('[data-acr-publish-input]');
+    var status = section.querySelector('[data-acr-status]');
+    var busy = false;
+
+    function draftLink(d) {
+      return h('a', { href: '/api/portal/admin/acr-drafts/' + encodeURIComponent(d.id), text: d.name });
+    }
+
+    function render(acr) {
+      clear(draftBox);
+      var d = acr.drafts[0];
+      if (d) {
+        draftBox.appendChild(h('p', { class: 'acr-draft-name' }, [draftLink(d)]));
+        draftBox.appendChild(h('p', { class: 'file-meta', text: (d.published ? 'Published to client ' : 'Uploaded ') + formatDate(d.createdAt) + (d.uploadedByName ? ' by ' + d.uploadedByName : '') }));
+      } else {
+        draftBox.appendChild(h('p', { class: 'portal-empty', text: 'No ACR draft yet. Upload the latest ACR so finished work can be added to it.' }));
+      }
+      clear(history);
+      acr.drafts.slice(1, 6).forEach(function (old, i) {
+        history.appendChild(h('li', {}, [draftLink(old), h('span', { class: 'file-meta', text: ' · ' + formatDate(old.createdAt) + (old.published ? ' · published' : '') })]));
+      });
+      history.hidden = acr.drafts.length < 2;
+
+      clear(queueList);
+      acr.queue.forEach(function (w) {
+        var answer = (DECISION_TEXT[w.decision] || w.decision) + (w.choice ? ': ' + w.choice : '');
+        queueList.appendChild(h('li', {}, [
+          h('p', { class: 'approval-item-title' }, [h('strong', { text: w.title })]),
+          w.reportTitle ? h('p', { class: 'file-meta', text: 'From ' + w.reportTitle }) : null,
+          h('p', { class: 'file-meta', text: answer + (w.comment ? ' · “' + w.comment + '”' : '') }),
+          w.criterion || w.conformance ? h('p', { class: 'file-meta', text: (w.criterion || 'Criterion not given') + (w.conformance ? ' → ' + CONFORMANCE_TEXT[w.conformance] : '') }) : null,
+          h('p', { class: 'file-meta', text: 'Live ' + formatDate(w.doneAt) + (w.doneByName ? ' · ' + w.doneByName : '') + (w.note ? ' · ' + w.note : '') })
+        ]));
+      });
+      queueList.hidden = !acr.queue.length;
+      queueEmpty.hidden = acr.queue.length > 0;
+      queueCount.textContent = acr.queue.length ? '(' + acr.queue.length + ')' : '';
+      // A button, not a link: the address needs the client id, and a placeholder href trips the link check.
+      build.setAttribute('data-href', '/api/portal/admin/clients/' + encodeURIComponent(acr.client.id) + '/acr/update');
+      build.disabled = !acr.queue.length;
+    }
+
+    function load() {
+      var client = getClient();
+      if (!client) return Promise.resolve();
+      return api('GET', '/api/portal/admin/clients/' + encodeURIComponent(client.id) + '/acr').then(render, function (error) {
+        setStatus(status, error.message, 'error');
+      });
+    }
+
+    function upload(input, path, done) {
+      var file = input.files && input.files[0];
+      var client = getClient();
+      if (!file || !client || busy) return;
+      busy = true;
+      setStatus(status, 'Uploading ' + file.name + '…');
+      api('POST', '/api/portal/admin/clients/' + encodeURIComponent(client.id) + path + '?name=' + encodeURIComponent(file.name), null, file)
+        .then(function (data) { setStatus(status, done(file, data), 'success'); return load(); })
+        .catch(function (error) { setStatus(status, error.message, 'error'); })
+        .then(function () { busy = false; input.value = ''; });
+    }
+
+    build.addEventListener('click', function () {
+      var href = build.getAttribute('data-href');
+      if (href && !build.disabled) window.location.assign(href);
+    });
+    draftInput.addEventListener('change', function () {
+      upload(draftInput, '/acr/drafts', function (file) { return file.name + ' is the new ACR draft. Queued changes apply to it.'; });
+    });
+    publishInput.addEventListener('change', function () {
+      upload(publishInput, '/acr/publish', function (file, data) {
+        if (notify) notify();
+        return file.name + ' published to the client’s Compliance files. ' + plural(data.applied, 'queued change') + ' marked as applied.';
+      });
+    });
+
+    return { load: load };
+  }
+
   /* ------------------------------------------------ team bar and approvals --- */
 
   /** Dialog for an operator choosing their own password (the owner's lives in server settings). */
@@ -837,6 +1076,15 @@
       toggle.textContent = open ? 'Hide answers' : 'Open answers';
     });
 
+    var workMeta = h('span', {});
+    var work = workPanel(report, function (done, total) { workMeta.textContent = done + ' of ' + total + ' done'; });
+    var workToggle = h('button', { type: 'button', class: 'btn-small', 'aria-expanded': 'false', 'aria-label': 'Work to do: ' + report.title, text: 'Work to do', disabled: !report.items.length });
+    workToggle.addEventListener('click', function () {
+      var open = work.hidden;
+      work.hidden = !open;
+      workToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+
     var record = h('a', { class: 'more-item', href: '/api/portal/reports/' + encodeURIComponent(report.id) + '/record', text: 'Download record' });
     var view = h('a', { class: 'more-item', href: '/portal/report/' + encodeURIComponent(report.id), text: closed ? 'View report' : 'Preview report' });
     var toggleState = h('button', { type: 'button', class: 'more-item', text: closed ? 'Reopen approval' : 'Close approval' });
@@ -863,12 +1111,14 @@
           h('p', { class: 'file-meta' }, [
             h('span', { text: progressText(report.progress) }),
             closed && report.closedAt ? h('span', { text: 'Closed ' + formatDate(report.closedAt) }) : null,
-            report.progress && report.progress.lastAt ? h('span', { text: 'Last answered ' + formatDateTime(report.progress.lastAt) }) : null
+            report.progress && report.progress.lastAt ? h('span', { text: 'Last answered ' + formatDateTime(report.progress.lastAt) }) : null,
+            report.items.length ? workMeta : null
           ])
         ]),
-        h('div', { class: 'row-actions' }, [toggle, more])
+        h('div', { class: 'row-actions' }, [toggle, workToggle, more])
       ]),
-      answers
+      answers,
+      work
     ]);
   }
 
@@ -927,6 +1177,7 @@
   /** One client's workspace: Approvals, Files and Logins, chosen by #client=<id>. */
   function initAdmin(root) {
     var state = { clients: [], selectedId: null, maxFileBytes: 25 * 1024 * 1024 };
+    var acr = initAcrSection(root, function () { return selected(); }, function () { refreshBadge(); });
 
     var status = root.querySelector('[data-portal-status]');
     var detail = root.querySelector('[data-detail]');
@@ -1154,6 +1405,7 @@
       renderReports(client);
       renderFiles(client);
       renderLogins(client);
+      acr.load();
     }
 
     function select(id, moveFocus) {

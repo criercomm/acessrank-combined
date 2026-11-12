@@ -15,6 +15,7 @@ import {
   addReport, listReports, getReport, deleteReport, saveApprovals, currentApprovals, adminApprovals, approvalHistory,
   setReportStatus, approvalsRecordCsv, loginClientId, isStaff, clientScope, canAccessClient, listOperators, createOperator, setOperatorRole, resetOperatorPassword,
   deleteOperator, setOperatorClients, changeOwnOperatorPassword,
+  setWorkItem, clientAcr, acrUpdateText, addAcrDraft, getAcrDraft, publishAcr, CONFORMANCE_LEVELS,
 } from '../lib/portal.js';
 import { notifyApprovals } from '../lib/email.js';
 import { reportCsp } from '../lib/reportCsp.js';
@@ -415,6 +416,80 @@ admin.delete('/file-notes/:id', wrap(async (req, res) => {
   res.json({ ok: true });
 }));
 
+
+/* ------------------------------------------------- work to do and ACR --- */
+// Staff only (the whole admin router), and only for clients this person can reach.
+
+const workSchema = z.object({
+  done: z.boolean(),
+  queue: z.boolean().optional(),
+  note: z.string().max(4000).optional(),
+  criterion: z.string().max(400).optional(),
+  conformance: z.enum(['', ...Object.keys(CONFORMANCE_LEVELS)]).optional(),
+});
+
+/** Tick or untick one approved item, and optionally queue it for the next ACR update. */
+admin.put('/reports/:id/work/:key', wrap(async (req, res) => {
+  const found = await getReport(await getStore(), req.params.id);
+  await assertClient(req, found ? found.client_id : null);
+  const input = parseOrThrow(workSchema, req.body);
+  const work = await setWorkItem(await getStore(), req.portal, req.params.id, req.params.key, input);
+  log.info('portal work item saved', { reportId: req.params.id, key: req.params.key, done: work.done, acr: work.acrState, by: req.portal.email });
+  res.json({ ok: true, work });
+}));
+
+admin.get('/clients/:id/acr', wrap(async (req, res) => {
+  await assertClient(req, req.params.id);
+  res.json({ ok: true, ...(await clientAcr(await getStore(), req.params.id)) });
+}));
+
+const rawUpload = express.raw({ type: 'application/octet-stream', limit: `${config.portal.maxFileMb}mb` });
+const uploadedBytes = (req) => {
+  if (Buffer.isBuffer(req.body)) return req.body;
+  if (req.is('application/octet-stream') !== false) throw new PortalError('That file is empty.', { code: 'file_empty' });
+  throw new PortalError('Upload the file as application/octet-stream.', { code: 'bad_upload', status: 415 });
+};
+
+/** Upload a new ACR draft (team only; the client never sees drafts). */
+admin.post('/clients/:id/acr/drafts', rawUpload, wrap(async (req, res) => {
+  await assertClient(req, req.params.id);
+  const draft = await addAcrDraft(await getStore(), req.portal, req.params.id, {
+    filename: typeof req.query.name === 'string' ? req.query.name : '', data: uploadedBytes(req),
+  });
+  log.info('portal acr draft uploaded', { draftId: draft.id, clientId: req.params.id, bytes: draft.size, by: req.portal.email });
+  res.status(201).json({ ok: true, draft });
+}));
+
+admin.get('/acr-drafts/:id', wrap(async (req, res) => {
+  const draft = await getAcrDraft(await getStore(), req.params.id);
+  await assertClient(req, draft ? draft.client_id : null);
+  if (!draft) throw new PortalError('That draft is no longer available.', { code: 'not_found', status: 404 });
+  const data = Buffer.isBuffer(draft.data) ? draft.data : Buffer.from(draft.data);
+  res.setHeader('Content-Type', draft.content_type);
+  res.setHeader('Content-Length', String(data.length));
+  res.setHeader('Content-Disposition', contentDisposition(draft.filename));
+  res.end(data);
+}));
+
+/** The queued changes as a dated text file, to apply to the current draft. */
+admin.get('/clients/:id/acr/update', wrap(async (req, res) => {
+  await assertClient(req, req.params.id);
+  const acr = await clientAcr(await getStore(), req.params.id);
+  const stamp = new Date().toISOString().slice(0, 10);
+  res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+  res.setHeader('Content-Disposition', contentDisposition(`${acr.client.name} ACR Update ${stamp}.txt`));
+  res.end(acrUpdateText(acr, req.portal));
+}));
+
+/** Publish the updated ACR to the client's Compliance files and mark the queued changes as applied. */
+admin.post('/clients/:id/acr/publish', rawUpload, wrap(async (req, res) => {
+  await assertClient(req, req.params.id);
+  const out = await publishAcr(await getStore(), req.portal, req.params.id, {
+    filename: typeof req.query.name === 'string' ? req.query.name : '', data: uploadedBytes(req),
+  });
+  log.info('portal acr published', { clientId: req.params.id, fileId: out.file.id, applied: out.applied, by: req.portal.email });
+  res.status(201).json({ ok: true, ...out });
+}));
 
 /* ------------------------------------------------------------ operators --- */
 

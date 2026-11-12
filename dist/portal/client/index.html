@@ -47,15 +47,15 @@
   <!-- Client-portal pages only (site.json: page.portal). Kept out of the inlined
        block above so the marketing pages do not carry styles they never use;
        style-src 'self' already allows a same-origin stylesheet. -->
-  <link rel="stylesheet" href="/assets/css/portal.82976fe291.css">
+  <link rel="stylesheet" href="/assets/css/portal.bdd430441c.css">
 
-  <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebPage","url":"https://accessrank.ai/portal/client","name":"Client","description":"Accessrank team access only.","inLanguage":"en-US","datePublished":"2026-01-01","dateModified":"2026-11-11","publisher":{"@id":"https://accessrank.ai/#organization"},"isPartOf":{"@type":"WebSite","name":"Accessrank","url":"https://accessrank.ai/"}}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebPage","url":"https://accessrank.ai/portal/client","name":"Client","description":"Accessrank team access only.","inLanguage":"en-US","datePublished":"2026-01-01","dateModified":"2026-11-12","publisher":{"@id":"https://accessrank.ai/#organization"},"isPartOf":{"@type":"WebSite","name":"Accessrank","url":"https://accessrank.ai/"}}</script>
   <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://accessrank.ai/"},{"@type":"ListItem","position":2,"name":"Client","item":"https://accessrank.ai/portal/client"}]}</script>
   
   <!-- Cloudflare Turnstile is not loaded here: site.js loads it on demand (Accessrank.loadTurnstile) so visitors who never
        touch a form get no third-party cookie (Lighthouse Best Practices). -->
   <script src="/assets/js/site.ea531f0bde.js" defer></script>
-  <script src="/assets/js/portal.b07ecb4489.js" defer></script>
+  <script src="/assets/js/portal.446f816311.js" defer></script>
   
 <link rel="stylesheet" href="/analytics-consent.css">
 <script defer src="/analytics-consent.js" data-measurement-id="G-870R91HD7W" data-pages="/|/beta|/overlays|/human-testing|/about|/methodology|/guide/ada-eaa|/resources|/careers|/contact-sales|/privacy|/terms|/disclosure|/citations" data-privacy="/privacy"></script>
@@ -250,7 +250,38 @@
         </div>
       </section>
 
-      <!-- ------------------------------------------------ files --- -->
+      <!-- ------------------------------------------ ACR (team only) --- -->
+      <section class="portal-section acr-section" aria-labelledby="admin-acr-heading" data-acr>
+        <div class="portal-section-head">
+          <h3 id="admin-acr-heading" tabindex="-1">Accessibility Compliance Record</h3>
+          <p class="portal-count">Team only until published</p>
+        </div>
+        <div class="acr-grid">
+          <div>
+            <div class="files-head">
+              <h4>ACR draft</h4>
+              <label class="btn-small upload-button" for="acr-draft-input">Upload new draft</label>
+              <input class="visually-hidden" type="file" id="acr-draft-input" accept=".docx,.doc,.pdf,.odt,.rtf" data-acr-draft-input>
+            </div>
+            <div class="acr-draft" data-acr-draft></div>
+            <p class="field-hint">Queued changes apply to the newest draft. Earlier drafts are kept; the client never sees drafts.</p>
+            <ul class="acr-history" data-acr-history hidden></ul>
+          </div>
+          <div>
+            <h4>ACR updates <span class="portal-count" data-acr-count></span></h4>
+            <p class="portal-empty acr-empty" data-acr-queue-empty>No updates queued. In Approvals, open Work to do and tick an item once it is live.</p>
+            <ul class="approval-items acr-queue" data-acr-queue hidden></ul>
+            <div class="row-actions acr-actions">
+              <button class="btn-small btn-small--brand" type="button" data-acr-build disabled>Build ACR update</button>
+              <label class="btn-small upload-button" for="acr-publish-input">Publish to client</label>
+              <input class="visually-hidden" type="file" id="acr-publish-input" accept=".docx,.doc,.pdf,.odt,.rtf" data-acr-publish-input>
+            </div>
+            <p class="field-hint">Build ACR update downloads the queued changes as a dated list. Publish to client takes the updated ACR: it goes to the client&rsquo;s Compliance files, becomes the new draft, and the queued changes are marked as applied.</p>
+            <p class="form-status" data-acr-status role="status" aria-live="polite"></p>
+          </div>
+        </div>
+      </section>
+
       <!-- ------------------------------------------------ files --- -->
       </div>
 

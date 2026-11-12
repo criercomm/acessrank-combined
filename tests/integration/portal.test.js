@@ -1313,3 +1313,74 @@ test('client file notes: staff add, edit and delete them on Other files and Past
   assert.equal((await owner.del(`/api/portal/admin/files/${past.id}`)).status, 200);
   assert.equal((await owner.patch(`/api/portal/admin/file-notes/${pastNote.body.note.id}`, { body: 'x' })).status, 404, 'its notes went with it');
 });
+
+/* ------------------------------------------------- work to do and ACR --- */
+
+test('work to do: ticking approved items, queuing them for the ACR, and publishing the ACR', async () => {
+  const admin = await adminBrowser();
+  const a = await clientWithLogin(admin, 'Top Seedz', 'jordan@topseedz.test');
+  const report = await publish(admin, a.client.id, 'Contact details and fixes');
+  const saved = await a.person.post(`/api/portal/reports/${report.id}/approvals`, {
+    name: 'Jordan Rivera',
+    items: [
+      { key: 'd1', title: 'Add alt text to product images', decision: 'approve', choice: 'Human-written' },
+      { key: 'c2', title: 'Accessibility email address', decision: 'changes', comment: 'info@topseedz.test' },
+    ],
+  });
+  assert.equal(saved.status, 201);
+  const work = (key) => `/api/portal/admin/reports/${report.id}/work/${key}`;
+
+  // Queuing needs a draft to apply the change to.
+  const noDraft = await admin.put(work('d1'), { done: true, queue: true, criterion: '1.1.1 Non-text Content', conformance: 'supports' });
+  assert.equal(noDraft.status, 409);
+  assert.equal(noDraft.body.code, 'acr_draft_required');
+
+  // A client login can't reach any of this.
+  assert.equal((await a.person.put(work('d1'), { done: true })).status, 404);
+  assert.equal((await a.person.get(`/api/portal/admin/clients/${a.client.id}/acr`)).status, 404);
+
+  const draft = await admin.upload(`/api/portal/admin/clients/${a.client.id}/acr/drafts?name=${encodeURIComponent('Top Seedz ACR v3.docx')}`, PDF);
+  assert.equal(draft.status, 201, JSON.stringify(draft.body));
+  assert.equal((await a.person.get(`/api/portal/admin/acr-drafts/${draft.body.draft.id}`)).status, 404, 'drafts are team only');
+  assert.ok(!(await a.person.get('/api/portal/me')).body.files.some((f) => f.name === 'Top Seedz ACR v3.docx'), 'and not in the client file list');
+
+  const queued = await admin.put(work('d1'), { done: true, queue: true, criterion: '1.1.1 Non-text Content', conformance: 'supports', note: 'Checked with VoiceOver' });
+  assert.equal(queued.status, 200, JSON.stringify(queued.body));
+  assert.equal(queued.body.work.acrState, 'queued');
+  assert.ok(queued.body.work.doneAt);
+  const later = await admin.put(work('c2'), { done: true, queue: false });
+  assert.equal(later.body.work.acrState, 'none');
+  assert.equal((await admin.put(work('zz'), { done: true })).status, 404, 'only answered items');
+  assert.equal((await admin.put(work('d1'), { done: true, conformance: 'great' })).status, 400);
+
+  const seen = (await admin.get('/api/portal/admin/approvals')).body.reports[0];
+  assert.equal(seen.items.find((i) => i.key === 'd1').work.acrState, 'queued');
+  assert.equal(seen.acrDraft.name, 'Top Seedz ACR v3.docx');
+
+  const acr = (await admin.get(`/api/portal/admin/clients/${a.client.id}/acr`)).body;
+  assert.equal(acr.queue.length, 1);
+  assert.equal(acr.queue[0].title, 'Add alt text to product images');
+  assert.equal(acr.drafts.length, 1);
+
+  const update = await admin.get(`/api/portal/admin/clients/${a.client.id}/acr/update`);
+  assert.equal(update.status, 200);
+  const text = update.body.toString('utf8');
+  assert.match(text, /Apply to: Top Seedz ACR v3\.docx/);
+  assert.match(text, /1\.1\.1 Non-text Content -> Supports/);
+  assert.match(text, /Team note: Checked with VoiceOver/);
+
+  const published = await admin.upload(`/api/portal/admin/clients/${a.client.id}/acr/publish?name=${encodeURIComponent('Top Seedz ACR v4.pdf')}`, PDF);
+  assert.equal(published.status, 201, JSON.stringify(published.body));
+  assert.equal(published.body.applied, 1);
+  const files = (await a.person.get('/api/portal/me')).body.files;
+  assert.ok(files.some((f) => f.name === 'Top Seedz ACR v4.pdf' && f.area === 'compliance'), 'the published ACR reaches the client');
+
+  const after = (await admin.get(`/api/portal/admin/clients/${a.client.id}/acr`)).body;
+  assert.equal(after.queue.length, 0);
+  assert.equal(after.drafts[0].name, 'Top Seedz ACR v4.pdf');
+  assert.equal(after.drafts[0].published, true);
+
+  const undone = await admin.put(work('d1'), { done: false });
+  assert.equal(undone.body.work.done, false);
+  assert.equal(undone.body.work.acrState, 'none');
+});

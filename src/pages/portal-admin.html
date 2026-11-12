@@ -86,7 +86,38 @@
         </div>
       </section>
 
-      <!-- ------------------------------------------------ files --- -->
+      <!-- ------------------------------------------ ACR (team only) --- -->
+      <section class="portal-section acr-section" aria-labelledby="admin-acr-heading" data-acr>
+        <div class="portal-section-head">
+          <h3 id="admin-acr-heading" tabindex="-1">Accessibility Compliance Record</h3>
+          <p class="portal-count">Team only until published</p>
+        </div>
+        <div class="acr-grid">
+          <div>
+            <div class="files-head">
+              <h4>ACR draft</h4>
+              <label class="btn-small upload-button" for="acr-draft-input">Upload new draft</label>
+              <input class="visually-hidden" type="file" id="acr-draft-input" accept=".docx,.doc,.pdf,.odt,.rtf" data-acr-draft-input>
+            </div>
+            <div class="acr-draft" data-acr-draft></div>
+            <p class="field-hint">Queued changes apply to the newest draft. Earlier drafts are kept; the client never sees drafts.</p>
+            <ul class="acr-history" data-acr-history hidden></ul>
+          </div>
+          <div>
+            <h4>ACR updates <span class="portal-count" data-acr-count></span></h4>
+            <p class="portal-empty acr-empty" data-acr-queue-empty>No updates queued. In Approvals, open Work to do and tick an item once it is live.</p>
+            <ul class="approval-items acr-queue" data-acr-queue hidden></ul>
+            <div class="row-actions acr-actions">
+              <button class="btn-small btn-small--brand" type="button" data-acr-build disabled>Build ACR update</button>
+              <label class="btn-small upload-button" for="acr-publish-input">Publish to client</label>
+              <input class="visually-hidden" type="file" id="acr-publish-input" accept=".docx,.doc,.pdf,.odt,.rtf" data-acr-publish-input>
+            </div>
+            <p class="field-hint">Build ACR update downloads the queued changes as a dated list. Publish to client takes the updated ACR: it goes to the client&rsquo;s Compliance files, becomes the new draft, and the queued changes are marked as applied.</p>
+            <p class="form-status" data-acr-status role="status" aria-live="polite"></p>
+          </div>
+        </div>
+      </section>
+
       <!-- ------------------------------------------------ files --- -->
       </div>
 

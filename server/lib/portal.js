@@ -580,6 +580,54 @@ function pgRepo(store) {
     async approvalHistory(reportId) {
       return (await q('SELECT * FROM portal_approvals WHERE report_id = $1 ORDER BY created_at DESC, id DESC', [reportId])).rows;
     },
+
+    /* ---- work to do and ACR drafts (012) ---- */
+    async listWorkItems(clientId = null) {
+      return clientId
+        ? (await q('SELECT * FROM portal_work_items WHERE client_id = $1', [clientId])).rows
+        : (await q('SELECT * FROM portal_work_items')).rows;
+    },
+    async getWorkItem(reportId, key) {
+      return (await q('SELECT * FROM portal_work_items WHERE report_id = $1 AND item_key = $2', [reportId, key])).rows[0] ?? null;
+    },
+    async upsertWorkItem(w) {
+      return (await q(
+        `INSERT INTO portal_work_items
+           (report_id, client_id, item_key, done, done_at, done_by_name, done_by_email, note, criterion, conformance, acr_state, applied_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+         ON CONFLICT (report_id, item_key) DO UPDATE SET
+           done = EXCLUDED.done, done_at = EXCLUDED.done_at, done_by_name = EXCLUDED.done_by_name,
+           done_by_email = EXCLUDED.done_by_email, note = EXCLUDED.note, criterion = EXCLUDED.criterion,
+           conformance = EXCLUDED.conformance, acr_state = EXCLUDED.acr_state, applied_at = EXCLUDED.applied_at,
+           updated_at = now()
+         RETURNING *`,
+        [w.reportId, w.clientId, w.key, w.done, w.doneAt, w.doneByName, w.doneByEmail, w.note, w.criterion, w.conformance, w.acrState, w.appliedAt],
+      )).rows[0];
+    },
+    async markWorkApplied(clientId) {
+      return (await q(
+        `UPDATE portal_work_items SET acr_state = 'applied', applied_at = now(), updated_at = now()
+          WHERE client_id = $1 AND acr_state = 'queued' RETURNING id`,
+        [clientId],
+      )).rowCount;
+    },
+    async insertAcrDraft({ clientId, filename, contentType, data, byName, byEmail, published = false }) {
+      return (await q(
+        `INSERT INTO portal_acr_drafts (client_id, filename, content_type, size_bytes, data, uploaded_by_name, uploaded_by_email, published)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+         RETURNING id, client_id, filename, size_bytes, created_at, uploaded_by_name, uploaded_by_email, published`,
+        [clientId, filename, contentType, data.length, data, byName, byEmail, published],
+      )).rows[0];
+    },
+    async listAcrDrafts(clientId = null) {
+      const cols = 'id, client_id, filename, size_bytes, created_at, uploaded_by_name, uploaded_by_email, published';
+      return clientId
+        ? (await q(`SELECT ${cols} FROM portal_acr_drafts WHERE client_id = $1 ORDER BY created_at DESC, id DESC`, [clientId])).rows
+        : (await q(`SELECT ${cols} FROM portal_acr_drafts ORDER BY created_at DESC, id DESC`)).rows;
+    },
+    async getAcrDraft(id) {
+      return (await q('SELECT * FROM portal_acr_drafts WHERE id = $1', [id])).rows[0] ?? null;
+    },
   };
 }
 
@@ -594,6 +642,8 @@ function memRepo(store) {
   store._portal.teamNotes ??= [];
   store._portal.fileNotes ??= [];
   store._portal.teamTasks ??= [];
+  store._portal.workItems ??= new Map();
+  store._portal.acrDrafts ??= new Map();
   const db = store._portal;
   let last = 0;
   // Strictly increasing, so "newest first" is stable for rows made in the same millisecond.
@@ -628,6 +678,8 @@ function memRepo(store) {
       for (const [key, report] of db.reports) if (report.client_id === id) db.reports.delete(key);
       db.assignments = db.assignments.filter((a) => a.client_id !== id);
       db.approvals = db.approvals.filter((a) => a.client_id !== id);
+      for (const [key, w] of db.workItems) if (w.client_id === id) db.workItems.delete(key);
+      for (const [key, d] of db.acrDrafts) if (d.client_id === id) db.acrDrafts.delete(key);
       return true;
     },
 
@@ -899,6 +951,7 @@ function memRepo(store) {
     async deleteReport(id) {
       if (!db.reports.delete(id)) return false;
       db.approvals = db.approvals.filter((a) => a.report_id !== id);
+      for (const [key, w] of db.workItems) if (w.report_id === id) db.workItems.delete(key);
       return true;
     },
 
@@ -927,6 +980,47 @@ function memRepo(store) {
     async approvalHistory(reportId) {
       return db.approvals.filter((a) => a.report_id === reportId).sort((a, b) => (a.created_at < b.created_at ? 1 : -1));
     },
+
+    /* ---- work to do and ACR drafts (012) ---- */
+    async listWorkItems(clientId = null) {
+      return [...db.workItems.values()].filter((w) => !clientId || w.client_id === clientId);
+    },
+    async getWorkItem(reportId, key) { return db.workItems.get(`${reportId}\u0000${key}`) ?? null; },
+    async upsertWorkItem(w) {
+      const k = `${w.reportId}\u0000${w.key}`;
+      const have = db.workItems.get(k);
+      const row = {
+        id: have?.id ?? crypto.randomUUID(), created_at: have?.created_at ?? now(), updated_at: now(),
+        report_id: w.reportId, client_id: w.clientId, item_key: w.key, done: w.done, done_at: w.doneAt,
+        done_by_name: w.doneByName, done_by_email: w.doneByEmail, note: w.note, criterion: w.criterion,
+        conformance: w.conformance, acr_state: w.acrState, applied_at: w.appliedAt,
+      };
+      db.workItems.set(k, row);
+      return row;
+    },
+    async markWorkApplied(clientId) {
+      let n = 0;
+      for (const w of db.workItems.values()) {
+        if (w.client_id === clientId && w.acr_state === 'queued') { w.acr_state = 'applied'; w.applied_at = now(); w.updated_at = now(); n += 1; }
+      }
+      return n;
+    },
+    async insertAcrDraft({ clientId, filename, contentType, data, byName, byEmail, published = false }) {
+      const row = {
+        id: crypto.randomUUID(), created_at: now(), client_id: clientId, filename, content_type: contentType,
+        size_bytes: data.length, data, uploaded_by_name: byName, uploaded_by_email: byEmail, published,
+      };
+      db.acrDrafts.set(row.id, row);
+      const { data: _omit, ...listed } = row;
+      return listed;
+    },
+    async listAcrDrafts(clientId = null) {
+      return [...db.acrDrafts.values()]
+        .filter((d) => !clientId || d.client_id === clientId)
+        .sort((a, b) => (a.created_at < b.created_at ? 1 : -1))
+        .map(({ data: _omit, ...listed }) => listed);
+    },
+    async getAcrDraft(id) { return db.acrDrafts.get(id) ?? null; },
   };
 }
 
@@ -1784,9 +1878,14 @@ export async function currentApprovals(store, reportId) {
  */
 export async function adminApprovals(store, scope = null) {
   const repo = repoFor(store);
-  const [allReports, clients, latest] = await Promise.all([repo.listReports(), repo.listClients(), repo.latestApprovals()]);
+  const [allReports, clients, latest, work, drafts] = await Promise.all([
+    repo.listReports(), repo.listClients(), repo.latestApprovals(), repo.listWorkItems(), repo.listAcrDrafts(),
+  ]);
   const reports = scope ? allReports.filter((r) => scope.has(r.client_id)) : allReports;
   const clientName = new Map(clients.map((c) => [c.id, c.name]));
+  const workByItem = new Map(work.map((w) => [`${w.report_id}\u0000${w.item_key}`, w]));
+  const latestDraft = new Map();
+  for (const d of drafts) if (!latestDraft.has(d.client_id)) latestDraft.set(d.client_id, d); // newest first
   const byReport = new Map();
   for (const a of latest) if (hasAnswer(a)) (byReport.get(a.report_id) ?? byReport.set(a.report_id, []).get(a.report_id)).push(a);
   return reports
@@ -1796,10 +1895,188 @@ export async function adminApprovals(store, scope = null) {
         ...reportOut(r),
         clientName: clientName.get(r.client_id) ?? '',
         progress: progressOf(rows),
-        items: rows.map(approvalOut).sort((a, b) => (a.key < b.key ? -1 : 1)),
+        items: rows.map((a) => {
+          const w = workByItem.get(`${r.id}\u0000${a.item_key}`);
+          return { ...approvalOut(a), work: w ? workOut(w) : null };
+        }).sort((a, b) => (a.key < b.key ? -1 : 1)),
+        acrDraft: latestDraft.has(r.client_id) ? acrDraftOut(latestDraft.get(r.client_id)) : null,
       };
     })
     .sort((a, b) => String(b.progress.lastAt ?? b.createdAt).localeCompare(String(a.progress.lastAt ?? a.createdAt)));
+}
+
+/* ====================================================== work to do and the ACR (012) === */
+/*
+ * Approved report items become a team to-do list. Ticking one records that the change is live on
+ * the client's store (who, when, an optional note and the ACR conformance entry). It can then be
+ * queued for the next update of the client's Accessibility Compliance Record. The ACR itself is a
+ * file the team uploads as a draft; "Build ACR update" exports the queued changes as a dated list
+ * to apply to it, and "Publish" uploads the updated ACR to the client's Compliance files and marks
+ * the queued changes as applied. Everything here is staff-only.
+ */
+
+export const CONFORMANCE_LEVELS = {
+  supports: 'Supports',
+  partially_supports: 'Partially supports',
+  does_not_support: 'Does not support',
+  not_applicable: 'Not applicable',
+};
+
+const workOut = (row) => ({
+  key: row.item_key,
+  done: Boolean(row.done),
+  doneAt: iso(row.done_at),
+  doneByName: row.done_by_name || '',
+  doneByEmail: row.done_by_email || '',
+  note: row.note || '',
+  criterion: row.criterion || '',
+  conformance: row.conformance || '',
+  acrState: row.acr_state || 'none',
+  appliedAt: iso(row.applied_at),
+});
+
+const acrDraftOut = (row) => ({
+  id: row.id,
+  clientId: row.client_id,
+  name: row.filename,
+  size: row.size_bytes,
+  createdAt: iso(row.created_at),
+  uploadedByName: row.uploaded_by_name || '',
+  uploadedByEmail: row.uploaded_by_email || '',
+  published: Boolean(row.published),
+});
+
+/**
+ * Tick or untick one approved item. { done, queue, note, criterion, conformance }.
+ * queue = true puts it in the next ACR update, which needs an ACR draft on file.
+ */
+export async function setWorkItem(store, session, reportId, key, input = {}) {
+  const repo = repoFor(store);
+  const report = isUuid(reportId) ? await repo.getReport(reportId) : null;
+  if (!report) throw notFound('report');
+  if (!ITEM_KEY_RE.test(String(key ?? ''))) throw notFound('item');
+  const answered = (await repo.latestApprovals(report.id)).find((a) => a.item_key === key && hasAnswer(a));
+  if (!answered) throw new PortalError('That item has no answer from the client yet.', { code: 'item_unanswered', status: 404 });
+
+  const conformance = String(input.conformance ?? '');
+  if (conformance && !CONFORMANCE_LEVELS[conformance]) {
+    throw new PortalError('Choose a conformance level from the list.', { code: 'bad_conformance', field: 'conformance' });
+  }
+  const have = await repo.getWorkItem(report.id, key);
+  const done = Boolean(input.done);
+  let acrState = 'none';
+  if (done && input.queue) {
+    const drafts = await repo.listAcrDrafts(report.client_id);
+    if (!drafts.length) {
+      throw new PortalError('Upload the ACR draft for this client first, so there is something to update.', { code: 'acr_draft_required', status: 409 });
+    }
+    acrState = have?.acr_state === 'applied' ? 'applied' : 'queued';
+  } else if (done && have?.acr_state === 'applied') {
+    acrState = 'applied';
+  }
+  const row = await repo.upsertWorkItem({
+    reportId: report.id,
+    clientId: report.client_id,
+    key,
+    done,
+    // Keep the first "live" date when an item is re-saved (a note added, or queued later).
+    doneAt: done ? (have?.done && have.done_at ? have.done_at : new Date().toISOString()) : null,
+    doneByName: done ? (have?.done ? have.done_by_name : String(session.name ?? '').slice(0, 120)) : '',
+    doneByEmail: done ? (have?.done ? have.done_by_email : String(session.email ?? '').slice(0, 254)) : '',
+    // Fields left out keep what is on file, so a later "add to ACR" does not wipe the entry.
+    note: input.note === undefined ? (have?.note ?? '') : cleanText(input.note, 2000),
+    criterion: input.criterion === undefined ? (have?.criterion ?? '') : cleanText(input.criterion, 200),
+    conformance: input.conformance === undefined ? (have?.conformance ?? '') : conformance,
+    acrState,
+    appliedAt: acrState === 'applied' ? (have?.applied_at ?? new Date().toISOString()) : null,
+  });
+  return workOut(row);
+}
+
+/** One client's ACR: its drafts (newest first) and the changes waiting for the next update. */
+export async function clientAcr(store, clientId) {
+  const repo = repoFor(store);
+  const client = isUuid(clientId) ? await repo.getClient(clientId) : null;
+  if (!client) throw notFound('client');
+  const [drafts, work, reports, latest] = await Promise.all([
+    repo.listAcrDrafts(clientId), repo.listWorkItems(clientId), repo.listReports(clientId), repo.latestApprovals(),
+  ]);
+  const titles = new Map(reports.map((r) => [r.id, r.title]));
+  const answers = new Map(latest.map((a) => [`${a.report_id}\u0000${a.item_key}`, a]));
+  const queue = work
+    .filter((w) => w.acr_state === 'queued')
+    .map((w) => {
+      const a = answers.get(`${w.report_id}\u0000${w.item_key}`);
+      return {
+        ...workOut(w),
+        reportId: w.report_id,
+        reportTitle: titles.get(w.report_id) ?? '',
+        title: a?.item_title || w.item_key,
+        decision: a?.decision ?? '',
+        choice: a?.choice ?? '',
+        comment: a?.comment ?? '',
+        signerName: a?.signer_name ?? '',
+        decidedAt: iso(a?.decided_at ?? a?.created_at),
+      };
+    })
+    .sort((x, y) => String(x.doneAt).localeCompare(String(y.doneAt)));
+  return { client: clientOut(client), drafts: drafts.map(acrDraftOut), queue };
+}
+
+const DECISION_LABEL = { approve: 'Approved', changes: 'Changes requested', comment: 'Comment' };
+const day = (value) => (value ? new Date(value).toLocaleDateString('en-US', { dateStyle: 'medium', timeZone: 'America/Los_Angeles' }) : '');
+
+/** The queued changes as a plain-text list to apply to the current draft. */
+export function acrUpdateText(acr, session, now = new Date()) {
+  const draft = acr.drafts[0];
+  const lines = [
+    `ACR update for ${acr.client.name}`,
+    `Built ${day(now)} by ${session.name || session.email || 'Accessrank'}`,
+    `Apply to: ${draft ? `${draft.name} (uploaded ${day(draft.createdAt)})` : 'no draft on file'}`,
+    '',
+  ];
+  acr.queue.forEach((w, i) => {
+    lines.push(`${i + 1}. ${w.title}${w.reportTitle ? `  [${w.reportTitle}]` : ''}`);
+    const answer = (DECISION_LABEL[w.decision] ?? w.decision) + (w.choice ? `: ${w.choice}` : '');
+    lines.push(`   Client answer: ${answer}${w.signerName ? ` (${w.signerName}, ${day(w.decidedAt)})` : ''}`);
+    if (w.comment) lines.push(`   Client comment: ${w.comment}`);
+    if (w.criterion || w.conformance) {
+      lines.push(`   Conformance: ${w.criterion || '(criterion not given)'}${w.conformance ? ` -> ${CONFORMANCE_LEVELS[w.conformance]}` : ''}`);
+    }
+    lines.push(`   Remediation log: done and live ${day(w.doneAt)}${w.doneByName ? `, marked by ${w.doneByName}` : ''}.`);
+    if (w.note) lines.push(`   Team note: ${w.note}`);
+    lines.push('');
+  });
+  if (!acr.queue.length) lines.push('No changes are queued.');
+  return `${lines.join('\n')}\n`;
+}
+
+/** Store a new ACR draft for a client (team only). */
+export async function addAcrDraft(store, session, clientId, { filename, data, published = false }) {
+  const repo = repoFor(store);
+  if (!isUuid(clientId) || !(await repo.getClient(clientId))) throw notFound('client');
+  if (!Buffer.isBuffer(data) || data.length === 0) throw new PortalError('That file is empty.', { code: 'file_empty' });
+  const name = sanitizeFilename(filename);
+  return acrDraftOut(await repo.insertAcrDraft({
+    clientId, filename: name, contentType: contentTypeFor(name), data,
+    byName: String(session.name ?? '').slice(0, 120), byEmail: String(session.email ?? '').slice(0, 254), published,
+  }));
+}
+
+export async function getAcrDraft(store, id) {
+  if (!isUuid(id)) return null;
+  return repoFor(store).getAcrDraft(id);
+}
+
+/**
+ * Publish the updated ACR: it goes to the client's Compliance files (where they can see it),
+ * becomes the newest draft, and every queued change is marked as applied.
+ */
+export async function publishAcr(store, session, clientId, { filename, data }) {
+  const file = await addFile(store, clientId, { filename, data, area: 'compliance' });
+  const draft = await addAcrDraft(store, session, clientId, { filename, data, published: true });
+  const applied = await repoFor(store).markWorkApplied(clientId);
+  return { file, draft, applied };
 }
 
 /** Every answer ever recorded for one report, newest first. */
