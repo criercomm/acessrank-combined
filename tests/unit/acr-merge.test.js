@@ -88,6 +88,17 @@ test('a draft is issued at its own number; formats fill from field answers; newe
   assert.ok(!html.includes('class="hl"'));
 });
 
+test('a comment that only repeats the signer is dropped, and bare phone numbers are written out', () => {
+  const draft = '<p><span data-acr-fill="statement" data-acr-format="{{@answer}}">[a]</span> <span data-acr-fill="contacts" data-acr-format="{{Freshé contact phone}} / {{@comment}}">[b]</span></p>';
+  const q = [
+    { key: 'statement', title: 'S', decision: 'approve', choice: 'Approved as is', comment: 'Henry Lovejoy', signerName: 'Henry Lovejoy', decidedAt: '2026-11-11T18:00:00Z', doneAt: '2026-11-12T18:00:00Z' },
+    { key: 'contacts', title: 'C', decision: 'approve', choice: 'Option 3', comment: 'Freshé contact phone: 6038346034\nNotes: Call after 9am', signerName: 'Henry Lovejoy', decidedAt: '2026-11-11T18:00:00Z', doneAt: '2026-11-12T18:00:00Z' },
+  ];
+  const { html } = mergeAcr(draft, { queue: q }, meta);
+  assert.match(html, />Approved as is<\/span>/);
+  assert.match(html, />\(603\) 834-6034 \/ Call after 9am<\/span>/);
+});
+
 test('versions and draft types', () => {
   assert.equal(draftVersion(DRAFT), '1.0');
   assert.equal(nextVersion('1.0', true), '1.0');

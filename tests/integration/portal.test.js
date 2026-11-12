@@ -1462,6 +1462,7 @@ test('ACR merge: an HTML draft gets the approved changes merged in, and publishi
   }
   const files = (await a.person.get('/api/portal/me')).body.files;
   assert.ok(files.some((f) => f.name === 'Freshe Accessibility Compliance Record Version 1.1.pdf' && f.area === 'compliance'));
+  assert.ok(files.some((f) => f.name === 'Freshe Accessibility Compliance Record Version 1.1.html' && f.area === 'compliance'), 'the HTML goes to the client too');
   const after = (await admin.get(`/api/portal/admin/clients/${a.client.id}/acr`)).body;
   assert.equal(after.queue.length, 0);
   assert.equal(after.drafts[0].name, 'Freshe Accessibility Compliance Record Version 1.1.html', 'the merged ACR is the next draft');

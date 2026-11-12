@@ -2134,10 +2134,13 @@ export async function mergedAcr(store, session, clientId, now = new Date()) {
  * becomes the newest draft (so the next update builds on it), and the queue is marked applied.
  */
 export async function publishMergedAcr(store, session, clientId, { pdfName, pdf, htmlName, html }) {
+  const htmlBytes = Buffer.from(html, 'utf8');
+  // The client gets both: the PDF (fonts embedded, for printing and sending on) and the HTML page it was printed from.
   const file = await addFile(store, clientId, { filename: pdfName, data: pdf, area: 'compliance' });
-  const draft = await addAcrDraft(store, session, clientId, { filename: htmlName, data: Buffer.from(html, 'utf8'), published: true });
+  const htmlFile = await addFile(store, clientId, { filename: htmlName, data: htmlBytes, area: 'compliance' });
+  const draft = await addAcrDraft(store, session, clientId, { filename: htmlName, data: htmlBytes, published: true });
   const applied = await repoFor(store).markWorkApplied(clientId);
-  return { file, draft, applied };
+  return { file, htmlFile, draft, applied };
 }
 
 /** Every answer ever recorded for one report, newest first. */

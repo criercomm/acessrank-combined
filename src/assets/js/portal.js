@@ -951,8 +951,10 @@
       publishMerge.hidden = !merge;
       publishMerge.disabled = !acr.queue.length;
       publishUpload.hidden = merge;
-      hint.textContent = merge
-        ? 'Build updated ACR downloads the draft with every queued change merged in, as a PDF with the next version number. Check it, then Publish to client: the PDF goes to the client’s Compliance files, the merged version becomes the new draft, and the queued changes are marked as applied.'
+      hint.textContent = !d
+        ? 'Upload the ACR draft first. Upload it as its HTML page and Build merges the queued changes into it; a PDF or Word draft gets a list of changes to apply by hand.'
+        : merge
+        ? 'Build updated ACR downloads the draft with every queued change merged in, as a PDF with the next version number. Check it, then Publish to client: the PDF (fonts embedded) and the HTML page both go to the client’s Compliance files, the merged version becomes the new draft, and the queued changes are marked as applied.'
         : 'This draft is not HTML, so Build ACR update downloads the queued changes as a dated PDF to apply by hand. Publish to client takes the updated ACR file: it goes to the client’s Compliance files, becomes the new draft, and the queued changes are marked as applied.';
     }
 
@@ -992,7 +994,7 @@
       api('POST', '/api/portal/admin/clients/' + encodeURIComponent(client.id) + '/acr/publish')
         .then(function (data) {
           if (notify) notify();
-          setStatus(status, 'Version ' + data.version + ' published to the client’s Compliance files as ' + data.file.name + '. ' + plural(data.applied, 'queued change') + ' marked as applied.', 'success');
+          setStatus(status, 'Version ' + data.version + ' published to the client’s Compliance files as ' + data.file.name + (data.htmlFile ? ' and ' + data.htmlFile.name : '') + '. ' + plural(data.applied, 'queued change') + ' marked as applied.', 'success');
           return load();
         })
         .catch(function (error) { setStatus(status, error.message, 'error'); publishMerge.disabled = !(current && current.queue.length); })

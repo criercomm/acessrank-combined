@@ -175,15 +175,31 @@ function draftDateText(html) {
 function clientNote(w) {
   const lines = String(w.comment ?? '').split('\n').filter(Boolean);
   const notes = lines.find((l) => l.startsWith('Notes: '));
-  if (notes) return notes.slice(7).trim();
-  const fieldsOnly = lines.length > 0 && lines.every((l) => /^[^:]{1,80}: /.test(l) || /\.$/.test(l));
-  return fieldsOnly && lines.some((l) => /^[^:]{1,80}: /.test(l)) ? '' : String(w.comment ?? '').trim();
+  let note;
+  if (notes) note = notes.slice(7).trim();
+  else {
+    const fieldsOnly = lines.length > 0 && lines.every((l) => /^[^:]{1,80}: /.test(l) || /\.$/.test(l));
+    note = fieldsOnly && lines.some((l) => /^[^:]{1,80}: /.test(l)) ? '' : String(w.comment ?? '').trim();
+  }
+  // A comment that only repeats the signer's name (clients often sign in the comment box) is not a note.
+  const squash = (t) => String(t ?? '').toLowerCase().replace(/[^a-z0-9]+/g, '');
+  return note && squash(note) === squash(w.signerName) ? '' : note;
+}
+
+/** A bare 10-digit US number, as clients type it, in the usual written form: (603) 834-6034. */
+function formatPhone(v) {
+  const d = String(v).replace(/\D/g, '');
+  const ten = d.length === 11 && d[0] === '1' ? d.slice(1) : d;
+  return ten.length === 10 && /^[\d\s().+-]+$/.test(v) ? `(${ten.slice(0, 3)}) ${ten.slice(3, 6)}-${ten.slice(6)}` : v;
 }
 
 /** The value of one field line ("Label: value") the client filled in, from an answer's comment. */
 function fieldValue(w, label) {
   for (const line of String(w.comment ?? '').split('\n')) {
-    if (line.startsWith(`${label}: `)) return line.slice(label.length + 2).trim();
+    if (line.startsWith(`${label}: `)) {
+      const v = line.slice(label.length + 2).trim();
+      return /phone/i.test(label) ? formatPhone(v) : v;
+    }
   }
   return '';
 }
