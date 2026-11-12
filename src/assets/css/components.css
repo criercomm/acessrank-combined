@@ -255,6 +255,13 @@ body.modal-open { overflow: hidden; }
 .sr-submitrow .submit-btn { flex: none; margin-top: 0; }
 .sr-formtile .sr-submitrow .modal-note { flex: 1 1 160px; margin: 0; font-size: 11.5px; line-height: 1.4; text-align: left; }
 @media (min-width: 861px) { .sr-formtile { position: relative; top: 5px; } }
+.sr-intro { grid-column: 1; grid-row: 1; }
+.sr-formtile { grid-column: 2; grid-row: 1; }
+.ov-band { grid-column: 1 / -1; grid-row: 2; margin: 22px 18px 0; padding: 14px 16px; border: 1px solid var(--hairline); border-radius: 10px; background: rgba(204, 47, 47, 0.10); }
+.ov-head { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 12px; margin-bottom: 6px; }
+.ov-head h3 { margin: 0; font-size: 15px; font-weight: 700; color: var(--text); text-align: left; }
+.ov-band p { margin: 0; font-size: 13px; line-height: 1.55; color: var(--text-soft); }
+.ov-band p strong { color: var(--text); }
 .sr-fgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 12px; }
 
 .ar-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); margin-top: 18px; }
@@ -332,7 +339,8 @@ body.modal-open { overflow: hidden; }
 @media (max-width: 860px) {
   .sr-top { grid-template-columns: 1fr; padding-top: 56px; }
   .sr-intro { padding: 0 18px; }
-  .sr-formtile { margin: 18px 18px 0; }
+  .sr-formtile { margin: 18px 18px 0; grid-column: 1; grid-row: 3; }
+  .ov-band { grid-column: 1; grid-row: 2; margin-top: 16px; }
 }
 @media (min-width: 600px) and (max-width: 860px) {
   .ar-c1.ar-r5 { grid-column: 1 / -1; grid-row: 5; padding: 0 18px; }
@@ -425,7 +433,9 @@ body.modal-open { overflow: hidden; }
 .form-placement-tier { font-size: 15px; color: var(--text); margin: 0 0 6px; }
 .form-placement-tier strong { color: var(--brand-text); }
 .form-placement-reason { font-size: 13px; color: var(--text-soft); margin: 0 0 6px; }
-.form-placement-overlay { font-size: 13px; color: var(--text); font-weight: 600; margin: 0 0 6px; }
+.form-placement-overlay { font-size: 13px; line-height: 1.55; color: var(--text-soft); font-weight: 400; margin: 10px 0; }
+.form-placement-overlay strong { color: var(--text); font-weight: 700; }
+.ov-tag { display: inline-block; margin: 0 8px 4px 0; padding: 3px 7px; border-radius: 5px; background: #CC2F2F; color: #FFFFFF; font-size: 10px; font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase; vertical-align: 1px; }
 .form-placement-note { font-size: 12px; color: var(--text-faint); margin: 0; }
 /* Progress while the signup form scans the store: a spinner in the button and a step line under it. */
 .submit-btn.is-busy { display: inline-flex; align-items: center; justify-content: center; gap: 10px; }

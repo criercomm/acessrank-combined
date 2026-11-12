@@ -4,6 +4,7 @@ import { log } from '../lib/logger.js';
 import { getStore, QuotaError, isUuid } from '../lib/store.js';
 import { consumeScanQuota, reserveReport, releaseReport, quotaStatus } from '../lib/quota.js';
 import { runScan, ScanError, AXE_VERSION } from '../lib/scanner.js';
+import { fetchLighthouseAccessibility } from '../lib/pagespeed.js';
 import { BlockedTargetError, normalizeTargetUrl } from '../lib/ssrf.js';
 import { hashIp, clientIp, cleanText } from '../lib/identity.js';
 import {
@@ -65,6 +66,13 @@ router.post('/scan', wrap(async (req, res) => {
   const cached = await store.findCachedScan(target.origin, config.scanner.cacheTtlHours);
   if (cached?.result) {
     log.info('scan served from cache', { origin: target.origin });
+    // A cached result from before Lighthouse existed, or from the signup form (which skips it),
+    // has no Lighthouse score: fetch it now so the checker never shows a cached scan without one.
+    let cachedResult = typeof cached.result === 'string' ? JSON.parse(cached.result) : cached.result;
+    if (input.lighthouse !== false && !cachedResult.lighthouse) {
+      const lighthouse = await fetchLighthouseAccessibility(cachedResult.finalUrl ?? target.href);
+      if (lighthouse) cachedResult = { ...cachedResult, lighthouse };
+    }
     const row = await store.insertScan({
       requestedUrl: input.url,
       finalUrl: cached.final_url,
@@ -79,7 +87,7 @@ router.post('/scan', wrap(async (req, res) => {
       violationsModerate: cached.violations_moderate,
       violationsMinor: cached.violations_minor,
       pagesScanned: cached.pages_scanned,
-      result: cached.result,
+      result: cachedResult,
       engineVersion: cached.engine_version,
       axeVersion: cached.axe_version,
       durationMs: 0,
@@ -88,12 +96,16 @@ router.post('/scan', wrap(async (req, res) => {
       servedFromCache: true,
       cachedFrom: cached.id,
     });
-    return res.json({ ok: true, scanId: row.id, cached: true, ...publicScan(cached.result) });
+    return res.json({ ok: true, scanId: row.id, cached: true, ...publicScan(cachedResult) });
   }
 
   await consumeScanQuota(store, ipHash);
 
   const started = Date.now();
+  // Google's Lighthouse run happens in parallel with ours, so it adds little to the wait.
+  // It never rejects (null on any failure), so it cannot fail the scan.
+  // The signup form asks for lighthouse:false: it only shows the plan placement, so it should not wait on Google.
+  const lighthousePending = input.lighthouse === false ? Promise.resolve(null) : fetchLighthouseAccessibility(target.href);
   let result;
   try {
     result = await runScan(input.url);
@@ -112,6 +124,8 @@ router.post('/scan', wrap(async (req, res) => {
     }).catch(() => {});
     throw err;
   }
+  result.lighthouse = await lighthousePending;
+  result.durationMs = Date.now() - started;
 
   const row = await store.insertScan({
     requestedUrl: result.requestedUrl,
@@ -175,6 +189,8 @@ function publicScan(result) {
     },
     // Absent on results cached before agent readiness existed; the dialog hides the section then.
     agent: result.agent ?? null,
+    // Google Lighthouse accessibility score (PageSpeed Insights). Null when unavailable; the dialog hides the bar.
+    lighthouse: result.lighthouse ? { accessibility: result.lighthouse.accessibility } : null,
     profile: result.profile ?? null,
     placement: result.placement ?? null,
     axeVersion: result.axeVersion,
@@ -333,10 +349,37 @@ router.post('/lead', wrap(async (req, res) => {
   }));
 
   log.info('lead captured', { source: input.source, leadId: lead.id });
-  notifySales({ lead, kind: input.source });
 
+  // A signup with a plan already chosen (e.g. /signup?plan=scale) skips the visitor-facing scan, so
+  // nothing checked the store for an overlay. Scan it here, after answering the visitor, and put what
+  // was found (overlay, score, store profile) in the sales email instead of on their screen.
+  const scanInBackground = input.source === 'signup' && websiteOrigin && !input.placementNote;
   res.json({ ok: true, status: 'received' });
+
+  if (!scanInBackground) {
+    notifySales({ lead, kind: input.source });
+    return;
+  }
+  const result = await backgroundStoreScan(store, input.website, websiteOrigin);
+  notifySales({ lead, kind: input.source, result });
 }));
+
+/**
+ * Best-effort scan for a signup that skipped the visitor-facing one. Reuses a recent cached
+ * result for the origin when there is one. Never throws: a failed scan still sends the lead.
+ */
+async function backgroundStoreScan(store, website, origin) {
+  try {
+    const cached = await store.findCachedScan(origin, config.scanner.cacheTtlHours);
+    if (cached?.result) return typeof cached.result === 'string' ? JSON.parse(cached.result) : cached.result;
+    const result = await runScan(website);
+    log.info('background signup scan done', { origin, overlays: result.profile?.overlays?.length ?? 0 });
+    return result;
+  } catch (err) {
+    log.warn('background signup scan failed', { origin, err: err.message });
+    return null;
+  }
+}
 
 /* -------------------------------------------------------------- quota --- */
 

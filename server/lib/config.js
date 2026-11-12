@@ -65,6 +65,19 @@ const config = Object.freeze({
     mailingAddress: env.MAILING_ADDRESS || '',
   },
 
+  /**
+   * Google PageSpeed Insights, for the Lighthouse accessibility score shown beside the
+   * Accessrank score. Optional: without a key the scan simply has no Lighthouse score.
+   * Set with `fly secrets set PAGESPEED_API_KEY="..."` (a key restricted to the PageSpeed
+   * Insights API). Runs in parallel with our own scan.
+   */
+  pagespeed: {
+    apiKey: env.PAGESPEED_API_KEY || '',
+    timeoutMs: int(env.PAGESPEED_TIMEOUT_MS, 50_000),
+    /** 'mobile' is PageSpeed's default and what most people who run it will see. */
+    strategy: env.PAGESPEED_STRATEGY === 'desktop' ? 'desktop' : 'mobile',
+  },
+
   turnstile: {
     siteKey: env.TURNSTILE_SITE_KEY || '',
     secretKey: env.TURNSTILE_SECRET_KEY || '',

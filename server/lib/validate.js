@@ -34,6 +34,8 @@ const trimmed = (max) => z.string().trim().max(max);
 export const scanSchema = z.object({
   url: trimmed(2000).min(1, 'Enter the address of the store you want to check.'),
   turnstileToken: z.string().max(4096).optional().nullable(),
+  /** false skips the Lighthouse (PageSpeed) score — the signup form only needs the plan placement. */
+  lighthouse: z.boolean().optional(),
 });
 
 export const reportSchema = z.object({

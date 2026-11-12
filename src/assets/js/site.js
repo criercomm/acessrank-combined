@@ -335,7 +335,7 @@
         if (token) payload.turnstileToken = token;
         if (!wantsPlacement) return null;
         startScanProgress();
-        return window.Accessrank.post('/api/scan', { url: payload.website, turnstileToken: token || undefined })
+        return window.Accessrank.post('/api/scan', { url: payload.website, turnstileToken: token || undefined, lighthouse: false })
           .then(function (scan) { return scan && scan.placement ? scan.placement : { failed: true, message: 'The scan returned no result.' }; })
           .catch(function (err) { return { failed: true, message: err && err.message ? err.message : 'The scan could not be completed.' }; });
       }).then(function (found) {
@@ -371,7 +371,21 @@
             slot.querySelector('[data-placement-label]').textContent = placement.label || placement.tier;
             slot.querySelector('[data-placement-reason]').textContent = placement.reason || '';
             var overlayLine = slot.querySelector('[data-placement-overlay]');
-            if (overlayLine) { overlayLine.textContent = placement.overlayNote || ''; overlayLine.hidden = !placement.overlayNote; }
+            if (overlayLine) {
+              var ovNames = placement.overlays && placement.overlays.length ? placement.overlays.join(' and ') : '';
+              overlayLine.textContent = '';
+              overlayLine.hidden = !ovNames;
+              if (ovNames) {
+                var tag = document.createElement('span');
+                tag.className = 'ov-tag';
+                tag.textContent = 'Overlay detected';
+                var name = document.createElement('strong');
+                name.textContent = ovNames;
+                overlayLine.appendChild(tag);
+                overlayLine.appendChild(name);
+                overlayLine.appendChild(document.createTextNode(' is running on your store. An overlay sits on top of the page and leaves the code underneath unchanged, and that code is what the automated scans predatory ADA lawyers use will read. The specialist will plan fixes in the code itself.'));
+              }
+            }
             slot.hidden = false;
           }
           form.hidden = true;

@@ -120,6 +120,7 @@
     'Running axe-core against WCAG 2.2 A/AA',
     'Checking colour contrast and accessible names',
     'Reading SEO and AI agent signals',
+    'Getting your Lighthouse score from Google',
     'Scoring'
   ];
 
@@ -235,10 +236,14 @@
     var n = firstNum(d);
     switch (check.id) {
       case 'title':
+        if (n && n > 65) return 'Your page title, the clickable headline in search results (not the site name shown above it), is ' +
+          plural(n, 'character', 'characters') + ' long, so search results cut it off. Aim for 20 to 65.';
         return n ? 'Your page title, the clickable headline in search results (not the site name shown above it), is only ' +
           plural(n, 'character', 'characters') + ' long. Aim for 20 to 65.'
           : 'Your page has no title, the clickable headline in search results (not the site name shown above it).';
       case 'description':
+        if (n && n > 165) return 'Your meta description, the summary shown under your headline in search results, is ' +
+          plural(n, 'character', 'characters') + ' long, so search results cut it off. Aim for 70 to 165.';
         return n ? 'Your meta description, the summary shown under your headline in search results, is only ' +
           plural(n, 'character', 'characters') + ' long. Aim for 70 to 165.'
           : 'Your page has no meta description, the summary shown under your headline in search results.';
@@ -308,6 +313,8 @@
     var seoWork = seoChecks.filter(function (c) { return c.status !== 'pass'; });
     var agentWork = agent ? agent.checks.filter(function (c) { return !c.pass; }) : [];
     var rankWork = seoWork.length + agentWork.length;
+    var overlays = data.profile && data.profile.overlays ? data.profile.overlays : [];
+    var overlayName = overlays.join(' and ');
     var rankTotal = seoChecks.length + (agent ? agent.checks.length : 0);
 
     /* Title: the store */
@@ -329,6 +336,10 @@
           add('The most serious: ');
           add(list[0].help.replace(/\.$/, ''), true);
           add(' (' + plural(list[0].nodes, 'element', 'elements') + '). ');
+        }
+        if (overlays.length) {
+          add('Your ' + overlayName + ' overlay does not fix these.', true);
+          add(' ');
         }
       } else {
         add('Automated testing found no WCAG failures on ' + host + '. ');
@@ -354,6 +365,29 @@
       // No widows: tie the last two words together so a lone word never ends the paragraph.
       var tail = summary.lastChild;
       if (tail && tail.nodeType === 3) tail.nodeValue = tail.nodeValue.replace(/ (\S+)\s*$/, '\u00a0$1');
+    }
+
+    /* Overlay notice: the free check names the widget, because a plaintiff's firm will too. */
+    var ovSlot = document.getElementById('scan-overlay');
+    if (ovSlot) {
+      ovSlot.textContent = '';
+      ovSlot.hidden = !overlays.length;
+      if (overlays.length) {
+        var ovHead = el('div', 'ov-head');
+        var ovBadge = el('span', 'ar-badge', 'Overlay detected');
+        ovBadge.setAttribute('data-kind', 'critical');
+        ovHead.appendChild(ovBadge);
+        var ovTitle = el('h3', null, overlayName + ' accessibility overlay');
+        ovTitle.id = 'scan-overlay-title';
+        ovHead.appendChild(ovTitle);
+        ovSlot.appendChild(ovHead);
+        var ovText = el('p');
+        ovText.appendChild(document.createTextNode('An overlay is a widget that loads on top of your store. It does not change the code underneath, and that code is what automated scanners read, including the free scans predatory ADA lawyers use to pick targets. '));
+        ovText.appendChild(el('strong', null, issues
+          ? 'Every issue on this page is still there for them to find.'
+          : 'It does not protect you from what those scans or a human tester find.'));
+        ovSlot.appendChild(ovText);
+      }
     }
 
     var grid = el('div', 'ar-grid');
@@ -417,14 +451,6 @@
     } else {
       aFind.appendChild(el('p', 'ar-clean',
         'Automated testing found nothing to fix. The full report covers what automated testing cannot see.'));
-    }
-    /* Overlay notice: the free check names the widget, because a plaintiff's firm will too. */
-    var overlays = data.profile && data.profile.overlays ? data.profile.overlays : [];
-    if (overlays.length) {
-      var ov = el('p', 'result-overlay');
-      ov.appendChild(el('strong', null, overlays.join(' and ') + ' accessibility overlay detected. '));
-      ov.appendChild(document.createTextNode('A widget loads on top of the page and leaves the code underneath as it was, so the issues above are what a screen reader still meets.'));
-      aFind.appendChild(ov);
     }
     grid.appendChild(cell('c1', 'r5', aFind));
 

@@ -172,7 +172,7 @@ export function leadNotificationEmail({ lead, result = null, kind = 'audit_repor
     ['Plan', lead.plan],
     ['Platform', lead.platform],
     ['Store profile', result?.placement ? `${result.placement.label}: ${result.placement.reason}` : undefined],
-    ['Overlay detected', result?.profile?.overlays?.length ? result.profile.overlays.join(', ') : undefined],
+    ['Overlay detected', result ? (result.profile?.overlays?.length ? result.profile.overlays.join(', ') : 'None detected') : undefined],
     ['Accessibility score', result?.scores?.accessibility],
     ['SEO', result?.scores?.seo],
     ['Failed criteria', result?.accessibility?.failedCriteria?.join(', ')],

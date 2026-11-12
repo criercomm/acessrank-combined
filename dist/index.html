@@ -43,7 +43,7 @@
        same-origin file is allowed by CSP's style-src 'self' with no hash, is
        fetched once per deploy, and the first paint waits on one small request
        over the same connection. -->
-  <link rel="stylesheet" href="/assets/css/site.5925ac9984.css">
+  <link rel="stylesheet" href="/assets/css/site.3b67a10352.css">
   <!-- Client-portal pages only (site.json: page.portal). Kept out of the inlined
        block above so the marketing pages do not carry styles they never use;
        style-src 'self' already allows a same-origin stylesheet. -->
@@ -56,7 +56,7 @@
   
   <!-- Cloudflare Turnstile is not loaded here: site.js loads it on demand (Accessrank.loadTurnstile) so visitors who never
        touch a form get no third-party cookie (Lighthouse Best Practices). -->
-  <script src="/assets/js/site.da7085a9d4.js" defer></script>
+  <script src="/assets/js/site.758b214ce2.js" defer></script>
   
   <script src="/assets/js/hero.ad00d0ce66.js" defer></script>
 <link rel="stylesheet" href="/analytics-consent.css">
@@ -276,6 +276,10 @@
                 <p class="sr-tsub">Access and Rank results, side by side.</p>
                 <p class="sr-summary" id="scan-summary"></p>
               </section>
+
+              <!-- Accessibility overlay notice (audit.js). Full width under the summary and form on desktop;
+                   between the summary and the form on phones, so it is read before the form. -->
+              <section class="ov-band" id="scan-overlay" aria-labelledby="scan-overlay-title" hidden></section>
 
               <section class="scan-right sr-formtile" aria-labelledby="report-modal-title">
               <form class="modal-form" id="report-form" novalidate>

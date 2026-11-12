@@ -83,6 +83,10 @@
                 <p class="sr-summary" id="scan-summary"></p>
               </section>
 
+              <!-- Accessibility overlay notice (audit.js). Full width under the summary and form on desktop;
+                   between the summary and the form on phones, so it is read before the form. -->
+              <section class="ov-band" id="scan-overlay" aria-labelledby="scan-overlay-title" hidden></section>
+
               <section class="scan-right sr-formtile" aria-labelledby="report-modal-title">
               <form class="modal-form" id="report-form" novalidate>
                 <h2 class="modal-title" id="report-modal-title">Get the full report</h2>
