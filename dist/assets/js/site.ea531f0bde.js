@@ -766,6 +766,8 @@
           plural(n, 'character', 'characters') + ' long. Aim for 70 to 165.'
           : 'Your page has no meta description, the summary shown under your headline in search results.';
       case 'h1':
+        // Read the count from the start only: "No H1 on the page" contains the 1 in "H1".
+        n = /^(\d+) H1/.test(d) ? Number(/^(\d+)/.exec(d)[1]) : null;
         return n ? 'Your page has ' + n + ' main headings (H1). It should have exactly one.'
           : 'Your page has no main heading (H1).';
       case 'headings':
