@@ -672,7 +672,7 @@ a.contact-line:hover { color: var(--accent); }
   display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 24px;
   /* Same box as the main site's nav (.site-nav in layout.css and desktop.css): 40px above, 18px below, and the
      home page's --edge on the left and right, so the logo sits where it does on the main site. */
-  --ar-edge: max(40px, calc((100% - 1280px) / 2 + 64px));
+  --ar-edge: max(64px, calc((100% - 1280px) / 2 + 64px));
   height: auto; padding: 40px var(--ar-edge) 18px;
   background: none; /* no bar: the main site's nav sits straight on the page (was a dark translucent bar with a blur and a bottom rule) */
   font-family: var(--display); /* Inter, as the main site's nav (was the mono face) */
@@ -687,7 +687,59 @@ a.contact-line:hover { color: var(--accent); }
 .ar-nav-beta-when { font-weight: 400; color: var(--ar-soft); }
 @media (max-width: 767px), (max-height: 620px) { .ar-nav-beta-when { display: none; } }
 .ar-nav-mark { display: inline-flex; align-items: center; justify-content: center; width: 33px; height: 33px; border-radius: 8px; background: var(--ar-yellow); color: var(--ar-ink); flex-shrink: 0; }
-.ar-nav-mark svg { width: 58%; height: 58%; }
+/* The animated mark, ported from the main site (src/assets/css/home.css) so the deck's logo plays the same 5 s check animation on every load */
+.ar-nav-mark { position: relative; overflow: hidden; }
+/* Color-wipe layers: three full-cover panels, each parked off-screen at
+ * its starting corner, sliding in for its on-screen window and back out. */
+.ar-nav-mark .layer { position: absolute; inset: 0; pointer-events: none; z-index: 1; }
+.ar-nav-mark .layer-red { background: #E0432B; transform: translate(-110%, 110%); animation: arLogoWipeRed 5s ease-in-out 1 forwards; }
+.ar-nav-mark .layer-green { background: #4ADE80; transform: translate(110%, -110%); animation: arLogoWipeGreen 5s ease-in-out 1 forwards; }
+.ar-nav-mark .layer-yellow { background: var(--brand); transform: translate(-110%, 110%); animation: arLogoWipeYellowReturn 5s ease-in-out 1 forwards; }
+
+/* Icon layers: yellow check (rest), red exclamation, green check (with a
+ * stamp-pulse — grows to 1.42x, springs back) — stacked, cross-fading. */
+.ar-nav-mark .icon { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; z-index: 2; pointer-events: none; }
+.ar-nav-mark .icon svg { width: 58%; height: 58%; display: block; }
+.ar-nav-mark .icon-yellow { animation: arLogoIconYellow 5s ease-in-out 1 forwards; }
+.ar-nav-mark .icon-red { opacity: 0; animation: arLogoIconRed 5s ease-in-out 1 forwards; }
+.ar-nav-mark .icon-green { opacity: 0; animation: arLogoIconGreen 5s ease-in-out 1 forwards; transform-origin: 50% 50%; }
+
+/* Diagonal swipe bars: a bright stripe passes across just before each
+ * color change. Swipes 1/3 run bottom-left → top-right; swipe 2 reverses. */
+.ar-nav-mark .swipe { position: absolute; top: -50%; left: -150%; width: 200%; height: 200%; pointer-events: none; z-index: 4; filter: blur(0.5px); opacity: 0; }
+.ar-nav-mark .swipe-1, .ar-nav-mark .swipe-3 { background: linear-gradient(45deg, transparent 45%, rgba(255,255,255,.85) 50%, transparent 55%); }
+.ar-nav-mark .swipe-2 { background: linear-gradient(-45deg, transparent 45%, rgba(255,255,255,.85) 50%, transparent 55%); }
+.ar-nav-mark .swipe-1 { animation: arLogoSwipe1 5s ease-in-out 1 forwards; }
+.ar-nav-mark .swipe-2 { animation: arLogoSwipe2 5s ease-in-out 1 forwards; }
+.ar-nav-mark .swipe-3 { animation: arLogoSwipe3 5s ease-in-out 1 forwards; }
+
+@keyframes arLogoWipeRed { 0%, 13% { transform: translate(-110%, 110%); } 22%, 40% { transform: translate(0, 0); } 48%, 100% { transform: translate(110%, -110%); } }
+@keyframes arLogoWipeGreen { 0%, 38% { transform: translate(110%, -110%); } 47%, 70% { transform: translate(0, 0); } 77%, 100% { transform: translate(-110%, 110%); } }
+@keyframes arLogoWipeYellowReturn { 0%, 68% { transform: translate(-110%, 110%); } 77%, 100% { transform: translate(0, 0); } }
+
+@keyframes arLogoIconYellow { 0%, 18% { opacity: 1; } 22%, 72% { opacity: 0; } 82%, 100% { opacity: 1; } }
+@keyframes arLogoIconRed { 0%, 18% { opacity: 0; } 25%, 38% { opacity: 1; } 44%, 100% { opacity: 0; } }
+@keyframes arLogoIconGreen {
+  0%, 43% { opacity: 0; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1); }
+  56% { opacity: 1; transform: scale(1); }
+  63% { opacity: 1; transform: scale(1.42); }
+  68% { opacity: 1; transform: scale(.96); }
+  72% { opacity: 1; transform: scale(1); }
+  78%, 100% { opacity: 0; transform: scale(1); }
+}
+
+@keyframes arLogoSwipe1 { 0%, 11% { transform: translate(-50%, 50%); opacity: 0; } 13% { transform: translate(-50%, 50%); opacity: 1; } 21% { transform: translate(50%, -50%); opacity: 1; } 23%, 100% { opacity: 0; } }
+@keyframes arLogoSwipe2 { 0%, 38% { transform: translate(50%, -50%); opacity: 0; } 40% { transform: translate(50%, -50%); opacity: 1; } 46% { transform: translate(-50%, 50%); opacity: 1; } 48%, 100% { opacity: 0; } }
+@keyframes arLogoSwipe3 { 0%, 68% { transform: translate(-50%, 50%); opacity: 0; } 70% { transform: translate(-50%, 50%); opacity: 1; } 76% { transform: translate(50%, -50%); opacity: 1; } 78%, 100% { opacity: 0; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .ar-nav-mark .layer, .ar-nav-mark .icon, .ar-nav-mark .swipe { animation: none; }
+  .ar-nav-mark .layer-red, .ar-nav-mark .layer-green, .ar-nav-mark .layer-yellow { display: none; }
+  .ar-nav-mark .icon-red, .ar-nav-mark .icon-green { display: none; }
+  .ar-nav-mark .icon-yellow { opacity: 1; }
+}
+
 .ar-nav-word { font-family: var(--display); }
 /* Pinned columns: in the portrait / phone layout the chapter dots leave the bar
    for the bottom strip, and without these the right-hand block would fall into

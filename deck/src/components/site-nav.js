@@ -51,7 +51,15 @@ const MORE = [...BAR.flatMap((l) => l.children || []), ...EXTRA].filter((l) => !
 const SITE = { label: 'Explore the site', href: '/home' }
 const CTA = NAV.find((l) => l.cta) || { label: 'Free audit', href: '/home#audit' }
 
-const MARK = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>'
+// The main site's animated mark (src/partials/nav.html): yellow check, red "!" and green check icons cross-fading under
+// three colour wipes and diagonal swipes. It is pure CSS (.ar-nav-mark in src/style.css), one 5 s run as soon as the nav
+// is inserted — every load and refresh of the deck.
+const ICON = (inner) => `<svg viewBox="0 0 14 14" aria-hidden="true">${inner}</svg>`
+const CHECK = '<path d="M3 7 L6 10 L11 4" fill="none" stroke="#0E0E10" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>'
+const BANG = '<line x1="7" y1="2.6" x2="7" y2="7.8" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round"/><circle cx="7" cy="11.6" r="1.1" fill="#FFFFFF"/>'
+const MARK = '<span class="layer layer-red"></span><span class="layer layer-green"></span><span class="layer layer-yellow"></span>'
+  + `<span class="icon icon-yellow">${ICON(CHECK)}</span><span class="icon icon-red">${ICON(BANG)}</span><span class="icon icon-green">${ICON(CHECK)}</span>`
+  + '<span class="swipe swipe-1"></span><span class="swipe swipe-2"></span><span class="swipe swipe-3"></span>'
 
 const link = (l, cls = 'ar-nav-link') => el('a', { class: cls, href: l.href, target: '_top', text: l.label })
 const CHEVRON = '<svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true" focusable="false"><path d="M2.5 4.5 6 8l3.5-3.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>'
