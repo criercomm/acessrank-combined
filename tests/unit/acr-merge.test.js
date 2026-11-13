@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { mergeAcr, draftVersion, nextVersion, isHtmlDraft, pdfTemplates } from '../../server/lib/acr-merge.js';
+import { mergeAcr, draftVersion, nextVersion, isHtmlDraft, pdfTemplates, draftWarnings } from '../../server/lib/acr-merge.js';
 
 const day = (v) => (v ? new Date(v).toLocaleDateString('en-US', { dateStyle: 'long', timeZone: 'UTC' }) : '');
 const meta = { builtAt: new Date('2026-11-12T18:00:00Z'), builtBy: 'JP', day, decisions: { approve: 'Approved', changes: 'Changes requested' }, conformance: { supports: 'Supports' } };
@@ -58,6 +58,21 @@ test('a draft with no markers still gets every change, in an Updates section', (
   assert.match(html, /<\/section>\n<\/main>/);
 });
 
+test('a record with Exhibit D written out never reprints the statement from the approval', () => {
+  const written = `<html><body><main>
+<table class="log" data-acr="remediation-log" data-acr-order="newest-first"><thead><tr><th>Date</th></tr></thead>
+<template data-acr-row><tr><td>{{dateShort}}</td><td>{{title}}</td></tr></template>
+<tr><td>Nov 3</td><td>Alt text</td></tr></table>
+<div class="sechead" id="exd"><h2>Accessibility statement</h2></div>
+<div class="statement"><h3>Accessibility Statement</h3><p>Approved wording, contact info@client.test.</p></div>
+</main></body></html>`;
+  const { html, placed } = mergeAcr(written, { queue }, meta);
+  assert.equal(placed.statement, true);
+  assert.ok(!html.includes('acr-updates'), 'no Updates section');
+  assert.ok(!html.includes('We want &lt;everyone&gt; in.'), 'packet wording not reprinted');
+  assert.match(html, /Approved wording, contact info@client\.test\./);
+});
+
 test('a draft is issued at its own number; formats fill from field answers; newest-first logs; @page text', () => {
   const draft = `<html><head><style>@page { @bottom-left { content: "Version 1.0 draft \\00b7  November 6, 2026"; } }</style></head><body>
 <p><span data-acr="version">Version 1.0 draft</span> <span data-acr="date">November 6, 2026</span></p>
@@ -99,6 +114,24 @@ test('a comment that only repeats the signer is dropped, and bare phone numbers 
   assert.match(html, />\(603\) 834-6034 \/ Call after 9am<\/span>/);
 });
 
+test('when/until can test the answer, and generic field labels match the client\'s own', () => {
+  const draft = '<p data-acr-when="contacts~Option 1" hidden>one</p><p data-acr-when="contacts~option 3" hidden>three <span data-acr-fill="contacts" data-acr-format="{{Contact email}}">[e]</span></p><p data-acr-until="contacts~Option 3">pending</p>';
+  const q = [{ key: 'contacts', title: 'C', decision: 'approve', choice: 'Option 3: Accessrank first', comment: 'Freshé contact email: a@b.test', signerName: 'H', decidedAt: '2026-11-11T18:00:00Z', doneAt: '2026-11-12T18:00:00Z' }];
+  const { html } = mergeAcr(draft, { queue: q }, meta);
+  assert.match(html, /<p data-acr-when="contacts~Option 1" hidden>one<\/p>/, 'other options stay hidden');
+  assert.match(html, /<p data-acr-when="contacts~option 3">three <span[^>]*>a@b\.test<\/span><\/p>/);
+  assert.ok(!html.includes('pending'));
+});
+
+test('prep fill-ins lose their highlight on Build, and uploads warn about any left', () => {
+  const draft = '<p data-acr="version">Version 1.0</p><p><span class="fill">Acme</span> and <span class="fill">[[site]]</span></p>';
+  const { html } = mergeAcr(draft, { queue: [] }, meta);
+  assert.match(html, /<p>Acme and \[\[site\]\]<\/p>/);
+  assert.deepEqual(draftWarnings('<p data-acr="date">x</p><p>[[Client]] [[site]] [[Client]]</p><!-- [[note]] -->'), ['2 fill-ins still to complete, such as [[Client]], [[site]].']);
+  assert.equal(draftWarnings('<p>plain</p>').length, 1);
+  assert.deepEqual(draftWarnings('<p data-acr="date">ok</p>'), []);
+});
+
 test('versions and draft types', () => {
   assert.equal(draftVersion(DRAFT), '1.0');
   assert.equal(nextVersion('1.0', true), '1.0');
@@ -106,4 +139,15 @@ test('versions and draft types', () => {
   assert.equal(nextVersion(''), '1.1');
   assert.ok(isHtmlDraft('Freshe ACR.html'));
   assert.ok(!isHtmlDraft('Freshe ACR.pdf'));
+});
+
+test('draftKeys counts every place a draft waits for an answer', async () => {
+  const { draftKeys } = await import('../../server/lib/acr-merge.js');
+  const keys = draftKeys(`<p data-acr-until="statement">a</p><p data-acr-when="contacts~Option 3" hidden>b</p>
+    <span data-acr-fill="statement" data-acr-format="{{@signer}}. Footer: {{footer:@answer}}">x</span>
+    <!-- <span data-acr-fill="ignored"></span> -->`);
+  assert.equal(keys.get('statement'), 2);
+  assert.equal(keys.get('contacts'), 1);
+  assert.equal(keys.get('footer'), 1);
+  assert.equal(keys.has('ignored'), false);
 });

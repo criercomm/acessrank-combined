@@ -160,7 +160,8 @@
     button.addEventListener('click', function () {
       if (!armed) {
         armed = true;
-        button.textContent = confirmLabel;
+        // A label can be worked out at click time, when it depends on state that changes on the page.
+        button.textContent = typeof confirmLabel === 'function' ? confirmLabel() : confirmLabel;
         button.className = 'btn-small btn-small--confirm';
         cancel = h('button', { type: 'button', class: 'btn-small', text: 'Cancel' });
         cancel.addEventListener('click', function () { disarm(); button.focus(); });
@@ -764,8 +765,11 @@
       var note = h('textarea', { id: id + '-note', name: 'note', rows: '2', maxlength: '2000', placeholder: 'e.g. Checked with VoiceOver on iPhone' });
       note.value = w.note || '';
       var answer = (DECISION_TEXT[item.decision] || item.decision) + (item.choice ? ': ' + item.choice : '');
-      var add = h('button', { type: 'button', class: 'btn-small btn-small--brand', text: 'Add to ACR update', disabled: !draft });
-      var later = h('button', { type: 'button', class: 'btn-small', text: 'Done, not in ACR yet' });
+      // A typed answer (a contact name, a phone number) is information, not a change to the site.
+      // The record states it already, so for those the safe choice is the first button.
+      var infoOnly = item.decision === 'comment';
+      var add = draft ? h('button', { type: 'button', class: 'btn-small' + (infoOnly ? '' : ' btn-small--brand'), text: 'Add to ACR update' }) : null;
+      var later = h('button', { type: 'button', class: 'btn-small' + (infoOnly ? ' btn-small--brand' : ''), text: infoOnly ? 'Done, keep out of the ACR' : 'Done, not in ACR yet' });
       var cancel = h('button', { type: 'button', class: 'btn-small', text: 'Cancel, it is not live' });
       var dialog = h('dialog', { class: 'team-dialog work-dialog', 'aria-labelledby': id + '-title' }, [
         h('h2', { id: id + '-title', tabindex: '-1', text: 'Update the ACR for this item?' }),
@@ -779,9 +783,10 @@
         h('div', { class: 'field' }, [h('label', { for: id + '-note', text: 'Team note for the ACR (optional)' }), note]),
         h('p', { class: 'field-hint', text: draft
           ? 'Applied to ' + draft.name + ', uploaded ' + formatDate(draft.createdAt) + '.'
-          : 'This client has no ACR draft yet. Upload one on the client’s page (Approvals tab) to add changes to the ACR.' }),
+          : 'This client has no ACR draft yet, so nothing can be added to the ACR. Upload the draft at the top of Work to do, then use “Add to ACR update” on this item.' }),
+        infoOnly ? h('p', { class: 'field-hint', text: 'This is an answer the client typed, not a change to the site. The ACR draft should already state it, so leave it out of the update unless it belongs in the remediation log.' }) : null,
         status,
-        h('div', { class: 'row-actions' }, [add, later, cancel])
+        h('div', { class: 'row-actions' }, infoOnly || !draft ? [later, add, cancel] : [add, later, cancel])
       ]);
       var settled = false;
       function close(result) {
@@ -793,15 +798,17 @@
         resolve(result);
       }
       function save(queue) {
-        add.disabled = true; later.disabled = true;
+        if (add) add.disabled = true;
+        later.disabled = true;
         setStatus(status, 'Saving…');
         saveWork(report, item, { done: true, queue: queue, criterion: criterion.value, conformance: select.value, note: note.value })
           .then(close, function (error) {
-            add.disabled = !draft; later.disabled = false;
+            if (add) add.disabled = false;
+            later.disabled = false;
             setStatus(status, error.message, 'error');
           });
       }
-      add.addEventListener('click', function () { save(true); });
+      if (add) add.addEventListener('click', function () { save(true); });
       later.addEventListener('click', function () { save(false); });
       cancel.addEventListener('click', function () { close(null); });
       dialog.addEventListener('cancel', function (e) { e.preventDefault(); close(null); });
@@ -822,6 +829,37 @@
       h('a', { class: 'work-acr-link', href: '/portal/client#client=' + encodeURIComponent(report.clientId) + '&acr', text: 'ACR for ' + report.clientName })
     ]));
     wrap.appendChild(h('div', { class: 'work-bar', 'aria-hidden': 'true' }, [bar]));
+    // Step 1 is the ACR draft: nothing can be added to the ACR without one, so it comes first.
+    var gate = null;
+    if (!report.acrDraft) {
+      var gateId = 'gate-' + report.id.slice(0, 8);
+      var gateInput = h('input', { class: 'visually-hidden', type: 'file', id: gateId, accept: '.html,.htm,.pdf,.docx,.doc,.odt,.rtf' });
+      var gateStatus = h('p', { class: 'form-status', role: 'status', 'aria-live': 'polite' });
+      gate = h('div', { class: 'work-gate' }, [
+        h('p', { text: 'Step 1: upload the ACR draft for ' + report.clientName + '.' }),
+        h('p', { class: 'field-hint', text: 'Changes can only be added to the ACR once there is a draft to add them to. Upload it as its HTML page, prepared from the ACR template.' }),
+        h('div', { class: 'row-actions' }, [h('label', { class: 'btn-small btn-small--brand upload-button', for: gateId, text: 'Upload ACR draft' }), gateInput]),
+        gateStatus
+      ]);
+      gateInput.addEventListener('change', function () {
+        var file = gateInput.files && gateInput.files[0];
+        if (!file) return;
+        setStatus(gateStatus, 'Uploading ' + file.name + '…');
+        api('POST', '/api/portal/admin/clients/' + encodeURIComponent(report.clientId) + '/acr/drafts?name=' + encodeURIComponent(file.name), null, file)
+          .then(function (data) {
+            report.acrDraft = data.draft;
+            var w = data.draft && data.draft.warnings;
+            var done = h('div', { class: 'work-gate' }, [
+              h('p', { text: file.name + ' is the ACR draft for ' + report.clientName + '.' }),
+              w && w.length ? h('p', { class: 'field-hint acr-flag', text: 'Check before building: ' + w.join(' ') }) : null
+            ]);
+            gate.replaceWith(done);
+            gate = done;
+            render();
+          }, function (error) { setStatus(gateStatus, error.message, 'error'); gateInput.value = ''; });
+      });
+      wrap.appendChild(gate);
+    }
     wrap.appendChild(h('p', { class: 'field-hint', text: 'Tick an item only when the change is live on the store, not just finished in a test theme.' }));
     wrap.appendChild(list);
     // The next step, once something is queued: build the ACR update on the client's page.
@@ -852,7 +890,7 @@
       var side = h('div', { class: 'work-side' }, w.done ? [
         h('span', { class: 'work-badge work-badge--' + (w.acrState || 'none'), text: stateText }),
         h('span', { class: 'file-meta', text: 'Live ' + formatDate(w.doneAt) + (w.doneByName ? ' · ' + w.doneByName : '') }),
-        w.acrState === 'none' ? h('button', { type: 'button', class: 'link-button', text: 'Add to ACR update', 'data-add-acr': true }) : null
+        w.acrState === 'none' && report.acrDraft ? h('button', { type: 'button', class: 'link-button', text: 'Add to ACR update', 'data-add-acr': true }) : null
       ] : [h('span', { class: 'file-meta', text: 'Done and live on the store' })]);
       var li = h('li', { class: 'work-row' + (w.done ? ' is-done' : '') }, [
         box,
@@ -906,8 +944,93 @@
     var publishMerge = section.querySelector('[data-acr-publish-merge]');
     var publishUpload = section.querySelector('[data-acr-publish-upload]');
     var hint = section.querySelector('[data-acr-hint]');
+    var stepsList = section.querySelector('[data-acr-steps]');
+    var previewBox = section.querySelector('[data-acr-preview]');
+    var closeBox = section.querySelector('[data-acr-close]');
     var busy = false;
     var current = null;
+    var published = null; // { version, reports: [{ id, title }] } after a publish on this page
+
+    // Publish stays off until the current queue has been built and checked. The queue's fingerprint
+    // is remembered per client when Build is clicked; any change to the queue or the draft resets it.
+    function queueSignature(acr) {
+      var d = acr.drafts[0];
+      return (d ? d.id : '') + '#' + acr.queue.map(function (w) { return w.reportId + '|' + w.key + '|' + w.doneAt; }).join(',');
+    }
+    function builtKey(acr) { return 'acr-built-' + acr.client.id; }
+    function readBuilt(acr) { try { return window.localStorage.getItem(builtKey(acr)); } catch (e) { return null; } }
+    function writeBuilt(acr) { try { window.localStorage.setItem(builtKey(acr), queueSignature(acr)); } catch (e) { /* storage off: Publish stays on after Build in this tab only */ } builtHere = queueSignature(acr); }
+    var builtHere = null;
+    function isBuilt(acr) { var sig = queueSignature(acr); return acr.queue.length > 0 && (readBuilt(acr) === sig || builtHere === sig); }
+
+    function renderSteps(acr, merge) {
+      var hasDraft = Boolean(acr.drafts[0]);
+      var queued = acr.queue.length > 0;
+      var built = merge ? isBuilt(acr) : queued;
+      var steps = [
+        ['Upload the ACR draft', hasDraft],
+        ['Queue changes that are live', queued || Boolean(published)],
+        [merge ? 'Build and check' : 'Build the change list', built || Boolean(published)],
+        ['Publish to client', Boolean(published)],
+        ['Close the approval', Boolean(published) && !published.reports.length]
+      ];
+      var next = -1;
+      steps.forEach(function (s, i) { if (next < 0 && !s[1]) next = i; });
+      clear(stepsList);
+      steps.forEach(function (s, i) {
+        var state = s[1] ? 'done' : i === next ? 'next' : '';
+        stepsList.appendChild(h('li', { class: state ? 'is-' + state : '', 'aria-current': state === 'next' ? 'step' : null }, [
+          h('span', { text: s[0] }),
+          state ? h('span', { class: 'acr-step-state visually-hidden', text: state === 'done' ? '(done)' : '(next)' }) : null
+        ]));
+      });
+    }
+
+    function renderPreview(acr, merge) {
+      clear(previewBox);
+      previewBox.hidden = true;
+      if (!merge || !acr.queue.length) return;
+      var client = acr.client;
+      api('GET', '/api/portal/admin/clients/' + encodeURIComponent(client.id) + '/acr/preview').then(function (data) {
+        var p = data.preview;
+        if (!p || !p.mergeable || current !== acr) return;
+        var items = p.items.map(function (it) {
+          return h('li', {}, [
+            h('span', { text: it.title + (it.places ? ' (completes ' + plural(it.places, 'place') + ' in the draft)' : '') }),
+            it.flags.length ? h('span', { class: 'acr-flag', text: ' ' + it.flags.join(' ') }) : null
+          ]);
+        });
+        previewBox.appendChild(h('p', { text: 'Build will issue Version ' + p.version + ' from ' + p.draftName + '. It adds ' + plural(p.items.length, 'row') + ' to the remediation log:' }));
+        previewBox.appendChild(h('ul', {}, items));
+        p.notes.forEach(function (n) { previewBox.appendChild(h('p', { class: 'acr-flag', text: n })); });
+        if (p.items.some(function (it) { return it.flags.length; })) {
+          previewBox.appendChild(h('p', { class: 'field-hint', text: 'Use “Take out of this update” on any item that should not become a log row.' }));
+        }
+        previewBox.hidden = false;
+      }, function () { /* the preview is a help, not a gate */ });
+    }
+
+    function renderClose() {
+      clear(closeBox);
+      closeBox.hidden = !published || !published.reports.length;
+      if (closeBox.hidden) return;
+      closeBox.appendChild(h('p', { text: 'Last step: close the approval, so it moves to Past approvals.' }));
+      var buttons = published.reports.map(function (r) {
+        var b = h('button', { type: 'button', class: 'btn-small btn-small--brand', text: 'Close ' + r.title });
+        b.addEventListener('click', function () {
+          b.disabled = true;
+          api('PATCH', '/api/portal/admin/reports/' + encodeURIComponent(r.id), { status: 'closed' }).then(function () {
+            published.reports = published.reports.filter(function (x) { return x.id !== r.id; });
+            setStatus(status, r.title + ' moved to past approvals.', 'success');
+            if (notify) notify();
+            renderClose();
+            if (current) renderSteps(current, Boolean(current.drafts[0] && current.drafts[0].mergeable));
+          }, function (error) { b.disabled = false; setStatus(status, error.message, 'error'); });
+        });
+        return b;
+      });
+      closeBox.appendChild(h('div', { class: 'row-actions' }, buttons));
+    }
 
     function draftLink(d) {
       return h('a', { href: '/api/portal/admin/acr-drafts/' + encodeURIComponent(d.id), text: d.name });
@@ -936,7 +1059,8 @@
           w.reportTitle ? h('p', { class: 'file-meta', text: 'From ' + w.reportTitle }) : null,
           h('p', { class: 'file-meta', text: answer + (w.comment ? ' · “' + w.comment + '”' : '') }),
           w.criterion || w.conformance ? h('p', { class: 'file-meta', text: (w.criterion || 'Criterion not given') + (w.conformance ? ' → ' + CONFORMANCE_TEXT[w.conformance] : '') }) : null,
-          h('p', { class: 'file-meta', text: 'Live ' + formatDate(w.doneAt) + (w.doneByName ? ' · ' + w.doneByName : '') + (w.note ? ' · ' + w.note : '') })
+          h('p', { class: 'file-meta', text: 'Live ' + formatDate(w.doneAt) + (w.doneByName ? ' · ' + w.doneByName : '') + (w.note ? ' · ' + w.note : '') }),
+          h('button', { type: 'button', class: 'link-button', text: 'Take out of this update', 'aria-label': 'Take ' + w.title + ' out of this update', 'data-acr-unqueue': w.reportId + '|' + w.key })
         ]));
       });
       queueList.hidden = !acr.queue.length;
@@ -950,18 +1074,23 @@
       current = acr;
       build.textContent = merge ? 'Build updated ACR' : 'Build ACR update';
       publishMerge.hidden = !merge;
-      publishMerge.disabled = !acr.queue.length;
+      publishMerge.disabled = !acr.queue.length || !isBuilt(acr);
       publishUpload.hidden = merge;
       hint.textContent = !d
         ? 'Upload the ACR draft first. Upload it as its HTML page and Build merges the queued changes into it; a PDF or Word draft gets a list of changes to apply by hand.'
         : merge
-        ? 'Build updated ACR downloads the draft with every queued change merged in, as a PDF with the next version number. Check it, then Publish to client: the PDF (fonts embedded) and the HTML page both go to the client’s Compliance files, the merged version becomes the new draft, and the queued changes are marked as applied.'
+        ? (acr.queue.length && !isBuilt(acr) ? 'Build and check the ACR first: Publish turns on once you have built the current queue. ' : '') + 'Build updated ACR downloads the draft with every queued change merged in, as a PDF with the next version number. Check it, then Publish to client: the PDF (fonts embedded) and the HTML page both go to the client’s Compliance files, the merged version becomes the new draft, and the queued changes are marked as applied.'
         : 'This draft is not HTML, so Build ACR update downloads the queued changes as a dated PDF to apply by hand. Publish to client takes the updated ACR file: it goes to the client’s Compliance files, becomes the new draft, and the queued changes are marked as applied.';
+      renderSteps(acr, merge);
+      renderPreview(acr, merge);
+      renderClose();
     }
 
+    var loadedFor = null;
     function load() {
       var client = getClient();
       if (!client) return Promise.resolve();
+      if (loadedFor !== client.id) { published = null; builtHere = null; loadedFor = client.id; }
       return api('GET', '/api/portal/admin/clients/' + encodeURIComponent(client.id) + '/acr').then(render, function (error) {
         setStatus(status, error.message, 'error');
       });
@@ -979,12 +1108,36 @@
         .then(function () { busy = false; input.value = ''; });
     }
 
+    // Taking an item out keeps it ticked as done and live; it just stays out of the ACR.
+    queueList.addEventListener('click', function (e) {
+      var btn = e.target.closest ? e.target.closest('[data-acr-unqueue]') : null;
+      if (!btn || busy) return;
+      var parts = btn.getAttribute('data-acr-unqueue').split('|');
+      busy = true;
+      btn.disabled = true;
+      api('PUT', '/api/portal/admin/reports/' + encodeURIComponent(parts[0]) + '/work/' + encodeURIComponent(parts[1]), { done: true, queue: false })
+        .then(function () { setStatus(status, 'Taken out of this update. It stays ticked as done and live.', 'success'); return load(); })
+        .catch(function (error) { setStatus(status, error.message, 'error'); btn.disabled = false; })
+        .then(function () { busy = false; });
+    });
+
     build.addEventListener('click', function () {
       var href = build.getAttribute('data-href');
-      if (href && !build.disabled) window.location.assign(href);
+      if (!href || build.disabled) return;
+      if (current) {
+        writeBuilt(current);
+        var merge = Boolean(current.drafts[0] && current.drafts[0].mergeable);
+        publishMerge.disabled = !current.queue.length;
+        renderSteps(current, merge);
+        if (merge) setStatus(status, 'Building the ACR. Open the downloaded PDF and check it, then Publish to client.', 'success');
+      }
+      window.location.assign(href);
     });
     draftInput.addEventListener('change', function () {
-      upload(draftInput, '/acr/drafts', function (file) { return file.name + ' is the new ACR draft. Queued changes apply to it.'; });
+      upload(draftInput, '/acr/drafts', function (file, data) {
+        var w = data && data.draft && data.draft.warnings;
+        return file.name + ' is the new ACR draft. Queued changes apply to it.' + (w && w.length ? ' Check before building: ' + w.join(' ') : '');
+      });
     });
     publishMerge.addEventListener('click', function () {
       var client = getClient();
@@ -992,8 +1145,15 @@
       busy = true;
       publishMerge.disabled = true;
       setStatus(status, 'Merging and publishing the ACR…');
+      var seen = {};
+      var reports = (current ? current.queue : []).filter(function (w) {
+        if (!w.reportId || seen[w.reportId]) return false;
+        seen[w.reportId] = true;
+        return true;
+      }).map(function (w) { return { id: w.reportId, title: w.reportTitle || 'the approval' }; });
       api('POST', '/api/portal/admin/clients/' + encodeURIComponent(client.id) + '/acr/publish')
         .then(function (data) {
+          published = { version: data.version, reports: reports };
           if (notify) notify();
           setStatus(status, 'Version ' + data.version + ' published to the client’s Compliance files as ' + data.file.name + (data.htmlFile ? ' and ' + data.htmlFile.name : '') + '. ' + plural(data.applied, 'queued change') + ' marked as applied.', 'success');
           return load();
@@ -1131,7 +1291,12 @@
     var record = h('a', { class: 'more-item', href: '/api/portal/reports/' + encodeURIComponent(report.id) + '/record', text: 'Download record' });
     var view = h('a', { class: 'more-item', href: '/portal/report/' + encodeURIComponent(report.id), text: closed ? 'View report' : 'Preview report' });
     var toggleState = h('button', { type: 'button', class: 'more-item', text: closed ? 'Reopen approval' : 'Close approval' });
-    confirmable(toggleState, closed ? 'Confirm: reopen' : 'Confirm: move to past', function () {
+    // Closing first and publishing later is allowed, but it is easy to forget the publish: say so.
+    function closeLabel() {
+      var unpublished = report.items.filter(function (i) { return i.work && i.work.acrState === 'queued'; }).length;
+      return unpublished ? 'Confirm: move to past with ' + plural(unpublished, 'change') + ' not yet published in the ACR' : 'Confirm: move to past';
+    }
+    confirmable(toggleState, closed ? 'Confirm: reopen' : closeLabel, function () {
       return api('PATCH', '/api/portal/admin/reports/' + encodeURIComponent(report.id), { status: closed ? 'open' : 'closed' }).then(function () {
         hooks.changed(closed ? report.title + ' is open again.' : report.title + ' moved to past approvals. The client can still view it, but can no longer change their answers.');
       }).catch(hooks.fail);

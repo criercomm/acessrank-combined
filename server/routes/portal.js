@@ -15,7 +15,7 @@ import {
   addReport, listReports, getReport, deleteReport, saveApprovals, currentApprovals, adminApprovals, approvalHistory,
   setReportStatus, approvalsRecordCsv, loginClientId, isStaff, clientScope, canAccessClient, listOperators, createOperator, setOperatorRole, resetOperatorPassword,
   deleteOperator, setOperatorClients, changeOwnOperatorPassword,
-  setWorkItem, clientAcr, acrUpdateText, addAcrDraft, getAcrDraft, publishAcr, mergedAcr, publishMergedAcr, CONFORMANCE_LEVELS,
+  setWorkItem, clientAcr, acrPreview, acrUpdateText, addAcrDraft, getAcrDraft, publishAcr, mergedAcr, publishMergedAcr, CONFORMANCE_LEVELS,
 } from '../lib/portal.js';
 import { notifyApprovals } from '../lib/email.js';
 import { reportCsp } from '../lib/reportCsp.js';
@@ -442,6 +442,12 @@ admin.put('/reports/:id/work/:key', wrap(async (req, res) => {
 admin.get('/clients/:id/acr', wrap(async (req, res) => {
   await assertClient(req, req.params.id);
   res.json({ ok: true, ...(await clientAcr(await getStore(), req.params.id)) });
+}));
+
+/** What Build would change, in plain words, before anything is built. */
+admin.get('/clients/:id/acr/preview', wrap(async (req, res) => {
+  await assertClient(req, req.params.id);
+  res.json({ ok: true, preview: await acrPreview(await getStore(), req.portal, req.params.id) });
 }));
 
 const rawUpload = express.raw({ type: 'application/octet-stream', limit: `${config.portal.maxFileMb}mb` });

@@ -92,6 +92,7 @@
           <h3 id="admin-acr-heading" tabindex="-1">Accessibility Compliance Record</h3>
           <p class="portal-count">Team only until published</p>
         </div>
+        <ol class="acr-steps" data-acr-steps aria-label="Steps to update the ACR"></ol>
         <div class="acr-grid">
           <div>
             <div class="files-head">
@@ -107,14 +108,16 @@
             <h4>ACR updates <span class="portal-count" data-acr-count></span></h4>
             <p class="portal-empty acr-empty" data-acr-queue-empty>No updates queued. In Approvals, open Work to do and tick an item once it is live.</p>
             <ul class="approval-items acr-queue" data-acr-queue hidden></ul>
+            <div class="acr-preview" data-acr-preview hidden></div>
             <div class="row-actions acr-actions">
               <button class="btn-small btn-small--brand" type="button" data-acr-build disabled>Build ACR update</button>
               <button class="btn-small" type="button" data-acr-publish-merge hidden>Publish to client</button>
               <label class="btn-small upload-button" for="acr-publish-input" data-acr-publish-upload>Publish to client</label>
-              <input class="visually-hidden" type="file" id="acr-publish-input" accept=".pdf,.html,.htm,.docx,.doc,.odt,.rtf" data-acr-publish-input>
+              <input class="visually-hidden" type="file" id="acr-publish-input" aria-label="Publish the updated ACR file to the client" accept=".pdf,.html,.htm,.docx,.doc,.odt,.rtf" data-acr-publish-input>
             </div>
             <p class="field-hint" data-acr-hint></p>
             <p class="form-status" data-acr-status role="status" aria-live="polite"></p>
+            <div class="acr-close" data-acr-close hidden></div>
           </div>
         </div>
       </section>

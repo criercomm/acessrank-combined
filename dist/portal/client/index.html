@@ -47,7 +47,7 @@
   <!-- Client-portal pages only (site.json: page.portal). Kept out of the inlined
        block above so the marketing pages do not carry styles they never use;
        style-src 'self' already allows a same-origin stylesheet. -->
-  <link rel="stylesheet" href="/assets/css/portal.cbea798eac.css">
+  <link rel="stylesheet" href="/assets/css/portal.db6e54daa2.css">
 
   <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebPage","url":"https://accessrank.ai/portal/client","name":"Client","description":"Accessrank team access only.","inLanguage":"en-US","datePublished":"2026-01-01","dateModified":"2026-11-12","publisher":{"@id":"https://accessrank.ai/#organization"},"isPartOf":{"@type":"WebSite","name":"Accessrank","url":"https://accessrank.ai/"}}</script>
   <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://accessrank.ai/"},{"@type":"ListItem","position":2,"name":"Client","item":"https://accessrank.ai/portal/client"}]}</script>
@@ -55,7 +55,7 @@
   <!-- Cloudflare Turnstile is not loaded here: site.js loads it on demand (Accessrank.loadTurnstile) so visitors who never
        touch a form get no third-party cookie (Lighthouse Best Practices). -->
   <script src="/assets/js/site.ea531f0bde.js" defer></script>
-  <script src="/assets/js/portal.8de7f51f92.js" defer></script>
+  <script src="/assets/js/portal.6dcae1291a.js" defer></script>
   
 <link rel="stylesheet" href="/analytics-consent.css">
 <script defer src="/analytics-consent.js" data-measurement-id="G-870R91HD7W" data-pages="/|/beta|/overlays|/human-testing|/about|/methodology|/guide/ada-eaa|/resources|/careers|/contact-sales|/privacy|/terms|/disclosure|/citations" data-privacy="/privacy"></script>
@@ -256,6 +256,7 @@
           <h3 id="admin-acr-heading" tabindex="-1">Accessibility Compliance Record</h3>
           <p class="portal-count">Team only until published</p>
         </div>
+        <ol class="acr-steps" data-acr-steps aria-label="Steps to update the ACR"></ol>
         <div class="acr-grid">
           <div>
             <div class="files-head">
@@ -271,14 +272,16 @@
             <h4>ACR updates <span class="portal-count" data-acr-count></span></h4>
             <p class="portal-empty acr-empty" data-acr-queue-empty>No updates queued. In Approvals, open Work to do and tick an item once it is live.</p>
             <ul class="approval-items acr-queue" data-acr-queue hidden></ul>
+            <div class="acr-preview" data-acr-preview hidden></div>
             <div class="row-actions acr-actions">
               <button class="btn-small btn-small--brand" type="button" data-acr-build disabled>Build ACR update</button>
               <button class="btn-small" type="button" data-acr-publish-merge hidden>Publish to client</button>
               <label class="btn-small upload-button" for="acr-publish-input" data-acr-publish-upload>Publish to client</label>
-              <input class="visually-hidden" type="file" id="acr-publish-input" accept=".pdf,.html,.htm,.docx,.doc,.odt,.rtf" data-acr-publish-input>
+              <input class="visually-hidden" type="file" id="acr-publish-input" aria-label="Publish the updated ACR file to the client" accept=".pdf,.html,.htm,.docx,.doc,.odt,.rtf" data-acr-publish-input>
             </div>
             <p class="field-hint" data-acr-hint></p>
             <p class="form-status" data-acr-status role="status" aria-live="polite"></p>
+            <div class="acr-close" data-acr-close hidden></div>
           </div>
         </div>
       </section>

@@ -15,6 +15,8 @@
  *   data-acr="appendix"         Anything with no marked place goes in an "Updates" section just before this.
  *   data-acr-when="KEY"         Kept hidden until the item with this approval key is applied, then shown.
  *   data-acr-until="KEY"        Removed once the item with this approval key is applied (e.g. "pending" notes).
+ *                               Either can test the answer too: "contacts~Option 3" matches only when the
+ *                               contacts answer contains "Option 3" (case ignored).
  *   data-acr-fill="KEY"         Its text is replaced with that item's answer (the choice, or the comment).
  *                               With data-acr-format="…" the text is built from tokens instead:
  *                               {{@choice}} {{@answer}} {{@comment}} {{@signer}} {{@date}} {{@live}}, or
@@ -195,13 +197,23 @@ function formatPhone(v) {
 
 /** The value of one field line ("Label: value") the client filled in, from an answer's comment. */
 function fieldValue(w, label) {
-  for (const line of String(w.comment ?? '').split('\n')) {
-    if (line.startsWith(`${label}: `)) {
-      const v = line.slice(label.length + 2).trim();
-      return /phone/i.test(label) ? formatPhone(v) : v;
-    }
+  const lines = String(w.comment ?? '').split('\n');
+  const clean = (v) => (/phone/i.test(label) ? formatPhone(v.trim()) : v.trim());
+  for (const line of lines) {
+    if (line.startsWith(`${label}: `)) return clean(line.slice(label.length + 2));
+  }
+  // The template's generic labels ("Contact email") also match a client's own ("Freshé contact email").
+  const want = label.toLowerCase();
+  for (const line of lines) {
+    const i = line.indexOf(': ');
+    if (i > 0 && line.slice(0, i).toLowerCase().endsWith(want)) return clean(line.slice(i + 2));
   }
   return '';
+}
+
+/** True when the draft has its own Exhibit D statement (id="exd" or a class="statement" block). */
+export function hasWrittenExhibitD(html) {
+  return /\bid\s*=\s*["']exd["']/i.test(html) || /\bclass\s*=\s*["'](?:[^"']*\s)?statement(?:\s[^"']*)?["']/i.test(html);
 }
 
 /**
@@ -253,7 +265,9 @@ export function mergeAcr(draftHtml, acr, meta) {
 
   // The approved statement replaces the proposed wording in Exhibit D.
   const st = queue.find((w) => w.statement && !w.statement.missing && !w.statement.asProposed);
-  let placedStatement = !st;
+  // A record that writes Exhibit D out in full (the house template does) already carries the
+  // approved wording, so the statement is never reprinted from the approval report.
+  let placedStatement = !st || (!findAll(html, marker('statement')).length && hasWrittenExhibitD(html));
   if (st) {
     html = each(html, marker('statement'), (el, doc) => {
       placedStatement = true;
@@ -265,9 +279,17 @@ export function mergeAcr(draftHtml, acr, meta) {
 
   // Conditional text keyed to approval items.
   const keys = new Map(queue.map((w) => [w.key, w]));
-  html = each(html, keyAttr('data-acr-until'), (el, doc) => (keys.has(keyAttr('data-acr-until').exec(el.attrs)[1]) ? '' : null));
+  // "KEY" means the item is applied; "KEY~text" also needs its answer to contain the text.
+  const applies = (spec) => {
+    const [key, want] = decodeEntities(spec).split('~');
+    const w = keys.get(key.trim());
+    if (!w) return false;
+    if (!want) return true;
+    return `${w.choice ?? ''} ${w.decision ?? ''}`.toLowerCase().includes(want.trim().toLowerCase());
+  };
+  html = each(html, keyAttr('data-acr-until'), (el, doc) => (applies(keyAttr('data-acr-until').exec(el.attrs)[1]) ? '' : null));
   html = each(html, keyAttr('data-acr-when'), (el, doc) => {
-    if (!keys.has(keyAttr('data-acr-when').exec(el.attrs)[1])) return null;
+    if (!applies(keyAttr('data-acr-when').exec(el.attrs)[1])) return null;
     const open = doc.slice(el.start, el.innerStart).replace(/\s+hidden(?:\s*=\s*(?:""|''|"hidden"|'hidden'))?(?=[\s/>])/i, '');
     return open + doc.slice(el.innerStart, el.end);
   });
@@ -307,6 +329,9 @@ export function mergeAcr(draftHtml, acr, meta) {
     }
     return value ? doc.slice(el.start, el.innerStart) + esc(value) + doc.slice(el.innerEnd, el.end) : null;
   });
+
+  // Prep fill-ins (<span class="fill">) are only highlighted while the draft is prepared; the built ACR shows plain text.
+  html = each(html, /\bclass\s*=\s*["']fill["']/i, (el, doc) => (el.tag === 'span' ? doc.slice(el.innerStart, el.innerEnd) : null));
 
   // Draft placeholders still standing are cleared: the built ACR carries no [bracketed] draft markings.
   html = each(html, /\bdata-acr-placeholder\b/i, (el, doc) => {
@@ -356,6 +381,37 @@ ${placedStatement ? '' : `<h3>Approved accessibility statement</h3><p>${esc(`App
     html, version,
     placed: { remediation: placedLog, approvals: placedApprovals, conformance: placedConformance || !confRows.length, statement: placedStatement },
   };
+}
+
+/**
+ * Problems worth a warning when a draft is uploaded: prep fill-ins ([[like this]]) still in it,
+ * or no merge markers at all (Build would then put every change in an Updates section).
+ */
+export function draftWarnings(html) {
+  const text = String(html ?? '');
+  const warnings = [];
+  const body = text.replace(/<(style|script|template)\b[\s\S]*?<\/\1>/gi, '').replace(/<!--[\s\S]*?-->/g, '');
+  const left = [...new Set([...body.matchAll(/\[\[([^\]]{1,80})\]\]/g)].map((m) => m[1]))];
+  if (left.length) warnings.push(`${left.length} fill-in${left.length === 1 ? '' : 's'} still to complete, such as [[${left.slice(0, 3).join(']], [[')}]].`);
+  if (!/\bdata-acr\s*=/.test(text)) warnings.push('No merge markers found. Build will add approved changes in an Updates section instead of in place.');
+  return warnings;
+}
+
+/**
+ * The approval answer keys a draft refers to: data-acr-fill="KEY", data-acr-when / data-acr-until
+ * ("KEY" or "KEY~text"), and {{KEY:@token}} references inside a data-acr-format. Each key maps to
+ * the number of places that use it.
+ */
+export function draftKeys(html) {
+  const text = String(html ?? '').replace(/<!--[\s\S]*?-->/g, '');
+  const keys = new Map();
+  const add = (k) => { const key = decodeEntities(String(k)).split('~')[0].trim(); if (key) keys.set(key, (keys.get(key) ?? 0) + 1); };
+  for (const m of text.matchAll(/\bdata-acr-(?:fill|when|until)\s*=\s*"([^"]*)"/gi)) add(m[1]);
+  for (const m of text.matchAll(/\bdata-acr-(?:fill|when|until)\s*=\s*'([^']*)'/gi)) add(m[1]);
+  for (const m of text.matchAll(/\bdata-acr-format\s*=\s*"([^"]*)"/gi)) {
+    for (const t of decodeEntities(m[1]).matchAll(/\{\{\s*([A-Za-z0-9_.-]+)\s*:\s*@/g)) add(t[1]);
+  }
+  return keys;
 }
 
 /** Header and footer templates the draft supplies for the PDF, or null. */

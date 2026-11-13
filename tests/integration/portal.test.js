@@ -1469,3 +1469,63 @@ test('ACR merge: an HTML draft gets the approved changes merged in, and publishi
   assert.equal(after.drafts[0].mergeable, true);
   assert.equal((await admin.post(`/api/portal/admin/clients/${a.client.id}/acr/publish`)).status, 409, 'nothing queued');
 });
+
+test('ACR draft upload is checked against the client’s answers, and the preview says what Build will change', async () => {
+  const admin = await adminBrowser();
+  const a = await clientWithLogin(admin, 'Seedco', 'angie@seedco.test');
+  const report = await publish(admin, a.client.id, 'Statement and footer', `<!DOCTYPE html><html lang="en"><head><title>S</title></head><body><main>
+    <div class="statement"><h3>Accessibility Statement</h3><p>Seedco wants everyone in.</p></div></main></body></html>`);
+  await a.person.post(`/api/portal/reports/${report.id}/approvals`, {
+    name: 'Angie Moe', items: [
+      { key: 'statement', title: 'Accessibility statement text', decision: 'approve' },
+      { key: 'email', title: 'Accessibility email address', decision: 'comment', comment: 'info@seedco.test' },
+    ],
+  });
+  // The draft uses the template's names: "statement" matches, "contacts" has no answer, "email" is never used.
+  const draftHtml = `<!DOCTYPE html><html><body><main><p><span data-acr="version">Version 1.0 draft</span></p>
+    <table data-acr="remediation-log" data-acr-order="newest-first"><tbody><tr><td>Oct 26</td><td>Alt text</td></tr></tbody></table>
+    <p><span data-acr-until="statement">Not yet published.</span><span data-acr-when="statement" hidden>Published <span data-acr-fill="statement" data-acr-format="{{@live}}">[date]</span>.</span></p>
+    <p>Contact: <span data-acr-fill="contacts" data-acr-format="{{Contact email}}">[email]</span></p>
+    <div class="sechead" id="exd"><h2>Accessibility statement</h2></div><div class="statement"><p>Approved wording.</p></div>
+    </main></body></html>`;
+  const up = await admin.upload(`/api/portal/admin/clients/${a.client.id}/acr/drafts?name=${encodeURIComponent('Seedco ACR Draft.html')}`, Buffer.from(draftHtml));
+  assert.equal(up.status, 201);
+  const warnings = up.body.draft.warnings.join(' ');
+  assert.match(warnings, /waits for answers named contacts/);
+  assert.match(warnings, /not used anywhere in the draft: Accessibility email address/);
+  assert.ok(!/statement/.test(warnings.split('This client')[0].replace('waits for answers named contacts', '')), 'a matching answer is not reported');
+
+  assert.equal((await admin.put(`/api/portal/admin/reports/${report.id}/work/statement`, { done: true, queue: true })).status, 200);
+  assert.equal((await admin.put(`/api/portal/admin/reports/${report.id}/work/email`, { done: true, queue: true })).status, 200);
+  const preview = (await admin.get(`/api/portal/admin/clients/${a.client.id}/acr/preview`)).body.preview;
+  assert.equal(preview.mergeable, true);
+  assert.equal(preview.version, '1.0');
+  const st = preview.items.find((i) => i.key === 'statement');
+  const em = preview.items.find((i) => i.key === 'email');
+  assert.equal(st.places, 3);
+  assert.deepEqual(st.flags, []);
+  assert.equal(em.places, 0);
+  assert.match(em.flags.join(' '), /typed answer/);
+  assert.match(em.flags.join(' '), /never mentions this item/);
+  assert.deepEqual(preview.notes, [], 'Exhibit D is written out, so nothing is reprinted');
+
+  // Taking the typed answer out of the update leaves it done, and the preview drops it.
+  const out = await admin.put(`/api/portal/admin/reports/${report.id}/work/email`, { done: true, queue: false });
+  assert.equal(out.body.work.done, true);
+  assert.equal(out.body.work.acrState, 'none');
+  const again = (await admin.get(`/api/portal/admin/clients/${a.client.id}/acr/preview`)).body.preview;
+  assert.deepEqual(again.items.map((i) => i.key), ['statement']);
+
+  const merged = (await admin.get(`/api/portal/admin/clients/${a.client.id}/acr/update?format=html`)).body.toString('utf8');
+  assert.ok(!merged.includes('acr-updates'), 'no Updates section');
+  assert.ok(!merged.includes('Seedco wants everyone in.'), 'the statement is not reprinted');
+});
+
+test('the ACR preview and draft check are team-only and need a draft', async () => {
+  const admin = await adminBrowser();
+  const a = await clientWithLogin(admin, 'Nodraft', 'n@nodraft.test');
+  const p = await admin.get(`/api/portal/admin/clients/${a.client.id}/acr/preview`);
+  assert.equal(p.status, 200);
+  assert.equal(p.body.preview.mergeable, false);
+  assert.equal((await a.person.get(`/api/portal/admin/clients/${a.client.id}/acr/preview`)).status >= 401, true);
+});

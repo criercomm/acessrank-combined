@@ -5,7 +5,7 @@ import { log } from './logger.js';
 import { cleanText } from './identity.js';
 import { isUuid } from './store.js';
 import { extractStatement, isStatementItem, statementPlaceholders } from './acr-statement.js';
-import { isHtmlDraft, mergeAcr, pdfTemplates } from './acr-merge.js';
+import { isHtmlDraft, mergeAcr, pdfTemplates, draftWarnings, draftKeys } from './acr-merge.js';
 
 /**
  * Client portal: passwords, sessions, and the storage behind /portal.
@@ -2078,16 +2078,73 @@ export function acrUpdateText(acr, session, now = new Date()) {
   return `${lines.join('\n')}\n`;
 }
 
+/**
+ * Compare the answer names a draft uses with the answers this client has given. Two problems are
+ * worth a warning: the draft waits for an answer no approval provides (that text can never be
+ * completed), and an approval has answers the draft never uses (they would only add log rows).
+ */
+async function packetWarnings(repo, clientId, html) {
+  const reports = await repo.listReports(clientId);
+  if (!reports.length) return [];
+  const ids = new Set(reports.map((r) => r.id));
+  const answered = (await repo.latestApprovals()).filter((a) => ids.has(a.report_id) && hasAnswer(a));
+  if (!answered.length) return [];
+  const used = draftKeys(html);
+  const have = new Map();
+  for (const a of answered) if (!have.has(a.item_key)) have.set(a.item_key, a.item_title || a.item_key);
+  const warnings = [];
+  const missing = [...used.keys()].filter((k) => !have.has(k));
+  if (missing.length) {
+    warnings.push(`The draft waits for answers named ${missing.join(', ')}, but none of this client's approvals has an answer by that name, so that text will never be completed. This client's answers are named ${[...have.keys()].join(', ')}.`);
+  }
+  const unused = [...have.entries()].filter(([k]) => !used.has(k));
+  if (unused.length) {
+    warnings.push(`These answers are not used anywhere in the draft: ${unused.map(([, t]) => t).join('; ')}. Keep them out of the ACR update unless they belong in the remediation log.`);
+  }
+  return warnings;
+}
+
+/**
+ * What Build would change, in plain words, without building anything: the version it would issue,
+ * the log rows it would add, how many places in the draft each item completes, and anything
+ * unusual (a typed answer headed into the log, an item the draft never mentions, a statement
+ * that would be reprinted in an Updates section).
+ */
+export async function acrPreview(store, session, clientId, now = new Date()) {
+  const { acr, merged } = await mergedAcr(store, session, clientId, now);
+  if (!merged) return { mergeable: false, queued: acr.queue.length };
+  const draft = acr.drafts[0];
+  const row = await repoFor(store).getAcrDraft(draft.id);
+  const used = draftKeys(Buffer.from(row.data).toString('utf8'));
+  const items = acr.queue.map((w) => {
+    const places = used.get(w.key) ?? 0;
+    const flags = [];
+    if (w.decision === 'comment') flags.push('This is a typed answer, not a change to the site.');
+    if (!places) flags.push('The draft never mentions this item, so it only adds a row to the remediation log.');
+    return { key: w.key, title: w.title, reportTitle: w.reportTitle, places, flags };
+  });
+  const notes = [];
+  if (!merged.placed.statement) notes.push('The approved statement would be reprinted in an Updates section at the end, because the draft has no place for it.');
+  if (!merged.placed.remediation && !merged.placed.approvals) notes.push('The draft has no remediation log marker, so the changes would go in an Updates section at the end.');
+  return { mergeable: true, version: merged.version, draftName: draft.name, items, notes };
+}
+
 /** Store a new ACR draft for a client (team only). */
 export async function addAcrDraft(store, session, clientId, { filename, data, published = false }) {
   const repo = repoFor(store);
   if (!isUuid(clientId) || !(await repo.getClient(clientId))) throw notFound('client');
   if (!Buffer.isBuffer(data) || data.length === 0) throw new PortalError('That file is empty.', { code: 'file_empty' });
   const name = sanitizeFilename(filename);
-  return acrDraftOut(await repo.insertAcrDraft({
+  const html = isHtmlDraft(name) ? data.toString('utf8') : null;
+  const warnings = html === null ? [] : draftWarnings(html);
+  // A draft the team uploads by hand is checked against the client's approvals, so a packet
+  // whose answer names don't match the draft is caught before anything is built.
+  if (html !== null && !published) warnings.push(...(await packetWarnings(repo, clientId, html)));
+  const saved = acrDraftOut(await repo.insertAcrDraft({
     clientId, filename: name, contentType: contentTypeFor(name), data,
     byName: String(session.name ?? '').slice(0, 120), byEmail: String(session.email ?? '').slice(0, 254), published,
   }));
+  return warnings.length ? { ...saved, warnings } : saved;
 }
 
 export async function getAcrDraft(store, id) {
