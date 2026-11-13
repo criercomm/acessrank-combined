@@ -417,10 +417,16 @@ test('a client opens their own report in the browser; no one else can', async ()
   assert.match(page.headers.get('content-type'), /^text\/html/);
   assert.equal(page.headers.get('cache-control'), 'private, no-store');
   assert.equal(page.headers.get('x-robots-tag'), 'noindex, nofollow');
-  assert.equal(page.body.toString('utf8'), REPORT_HTML, 'the page is served exactly as published, not as a download');
+  const served = page.body.toString('utf8');
+  const returnAt = served.indexOf('<style>.ar-return');
+  const bodyEnd = REPORT_HTML.toLowerCase().lastIndexOf('</body>');
+  assert.ok(returnAt > 0, 'a way back to the portal is added at the foot of the page');
+  assert.equal(served.slice(0, returnAt), bodyEnd === -1 ? REPORT_HTML : REPORT_HTML.slice(0, bodyEnd), 'the report itself is served exactly as published, not as a download');
+  assert.match(served, /<nav class="ar-return" aria-label="Portal"><a href="\/portal">Return to your client portal<\/a><\/nav>/);
   assert.equal(page.headers.get('content-disposition'), null);
 
   const csp = page.headers.get('content-security-policy');
+  assert.match(csp.split(';').find((d) => d.trim().startsWith('style-src ')), /'sha256-[A-Za-z0-9+/=]+'/, 'the return link\u2019s style is hashed like the report\u2019s own');
   assert.match(csp, /script-src 'self' 'sha256-[A-Za-z0-9+/=]+'(;|$)/);
   assert.match(csp, /connect-src 'self'(;|$)/);
   assert.match(csp, /script-src-attr 'none'/);
@@ -431,7 +437,9 @@ test('a client opens their own report in the browser; no one else can', async ()
   const signedOut = await browser().get(`/portal/report/${report.id}`);
   assert.equal(signedOut.status, 302);
   assert.equal(signedOut.headers.get('location'), '/client-login');
-  assert.equal((await admin.get(`/portal/report/${report.id}`)).status, 200, 'the team can open it');
+  const teamPage = await admin.get(`/portal/report/${report.id}`);
+  assert.equal(teamPage.status, 200, 'the team can open it');
+  assert.ok(teamPage.body.toString('utf8').includes(`<a href="/portal/client#client=${a.client.id}">Return to this client\u2019s portal</a>`), 'the team goes back to that client\u2019s page');
   assert.equal((await a.person.get('/portal/report/not-a-uuid')).status, 404);
 });
 

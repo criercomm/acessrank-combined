@@ -72,8 +72,26 @@
   function setStatus(node, message, kind) {
     if (!node) return;
     node.textContent = message || '';
-    node.classList.remove('is-error', 'is-success');
-    if (message && kind) node.classList.add(kind === 'error' ? 'is-error' : 'is-success');
+    node.classList.remove('is-error', 'is-success', 'is-working');
+    if (message && kind) node.classList.add(kind === 'error' ? 'is-error' : kind === 'busy' ? 'is-working' : 'is-success');
+  }
+
+  /**
+   * Show that a button was pressed and its work is under way: a spinner, a "…ing" label and
+   * aria-busy. Returns the function that puts the button back. Works on a <label> upload button too.
+   */
+  function working(button, label) {
+    if (!button) return function () {};
+    var text = button.textContent;
+    button.classList.add('is-working');
+    button.setAttribute('aria-busy', 'true');
+    if (label) button.textContent = label;
+    return function () {
+      button.classList.remove('is-working');
+      button.removeAttribute('aria-busy');
+      // Only put the old words back if nothing else has relabelled the button meanwhile.
+      if (label && button.textContent === label) button.textContent = text;
+    };
   }
 
   function formatBytes(bytes) {
@@ -170,7 +188,9 @@
       }
       button.disabled = true;
       if (cancel) cancel.disabled = true;
+      var settle = working(button, 'Working…');
       Promise.resolve().then(action).catch(function () { /* the action reports its own error */ }).then(function () {
+        settle();
         button.disabled = false;
         disarm();
       });
@@ -800,9 +820,11 @@
       function save(queue) {
         if (add) add.disabled = true;
         later.disabled = true;
-        setStatus(status, 'Saving…');
+        var settle = working(queue ? add : later, 'Saving…');
+        setStatus(status, 'Saving…', 'busy');
         saveWork(report, item, { done: true, queue: queue, criterion: criterion.value, conformance: select.value, note: note.value })
           .then(close, function (error) {
+            settle();
             if (add) add.disabled = false;
             later.disabled = false;
             setStatus(status, error.message, 'error');
@@ -844,7 +866,9 @@
       gateInput.addEventListener('change', function () {
         var file = gateInput.files && gateInput.files[0];
         if (!file) return;
-        setStatus(gateStatus, 'Uploading ' + file.name + '…');
+        var gateLabel = gate.querySelector('label');
+        var settle = working(gateLabel, 'Uploading…');
+        setStatus(gateStatus, 'Uploading ' + file.name + '…', 'busy');
         api('POST', '/api/portal/admin/clients/' + encodeURIComponent(report.clientId) + '/acr/drafts?name=' + encodeURIComponent(file.name), null, file)
           .then(function (data) {
             report.acrDraft = data.draft;
@@ -856,7 +880,7 @@
             gate.replaceWith(done);
             gate = done;
             render();
-          }, function (error) { setStatus(gateStatus, error.message, 'error'); gateInput.value = ''; });
+          }, function (error) { settle(); setStatus(gateStatus, error.message, 'error'); gateInput.value = ''; });
       });
       wrap.appendChild(gate);
     }
@@ -1101,10 +1125,11 @@
       var client = getClient();
       if (!file || !client || busy) return;
       busy = true;
-      setStatus(status, 'Uploading ' + file.name + '…');
+      var settle = working(section.querySelector('label[for="' + input.id + '"]'), 'Uploading…');
+      setStatus(status, 'Uploading ' + file.name + '…', 'busy');
       api('POST', '/api/portal/admin/clients/' + encodeURIComponent(client.id) + path + '?name=' + encodeURIComponent(file.name), null, file)
-        .then(function (data) { setStatus(status, done(file, data), 'success'); return load(); })
-        .catch(function (error) { setStatus(status, error.message, 'error'); })
+        .then(function (data) { settle(); setStatus(status, done(file, data), 'success'); return load(); })
+        .catch(function (error) { settle(); setStatus(status, error.message, 'error'); })
         .then(function () { busy = false; input.value = ''; });
     }
 
@@ -1115,23 +1140,70 @@
       var parts = btn.getAttribute('data-acr-unqueue').split('|');
       busy = true;
       btn.disabled = true;
+      var settle = working(btn, 'Taking out…');
+      setStatus(status, 'Taking it out of this update…', 'busy');
       api('PUT', '/api/portal/admin/reports/' + encodeURIComponent(parts[0]) + '/work/' + encodeURIComponent(parts[1]), { done: true, queue: false })
         .then(function () { setStatus(status, 'Taken out of this update. It stays ticked as done and live.', 'success'); return load(); })
-        .catch(function (error) { setStatus(status, error.message, 'error'); btn.disabled = false; })
+        .catch(function (error) { settle(); setStatus(status, error.message, 'error'); btn.disabled = false; })
         .then(function () { busy = false; });
     });
 
+    // The file is fetched here, not opened as a link, so the page can show that Build is working
+    // (printing the PDF takes a while) and say so when the download is ready or has failed.
+    function fetchFile(href) {
+      return fetch(href, { credentials: 'same-origin', headers: { Accept: 'application/pdf, application/json' } }).then(function (response) {
+        if (!response.ok) {
+          return response.json().catch(function () { return {}; }).then(function (data) {
+            var error = new Error(data.error || 'The ACR could not be built. Please try again.');
+            error.code = data.code;
+            if (error.code === 'signed_out') go('/client-login');
+            throw error;
+          });
+        }
+        var header = response.headers.get('Content-Disposition') || '';
+        var star = header.match(/filename\*=UTF-8''([^;]+)/i);
+        var plain = header.match(/filename="?([^";]+)"?/i);
+        var name = 'ACR update.pdf';
+        try { name = star ? decodeURIComponent(star[1]) : plain ? plain[1] : name; } catch (e) { /* keep the fallback name */ }
+        return response.blob().then(function (blob) { return { blob: blob, name: name }; });
+      }, function () {
+        throw new Error('We couldn’t reach the server. Check your connection and try again.');
+      });
+    }
+    function saveFile(file) {
+      var url = URL.createObjectURL(file.blob);
+      var link = h('a', { href: url, download: file.name, hidden: true });
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.setTimeout(function () { URL.revokeObjectURL(url); }, 60000);
+    }
+
     build.addEventListener('click', function () {
       var href = build.getAttribute('data-href');
-      if (!href || build.disabled) return;
-      if (current) {
-        writeBuilt(current);
-        var merge = Boolean(current.drafts[0] && current.drafts[0].mergeable);
-        publishMerge.disabled = !current.queue.length;
-        renderSteps(current, merge);
-        if (merge) setStatus(status, 'Building the ACR. Open the downloaded PDF and check it, then Publish to client.', 'success');
-      }
-      window.location.assign(href);
+      if (!href || build.disabled || busy) return;
+      var acr = current;
+      var merge = Boolean(acr && acr.drafts[0] && acr.drafts[0].mergeable);
+      busy = true;
+      build.disabled = true;
+      var settle = working(build, 'Building…');
+      setStatus(status, merge ? 'Building the ACR. This can take up to a minute; the PDF downloads when it is ready.' : 'Building the list of changes…', 'busy');
+      fetchFile(href).then(function (file) {
+        saveFile(file);
+        settle();
+        if (acr && current === acr) {
+          writeBuilt(acr);
+          publishMerge.disabled = !acr.queue.length;
+          renderSteps(acr, merge);
+        }
+        setStatus(status, file.name + ' downloaded. ' + (merge ? 'Open it and check it, then Publish to client.' : 'Apply the changes by hand, then Publish to client.'), 'success');
+      }).catch(function (error) {
+        settle();
+        setStatus(status, error.message, 'error');
+      }).then(function () {
+        busy = false;
+        build.disabled = !(current && current.queue.length);
+      });
     });
     draftInput.addEventListener('change', function () {
       upload(draftInput, '/acr/drafts', function (file, data) {
@@ -1144,7 +1216,8 @@
       if (!client || busy || publishMerge.disabled) return;
       busy = true;
       publishMerge.disabled = true;
-      setStatus(status, 'Merging and publishing the ACR…');
+      var settle = working(publishMerge, 'Publishing…');
+      setStatus(status, 'Merging and publishing the ACR. This can take up to a minute…', 'busy');
       var seen = {};
       var reports = (current ? current.queue : []).filter(function (w) {
         if (!w.reportId || seen[w.reportId]) return false;
@@ -1153,12 +1226,13 @@
       }).map(function (w) { return { id: w.reportId, title: w.reportTitle || 'the approval' }; });
       api('POST', '/api/portal/admin/clients/' + encodeURIComponent(client.id) + '/acr/publish')
         .then(function (data) {
+          settle();
           published = { version: data.version, reports: reports };
           if (notify) notify();
           setStatus(status, 'Version ' + data.version + ' published to the client’s Compliance files as ' + data.file.name + (data.htmlFile ? ' and ' + data.htmlFile.name : '') + '. ' + plural(data.applied, 'queued change') + ' marked as applied.', 'success');
           return load();
         })
-        .catch(function (error) { setStatus(status, error.message, 'error'); publishMerge.disabled = !(current && current.queue.length); })
+        .catch(function (error) { settle(); setStatus(status, error.message, 'error'); publishMerge.disabled = !(current && current.queue.length); })
         .then(function () { busy = false; });
     });
     publishInput.addEventListener('change', function () {

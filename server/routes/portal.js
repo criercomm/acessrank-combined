@@ -18,7 +18,7 @@ import {
   setWorkItem, clientAcr, acrPreview, acrUpdateText, addAcrDraft, getAcrDraft, publishAcr, mergedAcr, publishMergedAcr, CONFORMANCE_LEVELS,
 } from '../lib/portal.js';
 import { notifyApprovals } from '../lib/email.js';
-import { reportCsp } from '../lib/reportCsp.js';
+import { reportCsp, withReturnLink } from '../lib/reportCsp.js';
 import { generateAcrUpdatePdf, generateAcrPdf } from '../lib/pdf.js';
 
 /**
@@ -798,9 +798,14 @@ export const reportPage = wrap(async (req, res) => {
   if (!allowed) {
     return res.status(404).type('text/plain').send('That report is no longer available.');
   }
+  // Every report ends with a way back to the client's portal: the client to their own,
+  // the team to that client's page in the operator portal.
+  const page = withReturnLink(report.html, isStaff(session)
+    ? { href: `/portal/client#client=${encodeURIComponent(report.client_id)}`, label: 'Return to this client\u2019s portal' }
+    : { href: '/portal', label: 'Return to your client portal' });
   const base = res.getHeader('Content-Security-Policy');
-  if (typeof base === 'string') res.setHeader('Content-Security-Policy', reportCsp(base, report.html));
-  return res.type('text/html; charset=utf-8').send(report.html);
+  if (typeof base === 'string') res.setHeader('Content-Security-Policy', reportCsp(base, page));
+  return res.type('text/html; charset=utf-8').send(page);
 });
 
 /* ---------------------------------------------------------- page gates --- */

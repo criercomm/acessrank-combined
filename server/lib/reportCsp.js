@@ -43,3 +43,22 @@ export function reportCsp(baseCsp, html) {
   directives.set('frame-src', ["'none'"]);
   return [...directives].map(([name, values]) => [name, ...values].join(' ')).join('; ');
 }
+
+/**
+ * A way back to the portal at the foot of a report page. Reports are uploaded as whole pages and
+ * have no link of their own, so someone who has just saved their answers had only the Back button.
+ * Added when the page is served (never stored), before the CSP is worked out, so its <style> is
+ * hashed with the rest. The colors are fixed so the button reads on a light or a dark report.
+ */
+const RETURN_STYLE = '.ar-return{margin:40px auto 32px;padding:0 16px;text-align:center;font:600 16px/1.3 system-ui,-apple-system,"Segoe UI",Arial,sans-serif}'
+  + '.ar-return a{display:inline-block;min-height:44px;box-sizing:border-box;padding:11px 22px;border:2px solid #17182c;border-radius:8px;background:#ffd04d;color:#17182c;text-decoration:none}'
+  + '.ar-return a:hover{background:#ffdc7a}.ar-return a:focus-visible{outline:3px solid #17182c;outline-offset:3px;box-shadow:0 0 0 6px #fff}'
+  + '@media print{.ar-return{display:none}}';
+
+export function withReturnLink(html, { href, label }) {
+  const esc = (v) => String(v).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
+  const block = `<style>${RETURN_STYLE}</style><nav class="ar-return" aria-label="Portal"><a href="${esc(href)}">${esc(label)}</a></nav>`;
+  const page = String(html);
+  const at = page.toLowerCase().lastIndexOf('</body>');
+  return at === -1 ? page + block : page.slice(0, at) + block + page.slice(at);
+}

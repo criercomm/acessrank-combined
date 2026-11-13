@@ -524,3 +524,16 @@ a.btn-small--brand, a.btn-small--brand:hover { color: var(--brand-ink); backgrou
 .work-gate .field-hint { font-weight: 400; color: var(--text-soft); }
 .work-next { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px 16px; margin-top: 14px; padding: 12px 0 2px; }
 .work-next span { color: var(--text); font-weight: 600; }
+/* A pressed button whose work is under way, and the status line that goes with it. */
+.is-working { cursor: progress; }
+.btn-small.is-working, .link-button.is-working { opacity: 1; }
+.btn-small.is-working::before, .link-button.is-working::before, .form-status.is-working::before {
+  content: ''; display: inline-block; width: 0.85em; height: 0.85em; margin-right: 0.5em; vertical-align: -0.1em;
+  border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; animation: working-spin 0.8s linear infinite;
+}
+label.is-working { pointer-events: none; }
+.form-status.is-working { color: var(--text); }
+@keyframes working-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) {
+  .btn-small.is-working::before, .link-button.is-working::before, .form-status.is-working::before { animation: none; border-right-color: currentColor; border-style: dotted; }
+}

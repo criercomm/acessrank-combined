@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import crypto from 'node:crypto';
-import { reportCsp, inlineHashes } from '../../server/lib/reportCsp.js';
+import { reportCsp, inlineHashes, withReturnLink } from '../../server/lib/reportCsp.js';
 
 const sha = (t) => `'sha256-${crypto.createHash('sha256').update(t, 'utf8').digest('base64')}'`;
 const BASE = "default-src 'self'; script-src 'self' https://x.test; style-src 'self'; script-src-attr 'none'; frame-ancestors 'none'; connect-src 'self' https://x.test; frame-src 'self'";
@@ -28,4 +28,16 @@ test('the policy allows exactly the blocks in the document and tightens the rest
 
 test('a different document gets different hashes', () => {
   assert.notEqual(reportCsp(BASE, '<script>a()</script>'), reportCsp(BASE, '<script>b()</script>'));
+});
+
+test('the return link goes just before </body>, is escaped, and its style is covered by the CSP', () => {
+  const html = '<html><body><p>Report</p><script>var x=1;</script></BODY></html>';
+  const page = withReturnLink(html, { href: '/portal', label: 'Return to your <client> portal' });
+  assert.ok(page.startsWith('<html><body><p>Report</p><script>var x=1;</script><style>.ar-return'));
+  assert.ok(page.endsWith('<a href="/portal">Return to your &lt;client> portal</a></nav></BODY></html>'));
+  assert.equal(inlineHashes(page).style.length, 1);
+  assert.match(reportCsp(BASE, page), /style-src 'self' 'sha256-/);
+  assert.match(page, /@media print\{\.ar-return\{display:none\}\}/);
+  // A page with no </body> still gets the link, at the end.
+  assert.ok(withReturnLink('<p>x</p>', { href: '/portal', label: 'Back' }).endsWith('<a href="/portal">Back</a></nav>'));
 });
