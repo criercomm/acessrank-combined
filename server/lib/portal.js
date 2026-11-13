@@ -682,6 +682,7 @@ function memRepo(store) {
       db.approvals = db.approvals.filter((a) => a.client_id !== id);
       for (const [key, w] of db.workItems) if (w.client_id === id) db.workItems.delete(key);
       for (const [key, d] of db.acrDrafts) if (d.client_id === id) db.acrDrafts.delete(key);
+      if (store._activity) store._activity = store._activity.filter((e) => e.client_id !== id);
       return true;
     },
 

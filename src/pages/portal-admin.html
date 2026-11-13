@@ -38,6 +38,7 @@
       <div class="team-tabs workspace-tabs" role="tablist" aria-label="This client">
         <button type="button" role="tab" id="tab-approvals" aria-controls="panel-approvals" aria-selected="true" data-tab-button="approvals">Approvals</button>
         <button type="button" role="tab" id="tab-files" aria-controls="panel-files" aria-selected="false" tabindex="-1" data-tab-button="files">Files</button>
+        <button type="button" role="tab" id="tab-activity" aria-controls="panel-activity" aria-selected="false" tabindex="-1" data-tab-button="activity">Activity log</button>
         <button type="button" role="tab" id="tab-logins" aria-controls="panel-logins" aria-selected="false" tabindex="-1" data-tab-button="logins">Logins</button>
       </div>
 
@@ -157,6 +158,109 @@
         </div>
       </section>
 
+      </div>
+
+      <div role="tabpanel" id="panel-activity" aria-labelledby="tab-activity" data-tab-panel="activity" hidden>
+      <!-- ----------------------------------- activity log (team only) --- -->
+      <section class="portal-section activity-section" aria-labelledby="admin-activity-heading" data-activity>
+        <div class="portal-section-head">
+          <h3 id="admin-activity-heading" tabindex="-1">Activity log</h3>
+          <p class="portal-count" data-activity-count></p>
+        </div>
+        <p class="field-hint activity-intro">The running record of this engagement, written as each thing happens. Agents log scans, fixes and re-tests; the portal logs packets, answers and published records. You log what only a person knows: a theme went live, or a manual test was run. Team only. Entries are never edited or deleted.</p>
+
+        <div class="activity-stand" data-activity-stand hidden>
+          <h4>Where things stand</h4>
+          <p class="activity-stand-line" data-activity-fixes></p>
+          <ul class="activity-needs" data-activity-needs hidden></ul>
+          <p class="file-meta" data-activity-context></p>
+        </div>
+
+        <form class="activity-form" data-activity-form novalidate>
+          <h4 id="activity-form-heading" tabindex="-1">Add an entry</h4>
+          <div class="activity-form-row">
+            <div class="field">
+              <label for="activity-kind">What happened</label>
+              <select id="activity-kind" name="kind">
+                <option value="publish">Theme published</option>
+                <option value="manual_test">Manual test</option>
+                <option value="note">Note</option>
+                <option value="correction">Correction</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="activity-date">Date it happened</label>
+              <input type="date" id="activity-date" name="happenedOn" required>
+            </div>
+          </div>
+          <div class="field" data-activity-only="correction" hidden>
+            <label for="activity-corrects">Entry this corrects</label>
+            <select id="activity-corrects" name="correctsId"></select>
+          </div>
+          <div class="field">
+            <label for="activity-title" data-activity-title-label>Theme name</label>
+            <input type="text" id="activity-title" name="title" maxlength="280" autocomplete="off" required aria-describedby="activity-title-hint">
+            <p class="field-hint" id="activity-title-hint" data-activity-title-hint>The name of the theme that is now live, as Shopify shows it.</p>
+          </div>
+          <div class="activity-form-row" data-activity-only="manual_test" hidden>
+            <div class="field">
+              <label for="activity-result">Result</label>
+              <select id="activity-result" name="result">
+                <option value="pass">No problems found</option>
+                <option value="fail">Problems found</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="activity-tester">Tested by</label>
+              <input type="text" id="activity-tester" name="tester" maxlength="120" autocomplete="off">
+            </div>
+          </div>
+          <div class="field" data-activity-only="manual_test" hidden>
+            <label for="activity-tools">Tested with <span class="opt">(optional)</span></label>
+            <input type="text" id="activity-tools" name="tools" maxlength="200" autocomplete="off" aria-describedby="activity-tools-hint">
+            <p class="field-hint" id="activity-tools-hint">For example: VoiceOver on iPhone, or keyboard only in Chrome.</p>
+          </div>
+          <fieldset class="activity-fixes" data-activity-fixes-field hidden>
+            <legend>Fixes this test covers <span class="opt">(optional)</span></legend>
+            <p class="field-hint">Tick the fixes you checked. A test with no problems found marks them as passed.</p>
+            <div data-activity-fix-list></div>
+          </fieldset>
+          <div class="field">
+            <label for="activity-details">Details <span class="opt">(optional)</span></label>
+            <textarea id="activity-details" name="details" rows="3" maxlength="4000"></textarea>
+          </div>
+          <div class="field">
+            <label for="activity-file">Evidence file <span class="opt">(optional)</span></label>
+            <input type="file" id="activity-file" accept=".json,.pdf,.png,.jpg,.jpeg,.webp,.html,.htm,.csv,.xlsx,.txt" data-activity-file aria-describedby="activity-file-hint">
+            <p class="field-hint" id="activity-file-hint" data-activity-file-hint>Best: a PNG screenshot of the Shopify Themes page showing the live theme.</p>
+          </div>
+          <div class="row-actions activity-actions">
+            <button class="btn-small btn-small--brand" type="submit">Add to log</button>
+          </div>
+          <p class="form-status" data-form-status role="alert" aria-live="assertive"></p>
+        </form>
+
+        <div class="files-head activity-head">
+          <h4>Entries</h4>
+          <div class="activity-tools">
+            <label for="activity-filter">Show</label>
+            <select id="activity-filter" data-activity-filter>
+              <option value="">Everything</option>
+              <option value="fix">Fixes</option>
+              <option value="scan">Scans</option>
+              <option value="publish">Theme publishes</option>
+              <option value="test">Re-tests and manual tests</option>
+              <option value="portal">Portal events</option>
+              <option value="note">Notes and corrections</option>
+            </select>
+            <a class="btn-small" data-activity-csv href="/portal/approvals" hidden>Download log</a>
+          </div>
+        </div>
+        <p class="portal-empty activity-empty" data-activity-empty>Nothing logged yet. Entries appear here as work is done.</p>
+        <ol class="activity-list" data-activity-list hidden></ol>
+        <input class="visually-hidden" type="file" tabindex="-1" aria-label="Attach an evidence file to the chosen entry" accept=".json,.pdf,.png,.jpg,.jpeg,.webp,.html,.htm,.csv,.xlsx,.txt" data-activity-attach>
+        <p class="form-status" data-activity-status role="status" aria-live="polite"></p>
+      </section>
       </div>
 
       <div role="tabpanel" id="panel-logins" aria-labelledby="tab-logins" data-tab-panel="logins" hidden>

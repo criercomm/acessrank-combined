@@ -1456,10 +1456,327 @@
     if (A.portalTeam && A.portalTeam.refreshBadge) A.portalTeam.refreshBadge();
   }
 
+  /* ----------------------------------------------------- activity log --- */
+
+  /**
+   * The client's activity log: the running, append-only record of the engagement. Operators add
+   * the things only a person knows (a theme was published, a manual test was run); agents and the
+   * portal add the rest through the same API.
+   */
+  function initActivitySection(root, getClient) {
+    var section = root.querySelector('[data-activity]');
+    if (!section) return { load: function () {} };
+    var form = section.querySelector('[data-activity-form]');
+    var formHeading = section.querySelector('#activity-form-heading');
+    var kind = form.querySelector('[name="kind"]');
+    var date = form.querySelector('[name="happenedOn"]');
+    var title = form.querySelector('[name="title"]');
+    var details = form.querySelector('[name="details"]');
+    var corrects = form.querySelector('[name="correctsId"]');
+    var fileInput = form.querySelector('[data-activity-file]');
+    var fileHint = section.querySelector('[data-activity-file-hint]');
+    var titleLabel = section.querySelector('[data-activity-title-label]');
+    var titleHint = section.querySelector('[data-activity-title-hint]');
+    var fixField = section.querySelector('[data-activity-fixes-field]');
+    var fixList = section.querySelector('[data-activity-fix-list]');
+    var stand = section.querySelector('[data-activity-stand]');
+    var fixesLine = section.querySelector('[data-activity-fixes]');
+    var needs = section.querySelector('[data-activity-needs]');
+    var context = section.querySelector('[data-activity-context]');
+    var list = section.querySelector('[data-activity-list]');
+    var empty = section.querySelector('[data-activity-empty]');
+    var count = section.querySelector('[data-activity-count]');
+    var filter = section.querySelector('[data-activity-filter]');
+    var csv = section.querySelector('[data-activity-csv]');
+    var attach = section.querySelector('[data-activity-attach]');
+    var status = section.querySelector('[data-activity-status]');
+    var entries = [];
+    var maxFileBytes = 25 * 1024 * 1024;
+    var attachTo = null;       // the entry the shared file picker is attaching to
+    var wantFixes = null;      // fix ids to tick when the form is next set to a manual test
+
+    // What the one-line field asks for, and the best file to attach, by kind.
+    var PROMPTS = {
+      publish: ['Theme name', 'The name of the theme that is now live, as Shopify shows it.',
+        'Best: a PNG screenshot of the Shopify Themes page showing the live theme.'],
+      manual_test: ['What was tested', 'For example: Keyboard only, home page to cart.',
+        'Best: a PDF of the test notes, or a PNG screenshot of what was found.'],
+      note: ['Note', 'Anything the record should keep: a call, a decision, a date agreed.',
+        'Best: a PDF, or a PNG screenshot, of whatever backs the note up.'],
+      correction: ['What is wrong, and what is right', 'The entry you choose stays in the log, marked as corrected.',
+        'Best: a PDF, or a PNG screenshot, that shows the right facts.']
+    };
+    var FILE_RULE = ' One file, up to {max}: JSON, PDF, PNG, JPG, WebP, HTML, CSV, XLSX or TXT.';
+    var FILTERS = {
+      test: function (e) { return e.kind === 'verify' || e.kind === 'manual_test'; },
+      portal: function (e) { return e.source === 'portal'; },
+      note: function (e) { return e.kind === 'note' || e.kind === 'correction'; }
+    };
+    function day(v) { return formatDate(v + 'T12:00:00'); }
+    function localToday() {
+      var d = new Date();
+      return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2);
+    }
+    function count1(n, one, many) { return n + ' ' + (n === 1 ? one : many); }
+
+    // Fixes a manual test can cover: live ones that are not yet passed.
+    function testable() {
+      return entries.filter(function (e) { return e.kind === 'fix' && (e.state === 'manual_pending' || e.state === 'awaiting_retest' || e.state === 'failed'); });
+    }
+    function renderFixChoices() {
+      var fixes = testable();
+      fixList.textContent = '';
+      fixes.forEach(function (e, i) {
+        var id = 'activity-fix-' + i;
+        var box = h('input', { type: 'checkbox', id: id, name: 'fixIds', value: e.id });
+        if (wantFixes && wantFixes.indexOf(e.id) !== -1) box.checked = true;
+        fixList.appendChild(h('div', { class: 'field-check' }, [box, h('label', { for: id, text: e.title + ' (' + e.stateLabel.toLowerCase() + ')' })]));
+      });
+      fixField.hidden = kind.value !== 'manual_test' || !fixes.length;
+    }
+    function syncKind() {
+      var p = PROMPTS[kind.value] || PROMPTS.note;
+      titleLabel.textContent = p[0];
+      titleHint.textContent = p[1];
+      fileHint.textContent = p[2] + FILE_RULE.replace('{max}', formatBytes(maxFileBytes));
+      Array.prototype.forEach.call(form.querySelectorAll('[data-activity-only]'), function (el) {
+        el.hidden = el.getAttribute('data-activity-only') !== kind.value;
+      });
+      renderFixChoices();
+    }
+    kind.addEventListener('change', function () { wantFixes = null; syncKind(); });
+
+    /** Set the form up for one kind of entry and take the operator to it. */
+    function startEntry(kindValue, opts) {
+      kind.value = kindValue;
+      wantFixes = (opts && opts.fixIds) || null;
+      syncKind();
+      if (opts && opts.correctsId) corrects.value = opts.correctsId;
+      setStatus(form.querySelector('[data-form-status]'), '');
+      formHeading.scrollIntoView({ block: 'start' });
+      (kindValue === 'correction' && opts && opts.correctsId ? title : title).focus();
+    }
+
+    function who(e) {
+      if (e.source === 'portal') return 'Portal' + (e.authorName ? ' · ' + e.authorName : '');
+      if (e.source === 'agent') return (e.agent || 'Agent') + (e.authorName ? ' for ' + e.authorName : '');
+      return e.authorName || 'Accessrank team';
+    }
+    function dataLine(e) {
+      var d = e.data || {};
+      var parts = [];
+      if (d.wcag) parts.push('WCAG ' + d.wcag);
+      if (d.pages && d.pages.length) parts.push('Pages: ' + (Array.isArray(d.pages) ? d.pages.join(', ') : d.pages));
+      if (d.theme && e.kind !== 'publish') parts.push('Theme: ' + d.theme);
+      if (d.how) parts.push('How: ' + d.how);
+      if (d.tool) parts.push('Tool: ' + d.tool + (d.version ? ' ' + d.version : ''));
+      if (d.result) parts.push('Result: ' + ({ pass: 'no problems found', fail: 'problems found', manual_pending: 'needs a manual check' }[d.result] || d.result));
+      if (d.tester) parts.push('Tested by: ' + d.tester);
+      if (d.tools) parts.push('With: ' + d.tools);
+      if (d.fixIds && d.fixIds.length) parts.push('Covers ' + count1(d.fixIds.length, 'fix', 'fixes'));
+      if (d.files && d.files.length) parts.push('Files: ' + (Array.isArray(d.files) ? d.files.join(', ') : d.files));
+      return parts.join(' · ');
+    }
+
+    function renderStand(s) {
+      stand.hidden = !entries.length;
+      if (!entries.length) return;
+      var bits = [];
+      [['not_live', 'built, not yet live'], ['awaiting_retest', 'live, awaiting re-test'], ['manual_pending', 'awaiting a manual check'],
+        ['failed', 'did not pass a test'], ['flagged', 'corrected'], ['passed', 'passed']].forEach(function (pair) {
+        if (s[pair[0]]) bits.push(s[pair[0]] + ' ' + pair[1]);
+      });
+      fixesLine.textContent = s.fixes ? count1(s.fixes, 'fix', 'fixes') + ' logged: ' + bits.join(' · ') + '.' : 'No fixes logged yet.';
+
+      needs.textContent = '';
+      function need(text, label, onClick) {
+        var item = h('li', {}, [h('span', { text: text })]);
+        if (label) {
+          var b = h('button', { type: 'button', class: 'btn-small', text: label });
+          b.addEventListener('click', onClick);
+          item.appendChild(b);
+        }
+        needs.appendChild(item);
+      }
+      if (s.not_live) {
+        need(count1(s.not_live, 'fix is', 'fixes are') + ' built but not live. Publish the theme, then log it here.', 'Log theme published', function () { startEntry('publish'); });
+      }
+      var manual = entries.filter(function (e) { return e.kind === 'fix' && (e.state === 'manual_pending' || e.state === 'failed'); });
+      if (manual.length) {
+        need(count1(manual.length, 'fix needs', 'fixes need') + ' a person to check. Test, then log the result.', 'Log manual test', function () {
+          startEntry('manual_test', { fixIds: manual.map(function (e) { return e.id; }) });
+        });
+      }
+      if (s.flagged) need(count1(s.flagged, 'corrected fix needs', 'corrected fixes need') + ' reading before the record is issued.');
+      if (s.awaiting_retest) need(count1(s.awaiting_retest, 'fix is', 'fixes are') + ' live and waiting for a re-test. The agent logs that; nothing for you to do.');
+      needs.hidden = !needs.children.length;
+
+      var ctx = [];
+      if (s.liveTheme) ctx.push('Live theme: ' + s.liveTheme.name.replace(/^Theme published: /, '') + ', since ' + day(s.liveTheme.on));
+      if (s.lastScan) ctx.push('Last scan: ' + day(s.lastScan.on) + ', ' + s.lastScan.title);
+      context.textContent = ctx.join(' · ');
+      context.hidden = !ctx.length;
+    }
+
+    function renderList() {
+      var correctedBy = {};
+      entries.forEach(function (e) { if (e.correctsId) correctedBy[e.correctsId] = e; });
+      var test = FILTERS[filter.value] || (filter.value ? function (e) { return e.kind === filter.value; } : function () { return true; });
+      var shown = entries.filter(test);
+      list.textContent = '';
+      shown.forEach(function (e) {
+        var target = e.correctsId ? entries.filter(function (x) { return x.id === e.correctsId; })[0] : null;
+        var extra = dataLine(e);
+        var actions = [];
+        if (e.file) {
+          actions.push(h('a', { class: 'link-button', href: '/api/portal/admin/activity/' + encodeURIComponent(e.id) + '/file', text: 'Evidence: ' + e.file.name + ' (' + formatBytes(e.file.size) + ')' }));
+        } else {
+          var add = h('button', { type: 'button', class: 'link-button', text: 'Attach evidence', 'aria-label': 'Attach an evidence file to: ' + e.title });
+          add.addEventListener('click', function () { attachTo = { entry: e, button: add }; attach.value = ''; attach.click(); });
+          actions.push(add);
+        }
+        if (e.kind !== 'correction' && !correctedBy[e.id] && e.source !== 'portal') {
+          var fix = h('button', { type: 'button', class: 'link-button', text: 'Correct this', 'aria-label': 'Add a correction to: ' + e.title });
+          fix.addEventListener('click', function () { startEntry('correction', { correctsId: e.id }); });
+          actions.push(fix);
+        }
+        list.appendChild(h('li', correctedBy[e.id] ? { class: 'is-corrected' } : {}, [
+          h('p', { class: 'activity-meta' }, [
+            h('span', { class: 'activity-kind', text: e.kindLabel }),
+            h('span', { text: day(e.happenedOn) }),
+            h('span', { text: who(e) }),
+            e.stateLabel && !correctedBy[e.id] ? h('span', { class: 'activity-state' + (e.state === 'passed' ? ' is-passed' : ''), text: e.state === 'passed' ? 'Passed ' + day(e.stateLabel.slice(-10)) : e.stateLabel }) : null
+          ]),
+          h('p', { class: 'activity-title', text: e.title }),
+          e.details ? h('p', { class: 'file-meta', text: e.details }) : null,
+          extra ? h('p', { class: 'file-meta', text: extra }) : null,
+          target ? h('p', { class: 'file-meta', text: 'Corrects: ' + target.title + ' (' + day(target.happenedOn) + ')' }) : null,
+          correctedBy[e.id] ? h('p', { class: 'file-meta activity-flag', text: 'Corrected on ' + day(correctedBy[e.id].happenedOn) + ': ' + correctedBy[e.id].title }) : null,
+          h('p', { class: 'activity-entry-actions' }, actions)
+        ]));
+      });
+      list.hidden = !shown.length;
+      empty.hidden = shown.length > 0;
+      empty.textContent = entries.length ? 'No entries of that kind.' : 'Nothing logged yet. Entries appear here as work is done.';
+      count.textContent = entries.length ? count1(entries.length, 'entry', 'entries') : '';
+    }
+    filter.addEventListener('change', renderList);
+
+    function render(data) {
+      entries = data.entries || [];
+      if (data.maxFileBytes) maxFileBytes = data.maxFileBytes;
+      var client = getClient();
+      csv.hidden = !entries.length;
+      if (client) csv.setAttribute('href', '/api/portal/admin/clients/' + encodeURIComponent(client.id) + '/activity?format=csv');
+      var corrected = {};
+      entries.forEach(function (e) { if (e.correctsId) corrected[e.correctsId] = true; });
+      var keep = corrects.value;
+      corrects.textContent = '';
+      entries.filter(function (e) { return e.kind !== 'correction' && !corrected[e.id] && e.source !== 'portal'; }).slice(0, 200).forEach(function (e) {
+        corrects.appendChild(h('option', { value: e.id, text: day(e.happenedOn) + ' · ' + e.kindLabel + ' · ' + e.title.slice(0, 90) }));
+      });
+      if (keep) corrects.value = keep;
+      renderStand(data.summary || {});
+      renderList();
+      syncKind();
+    }
+
+    var loadedFor = null;
+    function load() {
+      var client = getClient();
+      if (!client) return Promise.resolve();
+      if (loadedFor !== client.id) {
+        loadedFor = client.id;
+        form.reset();
+        filter.value = '';
+        wantFixes = null;
+        date.value = localToday();
+        date.setAttribute('max', localToday());
+        setStatus(status, '');
+      }
+      return api('GET', '/api/portal/admin/clients/' + encodeURIComponent(client.id) + '/activity').then(render, function (error) {
+        setStatus(status, error.message, 'error');
+      });
+    }
+
+    function checkFile(file) {
+      if (!file) return null;
+      if (!/\.(json|pdf|png|jpe?g|webp|html?|csv|xlsx|txt)$/i.test(file.name)) return 'Attach a JSON, PDF, PNG, JPG, WebP, HTML, CSV, XLSX or TXT file.';
+      if (file.size > maxFileBytes) return 'That file is over ' + formatBytes(maxFileBytes) + '. Attach a smaller one.';
+      if (!file.size) return 'That file is empty.';
+      return null;
+    }
+    function sendFile(entryId, file) {
+      return api('POST', '/api/portal/admin/activity/' + encodeURIComponent(entryId) + '/file?name=' + encodeURIComponent(file.name), null, file);
+    }
+
+    bindForm(form, 'Adding…', function (values) {
+      var client = getClient();
+      if (!client) return null;
+      var text = String(values.title || '').trim();
+      if (!text) {
+        var missing = new Error(values.kind === 'publish' ? 'Enter the name of the theme that is now live.' : values.kind === 'manual_test' ? 'Say what was tested.' : 'Say what happened, in a line.');
+        missing.field = 'title';
+        throw missing;
+      }
+      var file = fileInput.files && fileInput.files[0];
+      var problem = checkFile(file);
+      if (problem) throw new Error(problem);
+      var body = { kind: values.kind, happenedOn: values.happenedOn || null, title: text, details: values.details || '' };
+      if (values.kind === 'publish') { body.title = 'Theme published: ' + text; body.data = { theme: text }; }
+      if (values.kind === 'correction') body.correctsId = values.correctsId || null;
+      if (values.kind === 'manual_test') {
+        var ids = Array.prototype.map.call(form.querySelectorAll('[name="fixIds"]:checked'), function (b) { return b.value; });
+        body.data = { result: values.result, fixIds: ids };
+        if (values.tester) body.data.tester = values.tester;
+        if (values.tools) body.data.tools = values.tools;
+      }
+      return api('POST', '/api/portal/admin/clients/' + encodeURIComponent(client.id) + '/activity', body).then(function (data) {
+        var added = data.entry.kindLabel + ' added to the log.';
+        var after = file
+          ? sendFile(data.entry.id, file).then(function () { return added + ' ' + file.name + ' attached.'; },
+            function (error) { return added + ' The file did not attach (' + error.message + '). Use Attach evidence on the entry.'; })
+          : Promise.resolve(added);
+        return after.then(function (message) {
+          var keepKind = kind.value;
+          var keepDate = date.value;
+          form.reset();
+          kind.value = keepKind;
+          date.value = keepDate;
+          wantFixes = null;
+          return load().then(function () { return message; });
+        });
+      });
+    });
+
+    // One shared picker attaches a file to an entry that has none (an agent's scan, say).
+    attach.addEventListener('change', function () {
+      var file = attach.files && attach.files[0];
+      var target = attachTo;
+      if (!file || !target) return;
+      var problem = checkFile(file);
+      if (problem) { setStatus(status, problem, 'error'); return; }
+      var settle = working(target.button, 'Attaching…');
+      target.button.disabled = true;
+      setStatus(status, 'Attaching ' + file.name + '…', 'busy');
+      sendFile(target.entry.id, file).then(function () {
+        setStatus(status, file.name + ' attached to “' + target.entry.title + '”.', 'success');
+        return load();
+      }, function (error) {
+        settle();
+        target.button.disabled = false;
+        setStatus(status, error.message, 'error');
+      });
+    });
+
+    return { load: load };
+  }
+
   /** One client's workspace: Approvals, Files and Logins, chosen by #client=<id>. */
   function initAdmin(root) {
     var state = { clients: [], selectedId: null, maxFileBytes: 25 * 1024 * 1024 };
     var acr = initAcrSection(root, function () { return selected(); }, function () { refreshBadge(); });
+    var activity = initActivitySection(root, function () { return selected(); });
 
     var status = root.querySelector('[data-portal-status]');
     var detail = root.querySelector('[data-detail]');
@@ -1688,6 +2005,7 @@
       renderFiles(client);
       renderLogins(client);
       acr.load();
+      activity.load();
     }
 
     function select(id, moveFocus) {

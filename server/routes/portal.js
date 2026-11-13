@@ -20,6 +20,7 @@ import {
 import { notifyApprovals } from '../lib/email.js';
 import { reportCsp, withReturnLink } from '../lib/reportCsp.js';
 import { generateAcrUpdatePdf, generateAcrPdf } from '../lib/pdf.js';
+import { ACTIVITY_KINDS, WRITABLE_KINDS, EVIDENCE_TYPES, listActivity, addActivity, recordActivity, activityCsv, kitRows, withStates, attachEvidence, activityClientId, getEvidence } from '../lib/activity.js';
 
 /**
  * Client portal API, mounted at /api/portal.
@@ -185,6 +186,11 @@ router.post('/reports/:id/approvals', requireSession('client'), wrap(async (req,
   const result = await saveApprovals(store, req.portal, report, input);
   log.info('portal approvals saved', { reportId: report.id, clientId: report.client_id, userId: req.portal.userId, saved: result.saved, unchanged: result.unchanged });
   if (result.saved > 0) {
+    await recordActivity(store, report.client_id, {
+      kind: 'approval', title: `Client answered: ${report.title}`,
+      details: `${result.saved} answer${result.saved === 1 ? '' : 's'} saved by ${result.signerName}.`,
+      data: { reportId: report.id, answers: result.saved }, by: { name: result.signerName, email: req.portal.email },
+    });
     // Told in the background: the client's answers are already saved, and a mail
     // problem must never turn that into an error on their screen.
     void notifyApprovals({
@@ -339,6 +345,7 @@ admin.post(
       html: req.body.toString('utf8'),
     });
     log.info('portal report published', { reportId: report.id, clientId: req.params.id, bytes: report.size });
+    await recordActivity(await getStore(), req.params.id, { kind: 'packet', title: `Approval packet published: ${report.title}`, data: { reportId: report.id }, by: req.portal });
     res.status(201).json({ ok: true, report });
   }),
 );
@@ -352,6 +359,7 @@ admin.patch('/reports/:id', wrap(async (req, res) => {
   await assertClient(req, found ? found.client_id : null);
   const report = await setReportStatus(await getStore(), req.portal, req.params.id, status);
   log.info('portal report status changed', { reportId: report.id, status, by: req.portal.email });
+  await recordActivity(await getStore(), report.clientId ?? found.client_id, { kind: 'packet', title: `Approval ${status === 'closed' ? 'closed' : 'reopened'}: ${report.title}`, data: { reportId: report.id }, by: req.portal });
   res.json({ ok: true, report });
 }));
 
@@ -435,6 +443,16 @@ admin.put('/reports/:id/work/:key', wrap(async (req, res) => {
   await assertClient(req, found ? found.client_id : null);
   const input = parseOrThrow(workSchema, req.body);
   const work = await setWorkItem(await getStore(), req.portal, req.params.id, req.params.key, input);
+  // Logged once, when the item is first ticked (a later note or "add to ACR" keeps the first date).
+  const logged = work.done && work.doneAt
+    && (await listActivity(await getStore(), found.client_id)).some((e) => e.kind === 'work' && e.data.reportId === found.id && e.data.item === req.params.key && e.data.doneAt === work.doneAt);
+  if (work.done && work.doneAt && !logged) {
+    const item = (await currentApprovals(await getStore(), req.params.id)).find((a) => a.key === req.params.key);
+    await recordActivity(await getStore(), found.client_id, {
+      kind: 'work', title: `Marked done and live: ${item ? item.title : req.params.key}`,
+      details: `From ${found.title}.`, data: { reportId: found.id, item: req.params.key, doneAt: work.doneAt }, by: req.portal,
+    });
+  }
   log.info('portal work item saved', { reportId: req.params.id, key: req.params.key, done: work.done, acr: work.acrState, by: req.portal.email });
   res.json({ ok: true, work });
 }));
@@ -464,6 +482,7 @@ admin.post('/clients/:id/acr/drafts', rawUpload, wrap(async (req, res) => {
     filename: typeof req.query.name === 'string' ? req.query.name : '', data: uploadedBytes(req),
   });
   log.info('portal acr draft uploaded', { draftId: draft.id, clientId: req.params.id, bytes: draft.size, by: req.portal.email });
+  await recordActivity(await getStore(), req.params.id, { kind: 'acr', title: `ACR draft uploaded: ${draft.name}`, by: req.portal });
   res.status(201).json({ ok: true, draft });
 }));
 
@@ -544,6 +563,11 @@ admin.post('/clients/:id/acr/publish', rawUpload, wrap(async (req, res) => {
         pdfName: `${merged.base}.pdf`, pdf, htmlName: `${merged.base}.html`, html: merged.html,
       });
       log.info('portal acr published', { clientId: req.params.id, fileId: out.file.id, applied: out.applied, version: merged.version, by: req.portal.email });
+      await recordActivity(store, req.params.id, {
+        kind: 'acr', title: `ACR Version ${merged.version} published to the client`,
+        details: `${out.file.name}. ${out.applied} approved change${out.applied === 1 ? '' : 's'} added to the record.`,
+        data: { version: merged.version, applied: out.applied }, by: req.portal,
+      });
       return res.status(201).json({ ok: true, version: merged.version, ...out });
     }
   }
@@ -551,7 +575,71 @@ admin.post('/clients/:id/acr/publish', rawUpload, wrap(async (req, res) => {
     filename: typeof req.query.name === 'string' ? req.query.name : '', data: uploadedBytes(req),
   });
   log.info('portal acr published', { clientId: req.params.id, fileId: out.file.id, applied: out.applied, by: req.portal.email });
+  await recordActivity(store, req.params.id, { kind: 'acr', title: `ACR published to the client: ${out.file.name}`, data: { applied: out.applied }, by: req.portal });
   res.status(201).json({ ok: true, ...out });
+}));
+
+/* --------------------------------------------------------- activity log --- */
+// One running record per client. Append-only: there is no route that edits or deletes an entry.
+
+const activitySchema = z.object({
+  kind: z.string().max(20),
+  title: z.string().max(600),
+  details: z.string().max(8000).optional(),
+  happenedOn: z.string().max(10).optional().nullable(),
+  source: z.enum(['operator', 'agent']).optional(),
+  agent: z.string().max(160).optional(),
+  correctsId: z.string().max(64).optional().nullable(),
+  data: z.record(z.string(), z.any()).optional().nullable(),
+});
+
+/**
+ * The log, newest first. ?format=csv downloads it as a spreadsheet; ?format=kit-rows gives the
+ * remediation log in the shape the ACR kit reads (rows.json).
+ */
+admin.get('/clients/:id/activity', wrap(async (req, res) => {
+  await assertClient(req, req.params.id);
+  const entries = await listActivity(await getStore(), req.params.id);
+  if (req.query.format === 'csv') {
+    const { client } = await clientAcr(await getStore(), req.params.id);
+    res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+    res.setHeader('Content-Disposition', contentDisposition(`${client.name} Activity Log.csv`));
+    return res.send(activityCsv(entries));
+  }
+  if (req.query.format === 'kit-rows') return res.json(kitRows(entries));
+  res.json({ ok: true, kinds: ACTIVITY_KINDS, writable: WRITABLE_KINDS, evidenceTypes: EVIDENCE_TYPES, maxFileBytes: config.portal.maxFileMb * 1024 * 1024, ...withStates(entries) });
+}));
+
+/** Add one entry: an operator from the client's page, or an agent through an operator's session. */
+admin.post('/clients/:id/activity', wrap(async (req, res) => {
+  await assertClient(req, req.params.id);
+  const input = parseOrThrow(activitySchema, req.body);
+  const entry = await addActivity(await getStore(), req.portal, req.params.id, input);
+  log.info('portal activity logged', { entryId: entry.id, clientId: req.params.id, kind: entry.kind, source: entry.source, by: req.portal.email });
+  res.status(201).json({ ok: true, entry });
+}));
+
+/** Attach an entry's evidence file: raw bytes in the body, the name in the query. One file, once. */
+admin.post('/activity/:entryId/file', rawUpload, wrap(async (req, res) => {
+  const owner = await activityClientId(await getStore(), req.params.entryId);
+  if (!owner) throw new PortalError('That entry no longer exists.', { code: 'not_found', status: 404 });
+  await assertClient(req, owner);
+  const entry = await attachEvidence(await getStore(), req.portal, req.params.entryId, {
+    filename: typeof req.query.name === 'string' ? req.query.name : '', data: uploadedBytes(req),
+  });
+  log.info('portal activity file attached', { entryId: entry.id, clientId: entry.clientId, bytes: entry.file.size, by: req.portal.email });
+  res.status(201).json({ ok: true, entry });
+}));
+
+/** Download an entry's evidence file. Always an attachment: nothing uploaded is rendered on this origin. */
+admin.get('/activity/:entryId/file', wrap(async (req, res) => {
+  const file = await getEvidence(await getStore(), req.params.entryId);
+  if (!file) throw new PortalError('That file is no longer available.', { code: 'not_found', status: 404 });
+  await assertClient(req, file.clientId);
+  res.setHeader('Content-Type', file.type);
+  res.setHeader('Content-Length', String(file.data.length));
+  res.setHeader('Content-Disposition', contentDisposition(file.name));
+  res.end(file.data);
 }));
 
 /* ------------------------------------------------------------ operators --- */

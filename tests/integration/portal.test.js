@@ -1537,3 +1537,239 @@ test('the ACR preview and draft check are team-only and need a draft', async () 
   assert.equal(p.body.preview.mergeable, false);
   assert.equal((await a.person.get(`/api/portal/admin/clients/${a.client.id}/acr/preview`)).status >= 401, true);
 });
+
+/* -------------------------------------------------------------- activity log --- */
+
+test('the activity log takes entries from operators and agents, is append-only, and exports', async () => {
+  const admin = await adminBrowser();
+  const a = await clientWithLogin(admin, 'Seedco', 'angie@seedco.test');
+  const url = `/api/portal/admin/clients/${a.client.id}/activity`;
+
+  const empty = await admin.get(url);
+  assert.equal(empty.status, 200);
+  assert.deepEqual(empty.body.entries, []);
+  assert.ok(empty.body.writable.includes('fix') && !empty.body.writable.includes('approval'), 'portal kinds cannot be written by hand');
+
+  // An agent, working through the operator's session, logs two fixes as it makes them.
+  const fix = async (title, wcag, day) => (await admin.post(url, {
+    kind: 'fix', source: 'agent', agent: 'Claude', happenedOn: day, title,
+    data: { wcag, how: 'Changed in the theme code', pages: ['Home', 'Product'], theme: 'Draft 11/02', files: ['sections/header.liquid'], junk: { nested: true } },
+  })).body.entry;
+  const f1 = await fix('Menu button had no name', '4.1.2', '2026-11-02');
+  const f2 = await fix('Grey text too light', '1.4.3', '2026-11-03');
+  assert.equal(f1.source, 'agent');
+  assert.equal(f1.agent, 'Claude');
+  assert.equal(f1.authorName, 'Accessrank team', 'the author is the session, not anything sent');
+  assert.equal(f1.data.junk, undefined, 'nested data is dropped');
+  assert.deepEqual(f1.data.pages, ['Home', 'Product']);
+
+  // Nothing is published yet, so the kit's log says so.
+  let rows = (await admin.get(`${url}?format=kit-rows`)).body;
+  assert.equal(rows.length, 2);
+  assert.ok(rows.every((r) => r.length === 6 && /^NOT YET LIVE/.test(r[4])));
+
+  // The operator publishes the theme; the agent re-tests one fix and leaves the other for a person.
+  const pub = await admin.post(url, { kind: 'publish', happenedOn: '2026-11-04', title: 'Theme published: Draft 11/02', data: { theme: 'Draft 11/02' } });
+  assert.equal(pub.status, 201);
+  assert.equal(pub.body.entry.source, 'operator');
+  assert.equal((await admin.post(url, { kind: 'verify', source: 'agent', agent: 'Claude', happenedOn: '2026-11-05', title: 'axe-core 4.10.2, 0 violations on five live pages', data: { fixIds: [f2.id], result: 'pass' } })).status, 201);
+  rows = (await admin.get(`${url}?format=kit-rows`)).body;
+  assert.deepEqual(rows[0], ['2026-11-04', 'Grey text too light', '1.4.3', 'Changed in the theme code', 'Pass 2026-11-05: axe-core 4.10.2, 0 violations on five live pages', 'Home, Product']);
+  assert.equal(rows[1][0], '2026-11-04', 'the row date is the day the fix went live');
+  assert.match(rows[1][4], /^MANUAL PENDING: live, re-test not yet logged/);
+
+  // A correction replaces a fix in the kit's log; the original stays in the record.
+  const corr = await admin.post(url, { kind: 'correction', correctsId: f1.id, title: 'The menu button fix was on the draft theme only' });
+  assert.equal(corr.status, 201);
+  assert.equal(corr.body.entry.correctsId, f1.id);
+  rows = (await admin.get(`${url}?format=kit-rows`)).body;
+  assert.equal(rows.length, 2, 'a corrected fix stays in the log');
+  assert.match(rows[1][4], /^MANUAL PENDING: corrected on \d{4}-\d{2}-\d{2}: The menu button fix was on the draft theme only\. Check this row before issuing/);
+  const all = (await admin.get(url)).body.entries;
+  assert.equal(all.length, 5);
+  assert.equal(all[0].kind, 'correction', 'newest first');
+  assert.ok(all.some((e) => e.id === f1.id), 'the corrected entry is still there');
+
+  // Bad input.
+  const bad = async (body) => (await admin.post(url, body)).status;
+  assert.equal(await bad({ kind: 'approval', title: 'Forged client approval' }), 400, 'portal kinds are refused');
+  assert.equal(await bad({ kind: 'note', title: '   ' }), 400);
+  assert.equal(await bad({ kind: 'note', title: 'x', happenedOn: '11/02/2026' }), 400);
+  assert.equal(await bad({ kind: 'note', title: 'x', happenedOn: '2099-01-01' }), 400, 'not in the future');
+  assert.equal(await bad({ kind: 'correction', title: 'x' }), 400, 'a correction names what it corrects');
+  assert.equal(await bad({ kind: 'verify', title: 'x', data: { fixIds: [pub.body.entry.id], result: 'pass' } }), 400, 'a re-test names fixes');
+  assert.equal(await bad({ kind: 'verify', title: 'x', data: { fixIds: [f2.id], result: 'great' } }), 400);
+  assert.equal(await bad({ kind: 'manual_test', title: 'x', data: { fixIds: [f2.id] } }), 400, 'a manual test that covers fixes says how it went');
+  assert.equal(await bad({ kind: 'fix', title: 'x', correctsId: pub.body.entry.id.replace(/.$/, '0') }), 400, 'a named entry must exist');
+
+  // Append-only: there is no way to change or remove an entry.
+  assert.ok((await admin.patch(`${url}/${f2.id}`, { title: 'changed' })).status >= 404);
+  assert.ok((await admin.del(`${url}/${f2.id}`)).status >= 404);
+  assert.equal((await admin.get(url)).body.entries.length, 5);
+
+  // The spreadsheet: oldest first, formulas defused.
+  await admin.post(url, { kind: 'note', title: '=HYPERLINK("http://x")' });
+  const csv = await admin.get(`${url}?format=csv`);
+  assert.match(csv.headers.get('content-type'), /^text\/csv/);
+  assert.match(csv.headers.get('content-disposition'), /Seedco Activity Log\.csv/);
+  const text = csv.body.toString('utf8');
+  const lines = text.trim().split('\r\n');
+  assert.equal(lines.length, 7);
+  assert.match(lines[0], /Corrects entry,Evidence file,Data,Entry id$/);
+  assert.match(lines[1], /^2026-11-02,Fix,Menu button had no name/);
+  assert.match(lines[1], /Claude \(for Accessrank team\)/);
+  assert.ok(text.includes(`"'=HYPERLINK(""http://x"")"`));
+});
+
+test('the activity log is team-only and follows operator access', async () => {
+  const admin = await adminBrowser();
+  const a = await clientWithLogin(admin, 'Seedco', 'angie@seedco.test');
+  const b = await clientWithLogin(admin, 'Larkspur Tea Co.', 'sam@larkspur.test');
+  const urlA = `/api/portal/admin/clients/${a.client.id}/activity`;
+  const urlB = `/api/portal/admin/clients/${b.client.id}/activity`;
+  const noteB = (await admin.post(urlB, { kind: 'note', title: 'Larkspur note' })).body.entry;
+
+  // A client login reaches nothing; nor does a signed-out browser.
+  assert.ok((await a.person.get(urlA)).status >= 401);
+  assert.ok((await a.person.post(urlA, { kind: 'note', title: 'x' })).status >= 401);
+  assert.ok((await browser().get(urlA)).status >= 401);
+
+  // An operator reaches assigned clients only, and cannot correct across clients.
+  const op = await operatorWithLogin(admin, { name: 'Olive Operator', email: 'olive@accessrank.test' });
+  assert.equal((await admin.put(`/api/portal/operators/${op.operator.id}/clients`, { clientIds: [a.client.id] })).status, 200);
+  assert.equal((await op.person.post(urlA, { kind: 'manual_test', title: 'Keyboard pass on cart', details: 'Tab order is right.' })).status, 201);
+  assert.equal((await op.person.get(urlA)).body.entries[0].authorName, 'Olive Operator');
+  assert.equal((await op.person.get(urlB)).status, 404);
+  assert.equal((await op.person.post(urlB, { kind: 'note', title: 'x' })).status, 404);
+  assert.equal((await op.person.post(urlA, { kind: 'correction', correctsId: noteB.id, title: 'x' })).status, 400, 'an entry from another client cannot be named');
+
+  // Deleting the client takes its log with it.
+  assert.equal((await admin.del(`/api/portal/admin/clients/${a.client.id}`)).status, 200);
+  assert.deepEqual((await admin.get(urlA)).body.entries, []);
+  assert.equal((await admin.post(urlA, { kind: 'note', title: 'after the client is gone' })).status, 404);
+});
+
+test('the portal logs its own events: packet, answers, work, draft, publish and close', async () => {
+  const admin = await adminBrowser();
+  const a = await clientWithLogin(admin, 'Seedco', 'angie@seedco.test');
+  const report = await publish(admin, a.client.id, 'Statement and footer');
+  await a.person.post(`/api/portal/reports/${report.id}/approvals`, { name: 'Angie Moe', items: [{ key: 'statement', title: 'Accessibility statement text', decision: 'approve' }] });
+  const draft = '<!DOCTYPE html><html><body><main><p><span data-acr="version">Version 1.0 draft</span></p><table data-acr="remediation-log"><tbody><tr><td>x</td></tr></tbody></table></main></body></html>';
+  await admin.upload(`/api/portal/admin/clients/${a.client.id}/acr/drafts?name=${encodeURIComponent('Seedco ACR Draft.html')}`, Buffer.from(draft));
+  await admin.put(`/api/portal/admin/reports/${report.id}/work/statement`, { done: true, queue: true });
+  await admin.put(`/api/portal/admin/reports/${report.id}/work/statement`, { done: true, queue: true, note: 'saved again' });
+  await admin.patch(`/api/portal/admin/reports/${report.id}`, { status: 'closed' });
+
+  const entries = (await admin.get(`/api/portal/admin/clients/${a.client.id}/activity`)).body.entries.reverse();
+  assert.deepEqual(entries.map((e) => [e.kind, e.source]), [
+    ['packet', 'portal'], ['approval', 'portal'], ['acr', 'portal'], ['work', 'portal'], ['packet', 'portal'],
+  ], 'one entry per event; re-saving a ticked item does not log it twice');
+  assert.equal(entries[0].title, 'Approval packet published: Statement and footer');
+  assert.equal(entries[1].title, 'Client answered: Statement and footer');
+  assert.equal(entries[1].authorName, 'Angie Moe');
+  assert.equal(entries[2].title, 'ACR draft uploaded: Seedco ACR Draft.html');
+  assert.equal(entries[3].title, 'Marked done and live: Accessibility statement text');
+  assert.equal(entries[4].title, 'Approval closed: Statement and footer');
+});
+
+test('the log works out where each fix stands, and a manual test or a replacement fix moves it on', async () => {
+  const admin = await adminBrowser();
+  const a = await clientWithLogin(admin, 'Seedco', 'angie@seedco.test');
+  const url = `/api/portal/admin/clients/${a.client.id}/activity`;
+  const add = async (body) => { const r = await admin.post(url, body); assert.equal(r.status, 201, JSON.stringify(r.body)); return r.body.entry; };
+  const state = async (id) => (await admin.get(url)).body.entries.find((e) => e.id === id);
+  const summary = async () => (await admin.get(url)).body.summary;
+
+  await add({ kind: 'scan', source: 'agent', agent: 'Claude', happenedOn: '2026-11-01', title: 'Baseline: 14 violations', data: { tool: 'axe-core', version: '4.10.2' } });
+  const f1 = await add({ kind: 'fix', source: 'agent', agent: 'Claude', happenedOn: '2026-11-02', title: 'Fix one', data: { wcag: '1.1.1' } });
+  const f2 = await add({ kind: 'fix', source: 'agent', agent: 'Claude', happenedOn: '2026-11-02', title: 'Fix two', data: { wcag: '2.1.1' } });
+  const f3 = await add({ kind: 'fix', source: 'agent', agent: 'Claude', happenedOn: '2026-11-02', title: 'Fix three', data: { wcag: '1.4.3' } });
+  assert.equal((await state(f1.id)).state, 'not_live');
+  assert.equal((await state(f1.id)).stateLabel, 'Built, not yet live');
+  assert.deepEqual((({ fixes, not_live, passed }) => ({ fixes, not_live, passed }))(await summary()), { fixes: 3, not_live: 3, passed: 0 });
+  assert.equal((await summary()).lastScan.on, '2026-11-01');
+  assert.equal((await summary()).liveTheme, null);
+
+  await add({ kind: 'publish', happenedOn: '2026-11-03', title: 'Theme published: Draft A', data: { theme: 'Draft A' } });
+  assert.equal((await state(f1.id)).state, 'awaiting_retest');
+  assert.deepEqual((await summary()).liveTheme, { name: 'Draft A', on: '2026-11-03' });
+
+  // The agent's re-test passes one fix and leaves one for a person.
+  await add({ kind: 'verify', source: 'agent', agent: 'Claude', happenedOn: '2026-11-04', title: 'axe-core 0 violations', data: { fixIds: [f1.id], result: 'pass' } });
+  await add({ kind: 'verify', source: 'agent', agent: 'Claude', happenedOn: '2026-11-04', title: 'Focus order needs a person', data: { fixIds: [f2.id], result: 'manual_pending' } });
+  assert.equal((await state(f1.id)).state, 'passed');
+  assert.equal((await state(f1.id)).stateLabel, 'Passed 2026-11-04');
+  assert.equal((await state(f2.id)).state, 'manual_pending');
+
+  // The operator's manual test closes it; a later test with problems reopens it.
+  await add({ kind: 'manual_test', happenedOn: '2026-11-05', title: 'Keyboard only, home to cart', data: { result: 'pass', fixIds: [f2.id, f2.id], tester: 'Emerson', tools: 'Chrome' } });
+  assert.equal((await state(f2.id)).state, 'passed');
+  let rows = (await admin.get(`${url}?format=kit-rows`)).body;
+  assert.equal(rows.find((r) => r[1] === 'Fix two')[4], 'Pass 2026-11-05: Keyboard only, home to cart');
+  await add({ kind: 'manual_test', happenedOn: '2026-11-06', title: 'VoiceOver on iPhone', details: 'Cart button is announced twice.', data: { result: 'fail', fixIds: [f2.id] } });
+  assert.equal((await state(f2.id)).state, 'failed');
+  rows = (await admin.get(`${url}?format=kit-rows`)).body;
+  assert.match(rows.find((r) => r[1] === 'Fix two')[4], /^MANUAL PENDING: the test on 2026-11-06 did not pass\. VoiceOver on iPhone\. Cart button is announced twice\./);
+  // A manual test that names no fixes is just a record of the test.
+  await add({ kind: 'manual_test', title: 'General keyboard pass' });
+
+  // A fix logged again with the right facts replaces the earlier one; the earlier one stays, corrected.
+  const f3b = await add({ kind: 'fix', source: 'agent', agent: 'Claude', happenedOn: '2026-11-02', title: 'Fix three, criterion corrected', correctsId: f3.id, data: { wcag: '1.4.11' } });
+  assert.equal((await state(f3.id)).state, undefined, 'a replaced fix has no state of its own');
+  assert.equal((await state(f3b.id)).state, 'awaiting_retest');
+  rows = (await admin.get(`${url}?format=kit-rows`)).body;
+  assert.deepEqual(rows.map((r) => r[1]).sort(), ['Fix one', 'Fix three, criterion corrected', 'Fix two']);
+  const s = await summary();
+  assert.deepEqual([s.fixes, s.passed, s.failed, s.awaiting_retest, s.not_live], [3, 1, 1, 1, 0]);
+});
+
+test('an entry takes one evidence file, of a readable kind, and only the team can fetch it', async () => {
+  const admin = await adminBrowser();
+  const a = await clientWithLogin(admin, 'Seedco', 'angie@seedco.test');
+  const b = await clientWithLogin(admin, 'Larkspur Tea Co.', 'sam@larkspur.test');
+  const url = `/api/portal/admin/clients/${a.client.id}/activity`;
+  const scan = (await admin.post(url, { kind: 'scan', source: 'agent', agent: 'Claude', title: 'axe-core scan, five pages' })).body.entry;
+  assert.equal(scan.file, null);
+  const fileUrl = `/api/portal/admin/activity/${scan.id}/file`;
+  const json = Buffer.from('{"violations":[]}');
+
+  // Refused: nothing sent, a kind that cannot be read back, no extension.
+  assert.equal((await admin.upload(`${fileUrl}?name=scan.json`, Buffer.alloc(0))).status, 400);
+  assert.equal((await admin.upload(`${fileUrl}?name=tool.exe`, json)).status, 415);
+  assert.equal((await admin.upload(`${fileUrl}?name=json`, json)).status, 415);
+  assert.equal((await admin.get(fileUrl)).status, 404, 'no file yet');
+
+  const up = await admin.upload(`${fileUrl}?name=${encodeURIComponent('../Seedco axe scan.json')}`, json);
+  assert.equal(up.status, 201);
+  assert.deepEqual([up.body.entry.file.name, up.body.entry.file.size, up.body.entry.file.addedBy], ['Seedco axe scan.json', json.length, 'Accessrank team']);
+  assert.equal((await admin.get(url)).body.entries[0].file.name, 'Seedco axe scan.json');
+  assert.equal((await admin.get(url)).body.entries[0].file.data, undefined, 'the list never carries the bytes');
+  assert.ok((await admin.get(url)).body.evidenceTypes.includes('json'));
+
+  const down = await admin.get(fileUrl);
+  assert.equal(down.status, 200);
+  assert.match(down.headers.get('content-disposition'), /^attachment; filename="Seedco axe scan\.json"/);
+  assert.equal(Buffer.isBuffer(down.body) ? down.body.toString() : JSON.stringify(down.body), '{"violations":[]}');
+
+  // Once only: the log is append-only, so a file is never swapped.
+  assert.equal((await admin.upload(`${fileUrl}?name=other.json`, json)).status, 409);
+
+  // A report served as an attachment, never rendered: HTML comes back as a plain download.
+  const note = (await admin.post(url, { kind: 'note', title: 'Lighthouse report' })).body.entry;
+  assert.equal((await admin.upload(`/api/portal/admin/activity/${note.id}/file?name=lighthouse.html`, Buffer.from('<html><script>alert(1)</script></html>'))).status, 201);
+  const html = await admin.get(`/api/portal/admin/activity/${note.id}/file`);
+  assert.equal(html.headers.get('content-type'), 'application/octet-stream');
+  assert.match(html.headers.get('content-disposition'), /^attachment/);
+
+  // Clients and unassigned operators reach neither the upload nor the download.
+  assert.ok((await a.person.get(fileUrl)).status >= 401);
+  assert.ok((await a.person.upload(`${fileUrl}?name=x.json`, json)).status >= 401);
+  const op = await operatorWithLogin(admin, { name: 'Olive Operator', email: 'olive@accessrank.test' });
+  await admin.put(`/api/portal/operators/${op.operator.id}/clients`, { clientIds: [b.client.id] });
+  assert.equal((await op.person.get(fileUrl)).status, 404);
+  assert.equal((await op.person.upload(`/api/portal/admin/activity/${note.id}/file?name=x.json`, json)).status, 404);
+  assert.equal((await admin.upload('/api/portal/admin/activity/not-a-uuid/file?name=x.json', json)).status, 404);
+
+  const csv = (await admin.get(`${url}?format=csv`)).body.toString('utf8');
+  assert.match(csv, /Seedco axe scan\.json/);
+});
