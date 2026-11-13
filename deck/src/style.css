@@ -935,6 +935,8 @@ p, li, .lede, .s01-sub, .s03-lede, .s06-lede, .s11-lede, .s12-sub, .tile-label, 
    its proportions. Under zoom, vw/vh still measure the real window, so the two places that use them divide by --k. */
 :root { --k: 1; }
 #deck { zoom: var(--k); }
+/* the top nav is not part of the scaled composition: counter-zoom it so it keeps the main site's size at every window size */
+.ar-nav { zoom: calc(1 / var(--k)); }
 :root { --gx: max(0px, calc((100vw / var(--k) - 1280px) / 2)); }
 @media (min-width: 768px) and (min-height: 621px) and (min-aspect-ratio: 1/1) {
   .s01-mock img { max-height: calc(76vh / var(--k)); }
