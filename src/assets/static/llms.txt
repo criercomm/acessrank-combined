@@ -10,8 +10,8 @@ Accessrank, Inc. is based in Los Angeles, California (+1 310-408-1881; info@acce
 - Fixed-scope plan: a specialist reviews the result and returns a remediation plan, timeline and price.
 - Remediation in the theme code: Accessrank fixes the cause in the theme code, most of it within the first remediation cycle. Findings that need a judgment call (alt text, media descriptions, control behavior) are written and reviewed by an Accessrank staff member. Every change is recorded.
 - Accessibility Compliance Record: a dated file for the client's attorney or insurer containing a baseline audit, remediation log, VPAT-format conformance report against WCAG 2.2 AA, published accessibility statement, monitoring certificates, human (screen-reader and keyboard) testing record, and a demand-letter playbook.
-- Monitoring: scheduled re-checks (monthly on Starter, weekly on Growth, daily or real-time on Enterprise) so a new app, product or theme edit does not reintroduce failures.
-- Lawsuit response: for stores already served, an express engagement in about 7 days covering the cited and critical-path barriers, source-code fixes, a screen-reader proof video, VPAT and conformance documentation, and a technical review of settlement remediation terms for the client's attorney.
+- Monitoring: continuous monitoring on every plan, with a dated certificate after every scan, so a new app, product or theme edit does not reintroduce failures. Plans differ in how fast regressions are fixed: next monthly cycle on Starter, five business days on Growth, two business days on Scale, and a contracted window on Enterprise.
+- Lawsuit response: for stores already served, an engagement in about 7 days covering the cited and critical-path barriers, source-code fixes, a screen-reader proof video, VPAT and conformance documentation, and a technical review of settlement remediation terms for the client's attorney.
 
 ## The Accessrank score
 
@@ -25,6 +25,10 @@ The Accessrank score is the accessibility score and nothing else: how much of WC
 - [Why we exist](https://accessrank.ai/about): why online stores get sued, why overlays do not fix it, how accessible code helps SEO and AI search, and what Accessrank will not claim.
 - [ADA guide](https://accessrank.ai/guide/ada-eaa): what the ADA and Section 508 require of a US online store, who is covered, and what a demand letter looks like.
 - [Resources](https://accessrank.ai/resources): the explainers Accessrank maintains.
+- [Human testing](https://accessrank.ai/human-testing): what a person checks when they test a store with a keyboard and a screen reader, what a flow is, how often each plan includes it, and the cost if served.
+- [Overlays](https://accessrank.ai/overlays): why an accessibility plug-in or widget does not fix the code underneath, and what the FTC said about overlays.
+- [Beta](https://accessrank.ai/beta): Accessrank is in private beta and launching in Q1 2027; apply to be one of the first stores fixed.
+- [Careers](https://accessrank.ai/careers): open roles at Accessrank.
 - [Citations](https://accessrank.ai/citations): sources for every statistic on the site.
 
 ## Pricing (USD)
