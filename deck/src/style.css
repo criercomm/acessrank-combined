@@ -335,13 +335,6 @@ html, body { font-family: var(--display); }
 .rk-num .flap-digits { font-size: 14px; font-weight: 500; }
 .rk-num .flap::after { display: none; } .rk-num .flap .half, .rk-num .flap .face { background: none; }
 .rk-source { text-transform: none; letter-spacing: .04em; font-size: 10px; }
-.s08-rails { position: relative; display: grid; row-gap: 16px; z-index: 3; }
-.rail { display: grid; grid-template-columns: 112px 1fr; column-gap: 24px; align-items: center; }
-.rail-track { position: relative; display: flex; justify-content: space-between; align-items: center; }
-.rail-line { position: absolute; left: 0; right: 0; top: 50%; height: 1px; background: rgba(255, 255, 255, .3); transform-origin: left; }
-.rail-step { position: relative; padding: 8px 14px; border-radius: 999px; border: 1px solid var(--line); background: var(--bg); font-size: 13px; color: var(--muted); opacity: 0; transform: translateY(6px); transition: opacity var(--t-3) var(--out-expo), transform var(--t-3) var(--out-expo); white-space: nowrap; }
-.rail-step.is-in { opacity: 1; transform: none; }
-.rail-step.is-now { color: var(--bg); background: var(--accent); border-color: var(--accent); }
 
 /* ============ S09 · Today ============ */
 .member { display: grid; row-gap: 6px; padding-top: 16px; border-top: 1px solid var(--line); align-content: start; }
@@ -538,10 +531,6 @@ a.contact-line:hover { color: var(--accent); }
   .s08-cols { position: relative; inset: auto; grid-template-columns: 1fr; row-gap: 24px; margin-top: 20px; }
   .rk-row { grid-template-columns: 24px 1fr 64px; }
   .rk-track { display: none; }
-  .s08-rails { position: relative; bottom: 0; margin-top: 24px; }
-  .rail { grid-template-columns: 1fr; row-gap: 8px; }
-  .rail-track { flex-wrap: wrap; gap: 6px; justify-content: flex-start; }
-  .rail-line { display: none; }
   .s10-uses, .s10-miles { position: relative; inset: auto; width: 100%; margin-top: 20px; }
   .s10-end { position: relative; inset: auto; flex-direction: column; align-items: flex-start; margin-top: 32px; padding-bottom: 24px; }
   .s10-close { font-size: clamp(32px, calc(9.4 * var(--vw)), 48px); }
@@ -574,32 +563,50 @@ a.contact-line:hover { color: var(--accent); }
   .s12-foot { position: relative; inset: auto; width: 100%; flex-direction: column; align-items: flex-start; margin-top: 24px; padding-bottom: 24px; }
 }
 
-/* ---- bottom bar: legal line + previous / chapter dots / next (compact only; src/components/navbar.js) ---- */
-.navbar { display: none; }
+/* ---- Deck stepper (src/components/navbar.js): labeled dots · previous / next · disclaimer. Bottom of the page at every
+   viewport. Desktop: dots left, arrows right, inside the page column. Compact: arrows flank the dots, disclaimer centered. ---- */
+.chapters { display: none !important; } /* the old top-left dots; the stepper below replaces them */
+.navbar { display: grid; position: fixed; left: 0; right: 0; bottom: 0; z-index: 50; row-gap: 4px;
+  padding: 12px var(--margin) calc(12px + env(safe-area-inset-bottom, 0px));
+  background: none; } /* no bar: the stepper sits straight on the deck background */
+.nav-row { display: flex; align-items: center; gap: 8px; }
+.nav-legal { order: 2; font-family: 'Inter', system-ui, sans-serif; font-size: 12px; line-height: 18px; letter-spacing: 0; color: var(--muted); text-wrap: pretty; }
+.nav-legal b { color: var(--soft); font-weight: 500; }
+.nav-arrow { flex: 0 0 auto; width: 36px; height: 36px; display: grid; place-items: center; border-radius: 6px; border: 1px solid rgba(240, 237, 229, .22); color: #D4D0C5; transition: color var(--t-2), opacity var(--t-2), border-color var(--t-2); }
+.nav-arrow:hover, .nav-arrow:active { color: var(--fg); border-color: rgba(240, 237, 229, .5); }
+.nav-arrow.is-quiet { opacity: .25; pointer-events: none; }
+.nav-dots { flex: 1 1 auto; min-width: 0; display: flex; align-items: center; justify-content: flex-start; list-style: none; margin: 0; padding: 0; }
+.nav-dots li { flex: 0 0 auto; display: flex; justify-content: center; }
+.nav-dot { min-width: 30px; height: 44px; display: flex; align-items: center; justify-content: center; }
+.nav-dot i { display: block; width: 8px; height: 8px; border-radius: 50%; background: #77758A; transition: background var(--t-2); }
+.nav-dot.is-past i { background: #B5B0A4; }
+.nav-dot:hover i { background: var(--fg); }
+.nav-dot-label { display: none; }
+.nav-dot.is-on { height: 28px; margin: 8px 2px; padding: 0 11px 0 12px; gap: 8px; border-radius: 6px; justify-content: center; background: var(--accent); color: #0E0E10; }
+.nav-dot.is-on i { display: none; }
+.nav-dot.is-on .nav-dot-label { display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-family: var(--mono); font-size: 11px; line-height: 16px; font-weight: 500; letter-spacing: .08em; text-transform: uppercase; white-space: nowrap; }
+.nav-dot-label em { font-style: normal; position: relative; top: 0; } /* optical centering of the all-caps label in the pill (tuned by eye: +2px too low, -1px too high) */
+.nav-dot:focus-visible, .nav-arrow:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+/* desktop: one row inside the page column — dots left, disclaimer and arrows right (keeps the bar short, 72px) */
+@media (min-width: 768px) and (min-height: 621px) and (min-aspect-ratio: 1/1) {
+  .navbar { display: flex; align-items: center; gap: 8px; padding: 14px calc(var(--gx) + var(--margin)); } /* equal top and bottom, so the row sits in the middle of the bar */
+  .nav-row { display: contents; }
+  .nav-row .nav-dots { order: 1; margin-left: 0; flex: 0 1 auto; }
+  .nav-legal { order: 2; margin: 0 16px 0 auto; text-align: right; }
+  .nav-row .nav-play { order: 3; margin-right: 8px; }
+  .nav-row .nav-prev { order: 4; }
+  .nav-row .nav-next { order: 5; }
+}
+/* compact: arrows flank the dots, disclaimer centered */
 @media (max-width: 767px), (max-height: 620px), (max-aspect-ratio: 1/1) {
-  .navbar { display: grid; position: fixed; left: 0; right: 0; bottom: 0; z-index: 50; row-gap: 6px;
-    padding: 10px var(--margin) calc(10px + env(safe-area-inset-bottom, 0px));
-    background: linear-gradient(to top, var(--bg) 62%, rgba(20, 20, 42, .92) 84%, rgba(20, 20, 42, 0));
-    -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
-  .nav-legal { font-size: 9.5px; line-height: 14px; letter-spacing: .02em; color: var(--muted); }
-  .nav-legal b { color: var(--soft); font-weight: 500; }
-  .nav-row { display: flex; align-items: center; gap: 4px; }
-  .nav-arrow { flex: 0 0 auto; width: 40px; height: 40px; display: grid; place-items: center; border-radius: 8px; color: var(--muted); transition: color var(--t-2), opacity var(--t-2); }
-  .nav-arrow:hover, .nav-arrow:active { color: var(--fg); }
-  .nav-arrow.is-quiet { opacity: .22; pointer-events: none; }
-  .nav-dots { flex: 1 1 auto; min-width: 0; display: flex; align-items: center; justify-content: space-between; list-style: none; }
-  .nav-dots li { flex: 1 1 0; min-width: 0; display: flex; justify-content: center; }
-  .nav-dot { width: 100%; max-width: 32px; height: 40px; display: grid; place-items: center; }
-  .nav-dot i { display: block; width: 7px; height: 7px; border-radius: 50%; background: var(--muted); opacity: .5; transition: width var(--t-2) var(--out-expo), background var(--t-2), opacity var(--t-2); }
-  .nav-dot.is-on i { width: 20px; border-radius: 4px; background: var(--accent); opacity: 1; }
-  .nav-dot:focus-visible, .nav-arrow:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .navbar { padding: 10px var(--margin) calc(10px + env(safe-area-inset-bottom, 0px)); }
+  .nav-legal { text-align: center; }
+  .nav-dots { flex: 1 1 auto; justify-content: space-between; }
+  .nav-dots li { flex: 1 1 0; min-width: 0; }
+  .nav-dots li:has(.is-on) { flex: 0 0 auto; }
+  .nav-dot { width: 100%; min-width: 24px; max-width: 32px; }
 }
-/* twelve dots and two arrows on a 390 px screen: trim the gutter so each dot keeps 24 px of spacing (WCAG 2.5.8) */
-@media (max-width: 400px) {
-  .navbar { padding-left: 14px; padding-right: 14px; }
-  .nav-arrow { width: 34px; }
-  .nav-row { gap: 0; } /* los 4 px de gap dejaban los puntos a 23,8 px de separación: 0,2 por debajo del mínimo */
-}
+
 
 /* ---- wide and short (phone held sideways, low window): the width is there, only the height is missing ---- */
 @media (min-width: 768px) and (max-height: 620px) {
@@ -673,8 +680,12 @@ a.contact-line:hover { color: var(--accent); }
 /* The main site's brand block (.site .site-nav .logo): 26px Inter 800, a 33px mark, the Beta badge beside it. */
 .ar-nav-brand { grid-column: 1; display: flex; align-items: center; gap: 14px; min-width: 0; }
 .ar-nav-logo { display: inline-flex; align-items: center; gap: 10px; color: var(--fg); text-decoration: none; font-weight: 800; font-size: 26px; letter-spacing: -.5px; }
-.ar-nav-beta { position: relative; top: 2px; display: inline-block; padding: 4px 10px; border-radius: 6px; background: rgba(242, 240, 235, .10); color: var(--fg); font-size: 13px; font-weight: 600; line-height: 1.3; text-decoration: none; white-space: nowrap; }
+.ar-nav-beta { position: relative; top: 0; display: inline-block; padding: 4px 10px; border-radius: 6px; background: rgba(242, 240, 235, .10); color: var(--fg); font-size: 13px; font-weight: 600; line-height: 1.3; text-decoration: none; white-space: nowrap; }
 .ar-nav-beta:hover { background: rgba(242, 240, 235, .16); }
+/* The launch date after "Beta", as on the main site (.beta-badge-when in pages.css): lighter weight and colour, and dropped on
+   phones and short windows, where the bar already holds the mark, Full site and Free audit. */
+.ar-nav-beta-when { font-weight: 400; color: var(--ar-soft); }
+@media (max-width: 767px), (max-height: 620px) { .ar-nav-beta-when { display: none; } }
 .ar-nav-mark { display: inline-flex; align-items: center; justify-content: center; width: 33px; height: 33px; border-radius: 8px; background: var(--ar-yellow); color: var(--ar-ink); flex-shrink: 0; }
 .ar-nav-mark svg { width: 58%; height: 58%; }
 .ar-nav-word { font-family: var(--display); }
@@ -703,6 +714,11 @@ a.contact-line:hover { color: var(--accent); }
 
 /* Bar links (the row itself hides below 1280px; see the media query below). */
 .ar-nav-links { display: flex; align-items: center; gap: 24px; list-style: none; margin: 0; padding: 0; }
+/* One shared box for every item in the row, so the labels sit on the same baseline. The plain links were block list items
+   (a line box with the page's default line-height around the text) while "Why Accessrank" is a flex item, which put its
+   text about 1.5px higher; "Client login" (12px) sat lower still. Flex items with one explicit line-height centre alike. */
+.ar-nav-links > li { display: flex; align-items: center; }
+.ar-nav-links .ar-nav-link { line-height: 1.25; }
 
 /* "Why Accessrank" dropdown in the bar (site-nav.js dropdown()). The panel is the Menu panel's
    styling at a smaller size; the chevron is the main site's. Hover, focus-within or the chevron
@@ -815,7 +831,7 @@ a.contact-line:hover { color: var(--accent); }
 /* ---- Desktop tightening: smaller headlines, the stepper moved up under the nav, less empty space above the content,
    and a smaller cover mockup that clears the copy. Phones, tablets in portrait and short windows keep their layouts. ---- */
 @media (min-width: 768px) and (min-height: 621px) and (min-aspect-ratio: 1/1) {
-  :root { --pad-y: 173px; }
+  :root { --pad-y: 128px; }
   .chapters { top: 104px; bottom: auto; height: 24px; }
   .topright { top: 104px; right: calc(var(--gx) + var(--margin)); }
   .h-display { font-size: clamp(44px, calc(4.6 * var(--vw)), 80px); }
@@ -911,3 +927,15 @@ p, li, .lede, .s01-sub, .s03-lede, .s06-lede, .s11-lede, .s12-sub, .tile-label, 
    its pills keep the size they have at medium widths, and the Fix slide's store hangs from the headline, not the window middle. */
 .slide:focus, .slide:focus-visible { outline: none; }
 @media (min-width: 768px) { .slide .bleed.s03-wall { left: 0; right: 0; } }
+
+/* ---- Large windows: scale the stage ----
+   The 1280px column and the --vw cap (1440px) used to leave a 2560px window with ~700px of empty navy on each side and
+   laptop-sized type. src/components/stage-scale.js sets --k (1 up to 1440 x 820, growing with the window above that,
+   max 2.25) and the whole stage — slides, nav, chapter dots — scales by it with `zoom`, so every composition above keeps
+   its proportions. Under zoom, vw/vh still measure the real window, so the two places that use them divide by --k. */
+:root { --k: 1; }
+#deck { zoom: var(--k); }
+:root { --gx: max(0px, calc((100vw / var(--k) - 1280px) / 2)); }
+@media (min-width: 768px) and (min-height: 621px) and (min-aspect-ratio: 1/1) {
+  .s01-mock img { max-height: calc(76vh / var(--k)); }
+}

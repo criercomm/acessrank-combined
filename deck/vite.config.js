@@ -68,7 +68,8 @@ export default defineConfig({
     ],
   },
   optimizeDeps: { include: ['gsap', 'gsap/CustomEase'] },
-  server: { port: 5178, strictPort: false, fs: { allow: [root, LIB] } },
+  // ../src/data: the main site's nav (components/site-nav.js reads site.json through import.meta.glob)
+  server: { port: 5178, strictPort: false, fs: { allow: [root, LIB, path.resolve(root, '../src/data')] } },
   build: { target: 'es2022', assetsInlineLimit: 0, cssCodeSplit: false, sourcemap: false },
   plugins: [deckAssets()],
 })

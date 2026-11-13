@@ -2,10 +2,11 @@
 //
 // The deck is accessrank.ai's home page for tablets and desktops (phones get the
 // long-form page; see server/app.js), so this is the real site nav, not an exit
-// sign. The link set mirrors src/data/site.json `nav` on the main site, with the
-// long-form page's in-page anchors pointed at /home where that page always lives.
+// sign. The link set is read from src/data/site.json `nav` on the main site (see
+// MAIN_NAV below), whose in-page anchors already point at /home. The logo goes to
+// /home too: on desktop `/` is this deck again, so it would be a link to itself.
 //
-// Layout: logo · chapter dots (moved in by src/main.js) · links · Full site · Free audit.
+// Layout: logo · chapter dots (moved in by src/main.js) · links · Explore the site · Free audit.
 // From 1280px up the links sit in the bar. Below that — iPad portrait and
 // landscape, small laptops — they fold into a Menu button, because the bar
 // cannot hold the logo, nine chapter dots and five links at 1024px without the
@@ -18,28 +19,37 @@
 // depending on the main site's stylesheet.
 import { el } from '@lib/util/dom.js'
 
-const LINKS = [
-  // Same second tier as the main site's nav (src/data/site.json): a dropdown in the bar.
-  { label: 'Why Accessrank', href: '/about', children: [
-    { label: 'Our approach', href: '/about' },
+// The link set is read from the main site's own nav data (src/data/site.json, the file its header is built from), so a rename or a
+// new page there reaches the deck on the next build instead of waiting for someone to copy it over. import.meta.glob (not a plain
+// import) so a deck built on its own, without the main site beside it, still builds and falls back to FALLBACK below.
+// `import: 'nav'` keeps only that key of the JSON in the bundle.
+const MAIN_NAV = Object.values(import.meta.glob('../../../src/data/site.json', { eager: true, import: 'nav' }))[0]
+const FALLBACK = [
+  { label: 'Why we exist', href: '/about', menu: true, children: [
+    { label: 'Why we exist', href: '/about' },
     { label: 'ADA guide', href: '/guide/ada-eaa' },
     { label: 'How we score', href: '/methodology' },
   ] },
-  { label: 'What we fix', href: '/home#product' },
   { label: 'Pricing', href: '/home#pricing' },
-  { label: 'Client login', href: '/client-login' },
+  { label: 'Free audit', href: '/home#audit', cta: true },
 ]
-// Only in the menu, where there is room for the second tier.
-const MORE = [
-  { label: 'How we score', href: '/methodology' },
-  { label: 'ADA guide', href: '/guide/ada-eaa' },
-  { label: 'Human testing', href: '/human-testing' },
-]
+const NAV = Array.isArray(MAIN_NAV) && MAIN_NAV.length ? MAIN_NAV : FALLBACK
+
+// Not in site.json: the main site's header template hard-codes "Client login" (src/partials/nav.html), so it is kept here.
+const CLIENT_LOGIN = { label: 'Client login', href: '/client-login' }
+// The deck's own entry ("Overview", flagged deck: true) is skipped: this nav is already inside it. The CTA is the flagged item.
+const BAR = NAV.filter((l) => !l.deck && !l.cta)
+const LINKS = [...BAR, CLIENT_LOGIN]
+// Only in the menu, where there is room for the second tier: every dropdown child not already listed, then the pages the main
+// nav does not carry at all.
+const EXTRA = [{ label: 'Human testing', href: '/human-testing' }]
+const seen = new Set(LINKS.map((l) => l.href))
+const MORE = [...BAR.flatMap((l) => l.children || []), ...EXTRA].filter((l) => !seen.has(l.href) && seen.add(l.href))
 // Always in the bar, at every width: the way off the slides and into the full
-// site. "Full site" rather than "Main site" — the deck is the site's front door
-// now, so the other page is the fuller one, not the main one.
-const SITE = { label: 'Full site', href: '/home' }
-const CTA = { label: 'Free audit', href: '/home#audit' }
+// site. "Explore the site" rather than "Main site" or "Full site" — the deck is the
+// site's front door now, so this invites the visitor on to the fuller page.
+const SITE = { label: 'Explore the site', href: '/home' }
+const CTA = NAV.find((l) => l.cta) || { label: 'Free audit', href: '/home#audit' }
 
 const MARK = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>'
 
@@ -62,13 +72,14 @@ function dropdown(l) {
   return item
 }
 
-export function SiteNav({ homeHref = '/' } = {}) {
-  const logo = el('a', { class: 'ar-nav-logo', href: homeHref, target: '_top', 'aria-label': 'Accessrank home' },
+export function SiteNav({ homeHref = '/home' } = {}) {
+  const logo = el('a', { class: 'ar-nav-logo', href: homeHref, target: '_top', 'aria-label': 'Accessrank main site' },
     el('span', { class: 'ar-nav-mark', 'aria-hidden': 'true', html: MARK }),
     el('span', { class: 'ar-nav-word', text: 'Accessrank' }))
 
-  // The main site's brand block: logo with the Beta badge beside it.
-  const beta = el('a', { class: 'ar-nav-beta', href: '/beta', target: '_top', text: 'Beta' })
+  // The main site's brand block: logo with the Beta badge beside it, "Beta · launching Q1 2027" as in src/partials/nav.html
+  // (the launch date is hard-coded there, not in site.json, so it is kept here too; change both together).
+  const beta = el('a', { class: 'ar-nav-beta', href: '/beta', target: '_top' }, 'Beta ', el('span', { class: 'ar-nav-beta-when', text: '\u00b7 launching Q1 2027' }))
   const brand = el('div', { class: 'ar-nav-brand' }, logo, beta)
 
   // Bar links (hidden below 1280px by CSS).

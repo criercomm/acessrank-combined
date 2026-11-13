@@ -42,7 +42,10 @@ export default {
       const w = Math.max(1, flow.clientWidth)
       flow.setAttribute('viewBox', `0 0 ${w} ${H}`)
       const rr = rail.getBoundingClientRect()
-      const xs = hotspots.map((h) => { const r = h.getBoundingClientRect(); return r.left - rr.left + r.width / 2 })
+      // getBoundingClientRect reports on-screen pixels, which are --k times larger than the SVG's own units when the stage is
+      // scaled up on large windows (components/stage-scale.js), so convert back or the nodes spread past their hotspots.
+      const k = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--k')) || 1
+      const xs = hotspots.map((h) => { const r = h.getBoundingClientRect(); return (r.left - rr.left + r.width / 2) / k })
       nodes.forEach((g, i) => g.setAttribute('transform', `translate(${xs[i].toFixed(1)} ${H / 2})`))
       line.setAttribute('d', `M ${xs[0].toFixed(1)} ${H / 2} H ${xs[xs.length - 1].toFixed(1)}`)
       const len = line.getTotalLength()

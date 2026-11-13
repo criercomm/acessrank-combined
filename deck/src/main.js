@@ -9,6 +9,7 @@ import { copy } from './copy.js'
 import { Presenter } from './components/presenter.js'
 import { Navbar } from './components/navbar.js'
 import { SiteNav } from './components/site-nav.js'
+import { StageScale } from './components/stage-scale.js'
 import { trackCopyHeights } from './components/copy-gap.js'
 import s01 from './slides/s01-cover.js'
 import s02 from './slides/s02-letter.js'
@@ -54,6 +55,7 @@ const presenter = params.get('presenter') === '1' ? Presenter({ ...copy, chapter
 if (presenter && short) presenter.el.classList.add('is-short')
 
 // aurora: the site's radial glow (blue + violet) behind every scene, breathing slowly; one element, GPU cheap
+StageScale() // sets --k so large windows scale the stage up (see style.css, end of file)
 const root = document.getElementById('deck')
 root.append(el('div', { class: 'aurora', 'aria-hidden': 'true' }))
 
@@ -67,7 +69,7 @@ const nav = Navbar({
   step: (d) => (d > 0 ? deckRef?.next() : deckRef?.prev()),
 })
 root.append(nav.el)
-const siteNav = SiteNav({ homeHref: '/' })
+const siteNav = SiteNav({ homeHref: ['localhost', '127.0.0.1'].includes(location.hostname) ? 'https://accessrank.ai/home' : '/home' }) // the main site: on desktop '/' is this deck again
 root.append(siteNav.el)
 
 // Sound removed deck-wide (JP, 2026-10-19): force-mute regardless of any mute cookie a returning visitor may already

@@ -1,5 +1,5 @@
 // S08 — Start where the lawsuits are (V2, national). Two ranked lists with bars from the same 2025 report: lawsuits by state
-// and by market (industry), counts in flap digits; then the two expansion rails (platforms, standards) draw in.
+// and by market (industry), counts in flap digits.
 import { gsap, T, sec, ease } from '@lib/motion/ease.js'
 import { Stagger } from '@lib/motion/stagger.js'
 import { FlapDigits } from '@lib/motion/flap-digits.js'
@@ -33,16 +33,12 @@ export default {
     const industries = ranked(C.industries, { sound, cls: 'rk--industries' })
     const colA = el('div', { class: 's08-col' }, label(C.statesLabel), states.el, label(C.statesSource, 'rk-source'))
     const colB = el('div', { class: 's08-col' }, label(C.industriesLabel), industries.el, label(C.industriesSource, 'rk-source'))
-    const rails = C.rails.map((r) => {
-      const steps = r.steps.map((s, i) => el('span', { class: 'rail-step' + (i === 0 ? ' is-now' : ''), text: s }))
-      return el('div', { class: 'rail' }, label(r.label, 'rail-label'), el('div', { class: 'rail-track' }, el('i', { class: 'rail-line' }), ...steps))
-    })
-    root.append(el('div', { class: 's08-copy' }, title.el), el('div', { class: 's08-cols' }, colA, colB), el('div', { class: 's08-rails' }, ...rails))
-    this.els = { title, states, industries, colA, colB, rails }
-    gsap.set([colA, colB, ...rails], { opacity: 0 })
+    root.append(el('div', { class: 's08-copy' }, title.el), el('div', { class: 's08-cols' }, colA, colB))
+    this.els = { title, states, industries, colA, colB }
+    gsap.set([colA, colB], { opacity: 0 })
   },
   enter(ctx) {
-    const { title, states, industries, colA, colB, rails } = this.els
+    const { title, states, industries, colA, colB } = this.els
     this.tl?.kill()
     const tl = gsap.timeline()
     tl.add(() => title.restart(), .3)
@@ -54,13 +50,6 @@ export default {
       else tl.fromTo(r.fill, { scaleX: 0 }, { scaleX: Number(r.fill.style.getPropertyValue('--p')), duration: sec(T[5]), ease: ease('out-expo') }, at)
       tl.add(() => ctx.sound.play('tick', { gain: .5, rate: 1 + i * .03, throttle: 40 }), at)
     }))
-    tl.add(Stagger(rails, { dur: T[5], y: 16, delay: 200, from: 'start' }), 2.4)
-    rails.forEach((r, k) => {
-      const line = r.querySelector('.rail-line'), steps = r.querySelectorAll('.rail-step')
-      if (prefersReduced()) { tl.set(line, { scaleX: 1 }, 2.6); steps.forEach((s) => s.classList.add('is-in')); return }
-      tl.fromTo(line, { scaleX: 0 }, { scaleX: 1, duration: sec(T[6]), ease: ease('out-expo') }, 2.6 + k * .3)
-      steps.forEach((s, i) => tl.add(() => { s.classList.add('is-in') }, 2.7 + k * .3 + i * .16))
-    })
     this.tl = tl
   },
   leave() { this.tl?.kill() },

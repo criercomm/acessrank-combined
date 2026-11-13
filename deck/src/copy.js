@@ -5,7 +5,7 @@
 export const copy = {
   brand: 'Accessrank',
   spine: "The web's biggest blind spot. Accessrank finds it, fixes it, and proves it.",
-  legal: '<b>Accessrank</b> · Overview · Not legal advice · Statistics from cited third-party sources',
+  legal: '<b>Not legal advice</b> · Statistics from cited third-party sources',
   chapters: ['The lawsuit', 'The letter', 'Plug-ins', 'The fix', 'Process', 'Engine', 'Model', 'Market', 'Contact'],
 
   s01: {
@@ -161,11 +161,7 @@ export const copy = {
       { name: 'General retail', n: 89 }, { name: 'Toys, gifts & specialty', n: 68 },
     ],
     industriesSource: 'EcomBack 2025 annual report',
-    rails: [
-      { label: 'Platforms', steps: ['Shopify', 'WordPress', 'Code repositories'] },
-      { label: 'Standards', steps: ['Accessibility', 'Performance', 'Search & AI', 'Security', 'Compliance'] },
-    ],
-    notes: '"Four states carry 87 percent of the filings and two industries, food and fashion, carry 60 percent. That is where the first customers are. The rails below are where the same engine goes next: platforms and standards."',
+    notes: '"Four states carry 87 percent of the filings and two industries, food and fashion, carry 60 percent. That is where the first customers are."',
   },
 
 
