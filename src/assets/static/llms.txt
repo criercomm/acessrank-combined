@@ -22,7 +22,7 @@ The Accessrank score is the accessibility score and nothing else: how much of WC
 - [Home](https://accessrank.ai/): what the service does, how it works, the Accessibility Compliance Record, WCAG 2.2 in plain English, pricing, lawsuit response and FAQ. The free check runs here.
 - [Overview](https://accessrank.ai/deck/): a nine-screen walkthrough of why online stores get sued over accessibility and how Accessrank fixes the cause.
 - [How we score](https://accessrank.ai/methodology): the scoring model behind every report, what a full audit tests, and what automated scores cannot tell you.
-- [Our approach](https://accessrank.ai/about): why Accessrank fixes source code instead of selling an overlay, and what it will not claim.
+- [Why we exist](https://accessrank.ai/about): why online stores get sued, why overlays do not fix it, how accessible code helps SEO and AI search, and what Accessrank will not claim.
 - [ADA guide](https://accessrank.ai/guide/ada-eaa): what the ADA and Section 508 require of a US online store, who is covered, and what a demand letter looks like.
 - [Resources](https://accessrank.ai/resources): the explainers Accessrank maintains.
 - [Citations](https://accessrank.ai/citations): sources for every statistic on the site.

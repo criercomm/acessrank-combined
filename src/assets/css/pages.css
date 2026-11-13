@@ -251,6 +251,16 @@ select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmln
 .citation-list li { padding: 16px 18px; background: var(--surface-2); border: 1px solid var(--keyline); border-radius: 10px; }
 .citation-claim { font-size: 14.5px; line-height: 1.5; color: var(--text-soft); font-weight: 600; margin: 0 0 6px; }
 .citation-source { font-size: 13px; line-height: 1.5; color: var(--text-muted); margin: 0; }
+
+/* ---- Sources under long-form copy (about page) ---- */
+.source-list { list-style: decimal; margin: 0 0 20px; padding: 0 0 0 1.2em; display: flex; flex-direction: column; gap: 14px; }
+.source-list li { font-size: 15px; line-height: 1.6; color: var(--text-muted); }
+.source-claim { display: block; color: var(--text-soft); font-weight: 600; }
+.source-note { font-size: 14px; line-height: 1.6; color: var(--text-muted); }
+.source-list li:target .source-claim { color: var(--brand-text); }
+.src-ref { font-size: 11px; font-weight: 600; line-height: 0; vertical-align: super; margin-left: 1px; }
+.src-ref a { text-decoration: none; }
+#sources { border-top: 1px solid var(--hairline-strong); padding-top: 26px; }
 .doc-toc { background: var(--surface); border: 1px solid var(--keyline); border-radius: 12px; padding: 18px 20px; margin: 0 0 34px; }
 .doc-toc .doc-toc-label { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--text-faint); font-weight: 600; margin: 0 0 12px; } /* TODO(contrast): verify against WCAG 1.4.3 */
 .doc-toc ul { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 8px 20px; }
@@ -363,3 +373,10 @@ select { min-width: 0; max-width: 100%; overflow: hidden; white-space: nowrap; t
 
 /* Light theme: the faint grey is 4.6:1 on white but only 4.26:1 on the darker tile grey, so labels on tiles use the muted grey. */
 [data-theme="light"] .doc .score-tile-label, [data-theme="light"] .doc .weight-table .sc { color: var(--text-muted); }
+
+/* The three ticked items under the sign-in copy stagger badly once the
+   auth grid centres them at phone width, so they are hidden there. Kept on
+   signup, beta and contact-sales, where they are conversion copy. */
+@media (max-width: 560px) {
+  body[data-page="/client-login"] .trust-row { display: none; }
+}

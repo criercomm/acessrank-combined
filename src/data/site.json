@@ -19,12 +19,12 @@
       "deck": true
     },
     {
-      "label": "Why Accessrank",
+      "label": "Why we exist",
       "href": "/about",
       "menu": true,
       "children": [
         {
-          "label": "Our approach",
+          "label": "Why we exist",
           "href": "/about"
         },
         {
@@ -56,7 +56,7 @@
       "heading": "Company",
       "links": [
         {
-          "label": "Our approach",
+          "label": "Why we exist",
           "href": "/about"
         },
         {
@@ -245,14 +245,14 @@
       "file": "about.html",
       "url": "/about",
       "layout": "page",
-      "title": "About Accessrank | engineers, not overlay vendors",
-      "description": "Who we are, why we fix source code instead of installing an overlay widget, and how we think about accessibility, risk and search.",
+      "title": "Why Accessrank exists | we fix the source code",
+      "description": "Why online stores get sued over accessibility, why overlay widgets do not fix it, and how accessible source code also helps SEO and AI search.",
       "schema": [
         "Article"
       ],
       "priority": "0.6",
       "changefreq": "monthly",
-      "dateModified": "2026-11-04"
+      "dateModified": "2026-11-13"
     },
     {
       "file": "methodology.html",
