@@ -151,3 +151,22 @@ test('draftKeys counts every place a draft waits for an answer', async () => {
   assert.equal(keys.get('footer'), 1);
   assert.equal(keys.has('ignored'), false);
 });
+
+test('rows and history say what the client actually answered, not that everything was approved', () => {
+  const tpl = DRAFT.replace('<template data-acr-row><tr><td>{{date}}</td><td>{{title}} by {{builtBy}}</td></tr></template>',
+    '<template data-acr-row><tr><td>{{date}}</td><td>{{title}} by {{builtBy}}: {{details}}</td></tr></template>')
+    .replace('<table data-acr="remediation-log"><tbody>', '<table data-acr="remediation-log"><tbody><template data-acr-row><tr><td>{{title}} (approved by the client)</td></tr></template>');
+  const mixed = [
+    queue[0],
+    { ...queue[0], key: 'email', title: 'Accessibility email address', decision: 'changes', choice: '', comment: 'info@freshe.test', statement: undefined },
+    { ...queue[0], key: 'phone', title: 'Phone number', decision: 'comment', choice: '', comment: '555-0100', statement: undefined },
+  ];
+  const { html } = mergeAcr(tpl, { queue: mixed }, meta);
+  assert.match(html, /Updated with 3 client answers applied: Section 1: the proposed accessibility statement; Accessibility email address; Phone number\./);
+  assert.ok(!/approved changes/.test(html), 'no claim that every queued item was an approval');
+  assert.match(html, /Section 1: the proposed accessibility statement \(approved by the client\)/);
+  assert.match(html, /Accessibility email address \(changes requested by the client\)/);
+  assert.match(html, /Phone number \(answered by the client\)/);
+  const one = mergeAcr(tpl, { queue: [queue[0]] }, meta).html;
+  assert.match(one, /Updated with 1 client answer applied:/);
+});

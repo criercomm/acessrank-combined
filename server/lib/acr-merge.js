@@ -101,6 +101,16 @@ function defaultRow(tag, fields) {
 }
 
 /** Add rows to the first element with this marker. Returns [html, placed]. */
+/**
+ * The house template titles every log row "(approved by the client)". That is only true when the client
+ * approved the item; a comment or a change request is the client's answer, not an approval.
+ */
+function answeredLabel(row, f) {
+  if (!f.decision || f.decision === 'approve') return row;
+  const said = f.decision === 'changes' ? 'changes requested by the client' : 'answered by the client';
+  return row.replace(/\(approved by the client\)/gi, `(${said})`);
+}
+
 function addRows(html, name, rows) {
   if (!rows.length) return [html, true];
   let placed = false;
@@ -118,7 +128,7 @@ function addRows(html, name, rows) {
     const tplHit = /<template\b[^>]*\bdata-acr-row\b[^>]*>([\s\S]*?)<\/template>/i.exec(inner);
     const newestFirst = /\bdata-acr-order\s*=\s*["']newest-first["']/i.test(el.attrs);
     const ordered = newestFirst ? [...rows].reverse() : rows;
-    const built = ordered.map((f) => (tplHit ? fill(tplHit[1].trim(), f) : defaultRow(tag, f))).join('\n');
+    const built = ordered.map((f) => answeredLabel(tplHit ? fill(tplHit[1].trim(), f) : defaultRow(tag, f), f)).join('\n');
     let next;
     if (tplHit && newestFirst) {
       const after = tplHit.index + tplHit[0].length;
@@ -246,7 +256,7 @@ export function mergeAcr(draftHtml, acr, meta) {
     const live = w.doneAt ? new Date(w.doneAt) : null;
     return {
       dateShort: live ? live.toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'America/Los_Angeles' }) : '',
-      date: day(w.doneAt), title: w.title, answer, signer: w.signerName, approvedOn: day(w.decidedAt),
+      date: day(w.doneAt), title: w.title, decision: w.decision, answer, signer: w.signerName, approvedOn: day(w.decidedAt),
       comment: w.comment, criterion: w.criterion, conformance, note: w.note, report: w.reportTitle,
       details, version, builtBy: meta.builtBy,
     };
@@ -358,7 +368,7 @@ export function mergeAcr(draftHtml, acr, meta) {
   const issued = /\bdraft\b/i.test(oldVersionText);
   const historyRow = {
     date: builtDay, title: issued ? `Record issued as version ${version}` : `Record updated to version ${version}`, version, builtBy: meta.builtBy,
-    details: `Updated with ${queue.length} approved ${queue.length === 1 ? 'change' : 'changes'}: ${queue.map((w) => w.title).join('; ')}.`,
+    details: `Updated with ${queue.length} client ${queue.length === 1 ? 'answer' : 'answers'} applied: ${queue.map((w) => w.title).join('; ')}.`,
   };
   [html] = addRows(html, 'history', [historyRow]);
 
@@ -366,7 +376,7 @@ export function mergeAcr(draftHtml, acr, meta) {
   if (unplaced.length || !placedStatement) {
     const section = `<section class="acr-updates" data-acr-added="${esc(version)}">
 <h2>Updates in version ${esc(version)}</h2>
-<p>Added ${esc(builtDay)} by ${esc(meta.builtBy)}. Each change below was approved by the client and is live on the site.</p>
+<p>Added ${esc(builtDay)} by ${esc(meta.builtBy)}. Each change below follows the client's answer and is live on the site.</p>
 ${unplaced.map((f) => `<h3>${esc(f.title)}</h3><p>${esc(f.details)}</p>`).join('\n')}
 ${placedStatement ? '' : `<h3>Approved accessibility statement</h3><p>${esc(`Approved by ${st.signerName || 'the client'} on ${day(st.decidedAt)}.`)}</p>\n${statementHtml(st.statement.blocks)}`}
 </section>\n`;
