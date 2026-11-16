@@ -74,8 +74,21 @@ function copyDir(from, to) {
 
 /* --------------------------------------------------------------- build --- */
 
+/** Search engines want a full date-time with a timezone, not a bare date. Dates in
+ *  site.json stay as plain YYYY-MM-DD; this turns one into midnight Pacific. */
+function isoPacific(day) {
+  if (!day || String(day).includes('T')) return day;
+  const zone = new Intl.DateTimeFormat('en-US', { timeZone: 'America/Los_Angeles', timeZoneName: 'shortOffset' })
+    .formatToParts(new Date(`${day}T12:00:00Z`)).find((part) => part.type === 'timeZoneName').value;
+  const match = zone.match(/GMT([+-])(\d+)/);
+  return `${day}T00:00:00${match[1]}${match[2].padStart(2, '0')}:00`;
+}
+
 function structuredData(page) {
   const blocks = [];
+  // Named organization for author and publisher, so a page's markup stands on
+  // its own (a bare @id only resolves on the page that carries the full block).
+  const orgRef = { '@type': 'Organization', '@id': `${SITE_URL}/#organization`, name: site.name, url: `${SITE_URL}/` };
   const types = page.schema ?? [];
 
   if (types.includes('Organization')) {
@@ -146,10 +159,11 @@ function structuredData(page) {
       description: page.description,
       url: `${SITE_URL}${page.url}`,
       inLanguage: 'en-US',
-      datePublished: page.datePublished || `${site.foundingYear}-01-01`,
-      dateModified: page.dateModified || BUILD_DATE,
-      author: { '@id': `${SITE_URL}/#organization` },
-      publisher: { '@id': `${SITE_URL}/#organization` },
+      image: `${SITE_URL}/assets/img/og-image.png`,
+      datePublished: isoPacific(page.datePublished || `${site.foundingYear}-01-01`),
+      dateModified: isoPacific(page.dateModified || BUILD_DATE),
+      author: orgRef,
+      publisher: orgRef,
       isPartOf: { '@type': 'WebSite', name: site.name, url: `${SITE_URL}/` },
     });
   }
@@ -163,7 +177,7 @@ function structuredData(page) {
       // the page in site.json when you change its answers; the build date is
       // only a fallback, so an untouched page does not claim to be newer than
       // it is.
-      dateModified: page.dateModified || BUILD_DATE,
+      dateModified: isoPacific(page.dateModified || BUILD_DATE),
       mainEntity: page.faq.map((item) => ({
         '@type': 'Question',
         name: item.q,
@@ -181,9 +195,9 @@ function structuredData(page) {
     name: page.title.split(' | ')[0].split(' \u2014 ')[0],
     description: page.description,
     inLanguage: 'en-US',
-    datePublished: page.datePublished || `${site.foundingYear}-01-01`,
-    dateModified: page.dateModified || BUILD_DATE,
-    publisher: { '@id': `${SITE_URL}/#organization` },
+    datePublished: isoPacific(page.datePublished || `${site.foundingYear}-01-01`),
+    dateModified: isoPacific(page.dateModified || BUILD_DATE),
+    publisher: orgRef,
     isPartOf: { '@type': 'WebSite', name: site.name, url: `${SITE_URL}/` },
   });
 
