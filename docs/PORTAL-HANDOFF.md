@@ -85,8 +85,8 @@ simply unreachable and no client can be created.
 ## Decisions still open
 
 - **File storage** is Postgres with a 25 MB per-file cap (`PORTAL_MAX_FILE_MB`).
-  Fine for reports and VPATs; move to object storage before hosting proof
-  videos. Only `insertFile` / `getFile` in `server/lib/portal.js` would change.
+  Fine for reports and VPATs; move to object storage before hosting large
+  files. Only `insertFile` / `getFile` in `server/lib/portal.js` would change.
 - **No self-service "forgot password".** An admin presses *Reset password* and
   sends the new one.
 - **One admin login**, from secrets. No per-teammate accounts.

@@ -352,7 +352,7 @@ The tables come from `db/migrations/002_client_portal.sql`, applied by the
 **Where the files live.** In Postgres (`portal_files.data`), capped at
 `PORTAL_MAX_FILE_MB` (default 25) per file. That is the right size for reports,
 VPATs and screenshots and needs no extra infrastructure. It is the wrong place
-for screen-reader proof videos — move storage to an object store (Tigris on Fly,
+for large files — move storage to an object store (Tigris on Fly,
 S3) before raising the cap much; only `insertFile` / `getFile` in
 `server/lib/portal.js` would change.
 
