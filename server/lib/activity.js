@@ -2,7 +2,7 @@
  * The activity log: one running, append-only record per client of what was done and when.
  *
  * Operators, agents and the portal itself all write to it at the moment a thing happens, so the
- * Accessibility Compliance Record can be put together from it instead of from memory. Nothing here
+ * Accessibility Evidence File can be put together from it instead of from memory. Nothing here
  * edits or deletes a row: a mistake is corrected by a new 'correction' entry that points at the
  * one it corrects.
  */
@@ -243,7 +243,7 @@ export async function addActivity(store, session, clientId, input = {}, now = ne
 
 /**
  * An entry the portal writes itself, when the event happens in the portal (a packet published, a
- * client's answers saved, an ACR published). Never throws: the log must not break the action.
+ * client's answers saved, an Evidence File published). Never throws: the log must not break the action.
  */
 export async function recordActivity(store, clientId, { kind, title, details = '', data = {}, by = {} }, now = new Date()) {
   try {
@@ -350,7 +350,7 @@ export function withStates(entries) {
 }
 
 /**
- * The remediation log in the shape the ACR kit reads (rows.json): one six-field row per standing
+ * The remediation log in the shape the Evidence File kit reads (rows.json): one six-field row per standing
  * fix, newest first: [date, finding, wcag, how_fixed, evidence, pages]. The evidence field carries
  * the fix's state in the kit's own words, so the kit prints the status from it.
  */

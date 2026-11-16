@@ -268,7 +268,7 @@
     // Prefill from the query string so /signup?plan=growth lands on the right plan.
     var params = new URLSearchParams(location.search);
     // Pages with [data-intent] blocks show the copy for ?intent=lawsuit or ?intent=record
-    // (the claim section and the Compliance Record both send people here), else the default.
+    // (the claim section and the Evidence File both send people here), else the default.
     var intentBlocks = document.querySelectorAll('[data-intent]');
     if (intentBlocks.length) {
       var wanted = params.get('intent');
@@ -278,7 +278,7 @@
       if (known) {
         var planField = form.querySelector('[name="plan"]');
         if (planField && planField.type === 'hidden') planField.value = wanted;
-        try { document.title = (show === 'lawsuit' ? 'Served a demand letter? Talk to Accessrank now' : 'Request a sample Accessibility Compliance Record') + ' — Accessrank'; } catch (e) {}
+        try { document.title = (show === 'lawsuit' ? 'Served a demand letter? Talk to Accessrank now' : 'Request a sample Accessibility Evidence File') + ' — Accessrank'; } catch (e) {}
       }
     }
     ['plan', 'intent'].forEach(function (key) {

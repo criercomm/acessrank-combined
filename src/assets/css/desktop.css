@@ -161,7 +161,7 @@
   .site[data-page="/"] .closing-actions .btn-primary { padding: 16px 30px; font-size: 16px; font-weight: 700; border-radius: 8px; }
   .site[data-page="/"] .closing-actions .btn-secondary { padding: 15px 30px; font-size: 16px; font-weight: 700; border-radius: 8px; }
 
-  /* ---- Compliance Record: ruled list ---- */
+  /* ---- Evidence File: ruled list ---- */
   .site[data-page="/"] .record { max-width: 1280px; margin: 0 auto; padding: 64px 64px; box-sizing: border-box; }
   .site[data-page="/"] .record-intro p { font-size: 20px; line-height: 1.7; max-width: 860px; margin: 0 auto 64px; text-wrap: balance; }
   .site[data-page="/"] .record-grid { display: block; border-top: 1px solid var(--hairline); margin: 0; }

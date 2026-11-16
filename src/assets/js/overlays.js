@@ -14,6 +14,7 @@
     var offset = 0;
     lines.forEach(function (line) {
       var text = line.getAttribute('data-ov-text') || '';
+      line.textContent = '';
       var n = 0;
       text.split(' ').forEach(function (word) {
         var w = document.createElement('span');

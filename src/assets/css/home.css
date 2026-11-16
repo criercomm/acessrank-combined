@@ -321,7 +321,7 @@ html.hero-fx .risk-title { visibility: hidden; animation: hero-failsafe 1ms line
 .closing-actions { display: flex; justify-content: center; gap: 14px; flex-wrap: wrap; }
 
 
-/* ---- Accessibility Compliance Record ("Proof your lawyer can use") ---- */
+/* ---- Accessibility Evidence File ("Proof your lawyer can use") ---- */
 .record { padding: 56px var(--edge) 8px; }
 .record h2 { margin-bottom: 22px; } /* no .section-sub under this heading now; give the intro a little more air */
 .record-intro p { font-size: 17px; line-height: 1.6; color: var(--text-soft); margin: 0 0 28px; text-wrap: pretty; text-align: center; }
@@ -655,7 +655,7 @@ html:not([data-theme="light"]) .overlay-content p strong { background: var(--bra
 .lo-note { font-size: 14px; line-height: 1.6; color: var(--text-soft); margin: 16px 0 14px; }
 @media (max-width: 800px) { .lo-row { grid-template-columns: 1fr; gap: 8px; } .lo-price { text-align: left; } .lo-def { grid-template-columns: 1fr; gap: 4px; } }
 
-/* Phones: compact rows instead of boxed tiles for the hero stats, the compliance record and
+/* Phones: compact rows instead of boxed tiles for the hero stats, the evidence file and
    How it works. Each item becomes one row separated by a hairline, which removes ~30% of the
    scroll length of these sections and lets the text use the full width. Desktop is untouched. */
 @media (max-width: 767px) {
@@ -736,7 +736,7 @@ html:not([data-theme="light"]) .overlay-content p strong { background: var(--bra
   .site .features-note { margin-top: 14px; }
   .site .process { padding-top: 24px; }
 
-  /* Compliance Record: less air above the human-testing line. */
+  /* Evidence File: less air above the human-testing line. */
   /* A stray 36px/20px padding (from a shared rule at 720px) was adding the gap and indenting the list. */
   .site .record-grid { margin-bottom: 0; padding: 0; }
   .site .record-more { margin: 12px 0 22px; }
@@ -764,7 +764,7 @@ html:not([data-theme="light"]) .overlay-content p strong { background: var(--bra
   .site .process { padding-bottom: 16px; }
   .site .stats-strip { border-top: 0; }
 
-  /* Less air after "2-4 wks" and above the Compliance Record. */
+  /* Less air after "2-4 wks" and above the Evidence File. */
   .site .stats-strip { padding: 16px 0; gap: 14px; }
   .site .record { padding-top: 24px; }
 

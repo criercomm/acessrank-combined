@@ -81,9 +81,10 @@ const VIEWPORTS = [
 // failure in either is a failure. The light theme is chosen the way a visitor
 // chooses it: the saved value /theme.js reads before first paint. The deck
 // (/ and /deck) is a separate, dark-only app with no theme switch, so it is
-// audited once.
+// audited once. So are the sample documents under /samples: standalone,
+// print-styled records with a single light design and no theme switch.
 const THEMES = ['dark', 'light'];
-const hasThemes = (route) => route !== '/' && !route.startsWith('/deck');
+const hasThemes = (route) => route !== '/' && !route.startsWith('/deck') && !route.startsWith('/samples/');
 
 const runs = [];
 for (const route of pages) {

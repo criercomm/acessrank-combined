@@ -750,7 +750,7 @@
     return { load: load };
   }
 
-  /* ------------------------------------------------ work to do and the ACR --- */
+  /* ------------------------------------------------ work to do and the Evidence File --- */
 
   var CONFORMANCE = [
     ['', 'Not part of the conformance table'],
@@ -768,7 +768,7 @@
   }
 
   /**
-   * The dialog shown when an item is ticked as done: what goes into the ACR, plus the optional
+   * The dialog shown when an item is ticked as done: what goes into the Evidence File, plus the optional
    * conformance entry and team note. Resolves with the saved work, or null when the tick is cancelled.
    */
   function openWorkDialog(report, item, trigger) {
@@ -787,11 +787,11 @@
       // A typed answer (a contact name, a phone number) is information, not a change to the site.
       // The record states it already, so for those the safe choice is the first button.
       var infoOnly = item.decision === 'comment';
-      var add = draft ? h('button', { type: 'button', class: 'btn-small' + (infoOnly ? '' : ' btn-small--brand'), text: 'Add to ACR update' }) : null;
-      var later = h('button', { type: 'button', class: 'btn-small' + (infoOnly ? ' btn-small--brand' : ''), text: infoOnly ? 'Done, keep out of the ACR' : 'Done, not in ACR yet' });
+      var add = draft ? h('button', { type: 'button', class: 'btn-small' + (infoOnly ? '' : ' btn-small--brand'), text: 'Add to Evidence File update' }) : null;
+      var later = h('button', { type: 'button', class: 'btn-small' + (infoOnly ? ' btn-small--brand' : ''), text: infoOnly ? 'Done, keep out of the Evidence File' : 'Done, not in Evidence File yet' });
       var cancel = h('button', { type: 'button', class: 'btn-small', text: 'Cancel, it is not live' });
       var dialog = h('dialog', { class: 'team-dialog work-dialog', 'aria-labelledby': id + '-title' }, [
-        h('h2', { id: id + '-title', tabindex: '-1', text: 'Update the ACR for this item?' }),
+        h('h2', { id: id + '-title', tabindex: '-1', text: 'Update the Evidence File for this item?' }),
         h('p', { class: 'work-dialog-item' }, [h('strong', { text: item.title || item.key })]),
         h('p', { class: 'file-meta' }, [h('span', { text: answer + ' · ' + item.signerName + (item.decidedAt || item.savedAt ? ', ' + formatDate(item.decidedAt || item.savedAt) : '') })]),
         item.comment ? h('p', { class: 'approval-comment', text: (item.decision === 'changes' ? 'Change requested: ' : item.decision === 'comment' ? 'Answer: ' : 'Client comment: ') + item.comment }) : null,
@@ -799,11 +799,11 @@
           h('div', { class: 'field' }, [h('label', { for: id + '-crit', text: 'WCAG criterion (optional)' }), criterion]),
           h('div', { class: 'field' }, [h('label', { for: id + '-conf', text: 'Conformance after this change' }), select])
         ]),
-        h('div', { class: 'field' }, [h('label', { for: id + '-note', text: 'Team note for the ACR (optional)' }), note]),
+        h('div', { class: 'field' }, [h('label', { for: id + '-note', text: 'Team note for the Evidence File (optional)' }), note]),
         h('p', { class: 'field-hint', text: draft
           ? 'Applied to ' + draft.name + ', uploaded ' + formatDate(draft.createdAt) + '.'
-          : 'This client has no ACR draft yet, so nothing can be added to the ACR. Upload the draft at the top of Work to do, then use “Add to ACR update” on this item.' }),
-        infoOnly ? h('p', { class: 'field-hint', text: 'This is an answer the client typed, not a change to the site. The ACR draft should already state it, so leave it out of the update unless it belongs in the remediation log.' }) : null,
+          : 'This client has no Evidence File draft yet, so nothing can be added to the Evidence File. Upload the draft at the top of Work to do, then use “Add to Evidence File update” on this item.' }),
+        infoOnly ? h('p', { class: 'field-hint', text: 'This is an answer the client typed, not a change to the site. The Evidence File draft should already state it, so leave it out of the update unless it belongs in the remediation log.' }) : null,
         status,
         h('div', { class: 'row-actions' }, infoOnly || !draft ? [later, add, cancel] : [add, later, cancel])
       ]);
@@ -847,19 +847,19 @@
     var list = h('ul', { class: 'work-list' });
     wrap.appendChild(h('div', { class: 'work-head' }, [
       summary,
-      h('a', { class: 'work-acr-link', href: '/portal/client#client=' + encodeURIComponent(report.clientId) + '&acr', text: 'ACR for ' + report.clientName })
+      h('a', { class: 'work-acr-link', href: '/portal/client#client=' + encodeURIComponent(report.clientId) + '&acr', text: 'Evidence File for ' + report.clientName })
     ]));
     wrap.appendChild(h('div', { class: 'work-bar', 'aria-hidden': 'true' }, [bar]));
-    // Step 1 is the ACR draft: nothing can be added to the ACR without one, so it comes first.
+    // Step 1 is the Evidence File draft: nothing can be added to the Evidence File without one, so it comes first.
     var gate = null;
     if (!report.acrDraft) {
       var gateId = 'gate-' + report.id.slice(0, 8);
       var gateInput = h('input', { class: 'visually-hidden', type: 'file', id: gateId, accept: '.html,.htm,.pdf,.docx,.doc,.odt,.rtf' });
       var gateStatus = h('p', { class: 'form-status', role: 'status', 'aria-live': 'polite' });
       gate = h('div', { class: 'work-gate' }, [
-        h('p', { text: 'Step 1: upload the ACR draft for ' + report.clientName + '.' }),
-        h('p', { class: 'field-hint', text: 'Changes can only be added to the ACR once there is a draft to add them to. Upload it as its HTML page, prepared from the ACR template.' }),
-        h('div', { class: 'row-actions' }, [h('label', { class: 'btn-small btn-small--brand upload-button', for: gateId, text: 'Upload ACR draft' }), gateInput]),
+        h('p', { text: 'Step 1: upload the Evidence File draft for ' + report.clientName + '.' }),
+        h('p', { class: 'field-hint', text: 'Changes can only be added to the Evidence File once there is a draft to add them to. Upload it as its HTML page, prepared from the Evidence File template.' }),
+        h('div', { class: 'row-actions' }, [h('label', { class: 'btn-small btn-small--brand upload-button', for: gateId, text: 'Upload Evidence File draft' }), gateInput]),
         gateStatus
       ]);
       gateInput.addEventListener('change', function () {
@@ -873,7 +873,7 @@
             report.acrDraft = data.draft;
             var w = data.draft && data.draft.warnings;
             var done = h('div', { class: 'work-gate' }, [
-              h('p', { text: file.name + ' is the ACR draft for ' + report.clientName + '.' }),
+              h('p', { text: file.name + ' is the Evidence File draft for ' + report.clientName + '.' }),
               w && w.length ? h('p', { class: 'field-hint acr-flag', text: 'Check before building: ' + w.join(' ') }) : null
             ]);
             gate.replaceWith(done);
@@ -885,19 +885,19 @@
     }
     wrap.appendChild(h('p', { class: 'field-hint', text: 'Tick an item only when the change is live on the store, not just finished in a test theme.' }));
     wrap.appendChild(list);
-    // The next step, once something is queued: build the ACR update on the client's page.
+    // The next step, once something is queued: build the Evidence File update on the client's page.
     var acrHref = '/portal/client#client=' + encodeURIComponent(report.clientId) + '&acr';
     var nextText = h('span', {});
     var next = h('div', { class: 'work-next', hidden: true }, [
       nextText,
-      h('a', { class: 'btn-small btn-small--brand', href: acrHref, text: 'Go to ACR update' })
+      h('a', { class: 'btn-small btn-small--brand', href: acrHref, text: 'Go to Evidence File update' })
     ]);
     wrap.appendChild(next);
 
     function count() {
       var queued = report.items.filter(function (i) { return i.work && i.work.acrState === 'queued'; }).length;
       next.hidden = queued === 0;
-      nextText.textContent = plural(queued, 'change') + ' waiting in ' + report.clientName + '\u2019s ACR update. Next: build the updated ACR, check it, then publish it to the client.';
+      nextText.textContent = plural(queued, 'change') + ' waiting in ' + report.clientName + '\u2019s Evidence File update. Next: build the updated Evidence File, check it, then publish it to the client.';
       var done = report.items.filter(function (i) { return i.work && i.work.done; }).length;
       summary.textContent = done + ' of ' + report.items.length + ' done';
       bar.style.width = (report.items.length ? (done / report.items.length) * 100 : 0) + '%';
@@ -909,11 +909,11 @@
       var id = 'done-' + report.id.slice(0, 8) + '-' + item.key;
       var box = h('input', { type: 'checkbox', id: id, checked: !!w.done });
       var answer = (DECISION_TEXT[item.decision] || item.decision) + (item.choice ? ': ' + item.choice : '');
-      var stateText = !w.done ? '' : w.acrState === 'queued' ? 'In ACR update' : w.acrState === 'applied' ? 'In published ACR' : 'Done';
+      var stateText = !w.done ? '' : w.acrState === 'queued' ? 'In Evidence File update' : w.acrState === 'applied' ? 'In published Evidence File' : 'Done';
       var side = h('div', { class: 'work-side' }, w.done ? [
         h('span', { class: 'work-badge work-badge--' + (w.acrState || 'none'), text: stateText }),
         h('span', { class: 'file-meta', text: 'Live ' + formatDate(w.doneAt) + (w.doneByName ? ' · ' + w.doneByName : '') }),
-        w.acrState === 'none' && report.acrDraft ? h('button', { type: 'button', class: 'link-button', text: 'Add to ACR update', 'data-add-acr': true }) : null
+        w.acrState === 'none' && report.acrDraft ? h('button', { type: 'button', class: 'link-button', text: 'Add to Evidence File update', 'data-add-acr': true }) : null
       ] : [h('span', { class: 'file-meta', text: 'Done and live on the store' })]);
       var li = h('li', { class: 'work-row' + (w.done ? ' is-done' : '') }, [
         box,
@@ -951,7 +951,7 @@
     return wrap;
   }
 
-  /** The ACR section on a client's page: the draft, the queued changes, build and publish. */
+  /** The Evidence File section on a client's page: the draft, the queued changes, build and publish. */
   function initAcrSection(root, getClient, notify) {
     var section = root.querySelector('[data-acr]');
     if (!section) return { load: function () {} };
@@ -991,7 +991,7 @@
       var queued = acr.queue.length > 0;
       var built = merge ? isBuilt(acr) : queued;
       var steps = [
-        ['Upload the ACR draft', hasDraft],
+        ['Upload the Evidence File draft', hasDraft],
         ['Queue changes that are live', queued || Boolean(published)],
         [merge ? 'Build and check' : 'Build the change list', built || Boolean(published)],
         ['Publish to client', Boolean(published)],
@@ -1066,7 +1066,7 @@
         draftBox.appendChild(h('p', { class: 'acr-draft-name' }, [draftLink(d)]));
         draftBox.appendChild(h('p', { class: 'file-meta', text: (d.published ? 'Published to client ' : 'Uploaded ') + formatDate(d.createdAt) + (d.uploadedByName ? ' by ' + d.uploadedByName : '') }));
       } else {
-        draftBox.appendChild(h('p', { class: 'portal-empty', text: 'No ACR draft yet. Upload the latest ACR so finished work can be added to it.' }));
+        draftBox.appendChild(h('p', { class: 'portal-empty', text: 'No Evidence File draft yet. Upload the latest Evidence File so finished work can be added to it.' }));
       }
       clear(history);
       acr.drafts.slice(1, 6).forEach(function (old, i) {
@@ -1092,18 +1092,18 @@
       // A button, not a link: the address needs the client id, and a placeholder href trips the link check.
       build.setAttribute('data-href', '/api/portal/admin/clients/' + encodeURIComponent(acr.client.id) + '/acr/update');
       build.disabled = !acr.queue.length;
-      // An HTML draft is merged on the server: Build downloads the updated ACR, and Publish needs no upload.
+      // An HTML draft is merged on the server: Build downloads the updated Evidence File, and Publish needs no upload.
       var merge = Boolean(d && d.mergeable);
       current = acr;
-      build.textContent = merge ? 'Build updated ACR' : 'Build ACR update';
+      build.textContent = merge ? 'Build updated Evidence File' : 'Build Evidence File update';
       publishMerge.hidden = !merge;
       publishMerge.disabled = !acr.queue.length || !isBuilt(acr);
       publishUpload.hidden = merge;
       hint.textContent = !d
-        ? 'Upload the ACR draft first. Upload it as its HTML page and Build merges the queued changes into it; a PDF or Word draft gets a list of changes to apply by hand.'
+        ? 'Upload the Evidence File draft first. Upload it as its HTML page and Build merges the queued changes into it; a PDF or Word draft gets a list of changes to apply by hand.'
         : merge
-        ? (acr.queue.length && !isBuilt(acr) ? 'Build and check the ACR first: Publish turns on once you have built the current queue. ' : '') + 'Build updated ACR downloads the draft with every queued change merged in, as a PDF with the next version number. Check it, then Publish to client: the PDF (fonts embedded) and the HTML page both go to the client’s Compliance files, the merged version becomes the new draft, and the queued changes are marked as applied.'
-        : 'This draft is not HTML, so Build ACR update downloads the queued changes as a dated PDF to apply by hand. Publish to client takes the updated ACR file: it goes to the client’s Compliance files, becomes the new draft, and the queued changes are marked as applied.';
+        ? (acr.queue.length && !isBuilt(acr) ? 'Build and check the Evidence File first: Publish turns on once you have built the current queue. ' : '') + 'Build updated Evidence File downloads the draft with every queued change merged in, as a PDF with the next version number. Check it, then Publish to client: the PDF (fonts embedded) and the HTML page both go to the client’s Compliance files, the merged version becomes the new draft, and the queued changes are marked as applied.'
+        : 'This draft is not HTML, so Build Evidence File update downloads the queued changes as a dated PDF to apply by hand. Publish to client takes the updated Evidence File file: it goes to the client’s Compliance files, becomes the new draft, and the queued changes are marked as applied.';
       renderSteps(acr, merge);
       renderPreview(acr, merge);
       renderClose();
@@ -1132,7 +1132,7 @@
         .then(function () { busy = false; input.value = ''; });
     }
 
-    // Taking an item out keeps it ticked as done and live; it just stays out of the ACR.
+    // Taking an item out keeps it ticked as done and live; it just stays out of the Evidence File.
     queueList.addEventListener('click', function (e) {
       var btn = e.target.closest ? e.target.closest('[data-acr-unqueue]') : null;
       if (!btn || busy) return;
@@ -1153,7 +1153,7 @@
       return fetch(href, { credentials: 'same-origin', headers: { Accept: 'application/pdf, application/json' } }).then(function (response) {
         if (!response.ok) {
           return response.json().catch(function () { return {}; }).then(function (data) {
-            var error = new Error(data.error || 'The ACR could not be built. Please try again.');
+            var error = new Error(data.error || 'The Evidence File could not be built. Please try again.');
             error.code = data.code;
             if (error.code === 'signed_out') go('/client-login');
             throw error;
@@ -1162,7 +1162,7 @@
         var header = response.headers.get('Content-Disposition') || '';
         var star = header.match(/filename\*=UTF-8''([^;]+)/i);
         var plain = header.match(/filename="?([^";]+)"?/i);
-        var name = 'ACR update.pdf';
+        var name = 'Evidence File update.pdf';
         try { name = star ? decodeURIComponent(star[1]) : plain ? plain[1] : name; } catch (e) { /* keep the fallback name */ }
         return response.blob().then(function (blob) { return { blob: blob, name: name }; });
       }, function () {
@@ -1186,7 +1186,7 @@
       busy = true;
       build.disabled = true;
       var settle = working(build, 'Building…');
-      setStatus(status, merge ? 'Building the ACR. This can take up to a minute; the PDF downloads when it is ready.' : 'Building the list of changes…', 'busy');
+      setStatus(status, merge ? 'Building the Evidence File. This can take up to a minute; the PDF downloads when it is ready.' : 'Building the list of changes…', 'busy');
       fetchFile(href).then(function (file) {
         saveFile(file);
         settle();
@@ -1207,7 +1207,7 @@
     draftInput.addEventListener('change', function () {
       upload(draftInput, '/acr/drafts', function (file, data) {
         var w = data && data.draft && data.draft.warnings;
-        return file.name + ' is the new ACR draft. Queued changes apply to it.' + (w && w.length ? ' Check before building: ' + w.join(' ') : '');
+        return file.name + ' is the new Evidence File draft. Queued changes apply to it.' + (w && w.length ? ' Check before building: ' + w.join(' ') : '');
       });
     });
     publishMerge.addEventListener('click', function () {
@@ -1216,7 +1216,7 @@
       busy = true;
       publishMerge.disabled = true;
       var settle = working(publishMerge, 'Publishing…');
-      setStatus(status, 'Merging and publishing the ACR. This can take up to a minute…', 'busy');
+      setStatus(status, 'Merging and publishing the Evidence File. This can take up to a minute…', 'busy');
       var seen = {};
       var reports = (current ? current.queue : []).filter(function (w) {
         if (!w.reportId || seen[w.reportId]) return false;
@@ -1367,7 +1367,7 @@
     // Closing first and publishing later is allowed, but it is easy to forget the publish: say so.
     function closeLabel() {
       var unpublished = report.items.filter(function (i) { return i.work && i.work.acrState === 'queued'; }).length;
-      return unpublished ? 'Confirm: move to past with ' + plural(unpublished, 'change') + ' not yet published in the ACR' : 'Confirm: move to past';
+      return unpublished ? 'Confirm: move to past with ' + plural(unpublished, 'change') + ' not yet published in the Evidence File' : 'Confirm: move to past';
     }
     confirmable(toggleState, closed ? 'Confirm: reopen' : closeLabel, function () {
       return api('PATCH', '/api/portal/admin/reports/' + encodeURIComponent(report.id), { status: closed ? 'open' : 'closed' }).then(function () {
@@ -2271,7 +2271,7 @@
         state.selectedId = state.clients.some(function (c) { return c.id === wanted[1]; }) ? wanted[1] : null;
         hideCredential();
         renderDetail();
-        // Arriving from Work to do (#client=…&acr): land on the ACR section.
+        // Arriving from Work to do (#client=…&acr): land on the Evidence File section.
         if (/[#&]acr\b/.test(location.hash || '') && selected()) {
           var acrHeading = root.querySelector('#admin-acr-heading');
           if (acrHeading) { acrHeading.scrollIntoView({ block: 'start' }); acrHeading.focus({ preventScroll: true }); }

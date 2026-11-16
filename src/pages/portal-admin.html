@@ -87,34 +87,34 @@
         </div>
       </section>
 
-      <!-- ------------------------------------------ ACR (team only) --- -->
+      <!-- ------------------------------------------ Evidence File (team only) --- -->
       <section class="portal-section acr-section" aria-labelledby="admin-acr-heading" data-acr>
         <div class="portal-section-head">
-          <h3 id="admin-acr-heading" tabindex="-1">Accessibility Compliance Record</h3>
+          <h3 id="admin-acr-heading" tabindex="-1">Accessibility Evidence File</h3>
           <p class="portal-count">Team only until published</p>
         </div>
-        <ol class="acr-steps" data-acr-steps aria-label="Steps to update the ACR"></ol>
+        <ol class="acr-steps" data-acr-steps aria-label="Steps to update the Evidence File"></ol>
         <div class="acr-grid">
           <div>
             <div class="files-head">
-              <h4>ACR draft</h4>
+              <h4>Evidence File draft</h4>
               <label class="btn-small upload-button" for="acr-draft-input">Upload new draft</label>
               <input class="visually-hidden" type="file" id="acr-draft-input" accept=".html,.htm,.pdf,.docx,.doc,.odt,.rtf" data-acr-draft-input>
             </div>
             <div class="acr-draft" data-acr-draft></div>
-            <p class="field-hint">Queued changes apply to the newest draft. Upload the ACR as its HTML page and Build merges the changes into it; a PDF or Word draft gets a list of changes to apply by hand. Earlier drafts are kept; the client never sees drafts.</p>
+            <p class="field-hint">Queued changes apply to the newest draft. Upload the Evidence File as its HTML page and Build merges the changes into it; a PDF or Word draft gets a list of changes to apply by hand. Earlier drafts are kept; the client never sees drafts.</p>
             <ul class="acr-history" data-acr-history hidden></ul>
           </div>
           <div>
-            <h4>ACR updates <span class="portal-count" data-acr-count></span></h4>
+            <h4>Evidence File updates <span class="portal-count" data-acr-count></span></h4>
             <p class="portal-empty acr-empty" data-acr-queue-empty>No updates queued. In Approvals, open Work to do and tick an item once it is live.</p>
             <ul class="approval-items acr-queue" data-acr-queue hidden></ul>
             <div class="acr-preview" data-acr-preview hidden></div>
             <div class="row-actions acr-actions">
-              <button class="btn-small btn-small--brand" type="button" data-acr-build disabled>Build ACR update</button>
+              <button class="btn-small btn-small--brand" type="button" data-acr-build disabled>Build Evidence File update</button>
               <button class="btn-small" type="button" data-acr-publish-merge hidden>Publish to client</button>
               <label class="btn-small upload-button" for="acr-publish-input" data-acr-publish-upload>Publish to client</label>
-              <input class="visually-hidden" type="file" id="acr-publish-input" aria-label="Publish the updated ACR file to the client" accept=".pdf,.html,.htm,.docx,.doc,.odt,.rtf" data-acr-publish-input>
+              <input class="visually-hidden" type="file" id="acr-publish-input" aria-label="Publish the updated Evidence File file to the client" accept=".pdf,.html,.htm,.docx,.doc,.odt,.rtf" data-acr-publish-input>
             </div>
             <p class="field-hint" data-acr-hint></p>
             <p class="form-status" data-acr-status role="status" aria-live="polite"></p>
@@ -141,7 +141,7 @@
           <label class="btn-small upload-button" for="upload-compliance">Add files</label>
           <input class="visually-hidden" type="file" id="upload-compliance" multiple data-upload-input="compliance">
         </div>
-        <p class="field-hint files-hint">Accessibility Compliance Record, accessibility statement, VPAT and similar. Up to <span data-max-file>{{ maxFileMb }} MB</span> each.</p>
+        <p class="field-hint files-hint">Accessibility Evidence File, accessibility statement, VPAT and similar. Up to <span data-max-file>{{ maxFileMb }} MB</span> each.</p>
         <div class="portal-card drop-card" data-drop-area="compliance">
           <p class="portal-empty" data-compliance-empty>No compliance files yet. Drag files here or use Add files.</p>
           <ul class="file-list" data-compliance-list hidden></ul>

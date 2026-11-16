@@ -29,7 +29,7 @@
         },
         {
           "label": "ADA guide",
-          "href": "/guide/ada-eaa"
+          "href": "/guide/ada-website-compliance"
         },
         {
           "label": "How we score",
@@ -86,7 +86,7 @@
       "links": [
         {
           "label": "ADA guide",
-          "href": "/guide/ada-eaa"
+          "href": "/guide/ada-website-compliance"
         },
         {
           "label": "Using an overlay?",
@@ -138,8 +138,8 @@
       "url": "/",
       "layout": "home",
       "heroMotion": true,
-      "title": "Accessrank — ADA accessibility score & SEO for DTC ecommerce",
-      "description": "A low accessibility score is a lawsuit waiting to happen. Accessrank raises your ADA/WCAG 2.2 AA score with real code fixes and lifts your SEO too.",
+      "title": "ADA Website Compliance for Ecommerce Sites | Accessrank",
+      "description": "Is your online store ADA compliant? Accessrank fixes the code on Shopify, WooCommerce, BigCommerce and custom sites to WCAG 2.2 AA, and documents the work.",
       "priority": "1.0",
       "changefreq": "weekly",
       "schema": [
@@ -201,11 +201,11 @@
           "a": "Alt text review, which a person does on every plan, checks the descriptions of your images. Human testing goes further: a person works through your store the way a shopper using only a keyboard or a screen reader does, then signs and dates the result. It finds problems automated checks cannot, such as a pop-up you cannot close or a cart update that is never announced. A flow is one shopping task from start to finish, like finding a product and adding it to your cart. We count tasks, not pages. Growth includes human testing once a year (up to 8 flows) and Scale includes it twice a year (up to 16 flows)."
         },
         {
-          "q": "Isn't the Compliance Record just a VPAT?",
-          "a": "No, and the difference matters. A VPAT (Voluntary Product Accessibility Template) is a standard form that software vendors fill in to tell buyers how their product performs against WCAG today. It was designed for universities and government agencies comparing software, and it answers one question: where does this product stand right now? That is useful, which is why the Record includes one. But a VPAT is a single form on a single date, self-reported and usually from automated scans. It says nothing about when you started, what you fixed, or whether you kept going. The Record is built to answer that argument: a dated baseline from before any fixes, a fix-by-fix log with re-test results, signed monitoring certificates after every scan, and a published accessibility statement with a contact path."
+          "q": "Isn't the Evidence File just a VPAT?",
+          "a": "No, and the difference matters. A VPAT (Voluntary Product Accessibility Template) is a standard form that software vendors fill in to tell buyers how their product performs against WCAG today. It was designed for universities and government agencies comparing software, and it answers one question: where does this product stand right now? That is useful, which is why clients who add human testing get one alongside the Evidence File. But a VPAT is a single form on a single date, self-reported and usually from automated scans. It says nothing about when you started, what you fixed, or whether you kept going. The Record is built to answer that argument: a dated baseline from before any fixes, a fix-by-fix log with re-test results, signed monitoring certificates after every scan, and a published accessibility statement with a contact path."
         }
       ],
-      "dateModified": "2026-11-04"
+      "dateModified": "2026-11-15"
     },
     {
       "file": "beta.html",
@@ -221,11 +221,11 @@
       "file": "overlays.html",
       "url": "/overlays",
       "layout": "page",
-      "title": "Fix the code under your accessibility widget | Accessrank",
-      "description": "A plug-in won't hide your store from predatory ADA lawyers, and can point them to you. See what your widget leaves unfixed and what the FTC said about overlays.",
+      "title": "Accessibility Overlay Alternative: Fix the Code | Accessrank",
+      "description": "Is accessiBe or another widget enough? Overlays don't stop ADA lawsuits and can point lawyers to you. See what the FTC said, and fix the code underneath.",
       "priority": "0.7",
       "changefreq": "monthly",
-      "dateModified": "2026-11-04"
+      "dateModified": "2026-11-15"
     },
     {
       "file": "human-testing.html",
@@ -264,27 +264,79 @@
       "dateModified": "2026-11-04"
     },
     {
-      "file": "guide-ada-eaa.html",
-      "url": "/guide/ada-eaa",
+      "file": "guide-ada-website-compliance.html",
+      "url": "/guide/ada-website-compliance",
       "layout": "page",
-      "title": "The ADA and your online store | Accessrank guide",
-      "description": "What the ADA and Section 508 actually require of an online store, who is covered, and what happens when a demand letter arrives.",
+      "title": "ADA Website Compliance Guide for Online Stores | Accessrank",
+      "description": "What ADA website compliance means for a US online store: who is covered, deadlines, California, Shopify, demand letters, and what courts measure you against.",
       "schema": [
         "Article"
       ],
       "priority": "0.8",
       "changefreq": "monthly",
-      "dateModified": "2026-11-04"
+      "dateModified": "2026-11-15"
+    },
+    {
+      "file": "guide-accessibility-statement-template.html",
+      "url": "/guide/accessibility-statement-template",
+      "layout": "page",
+      "title": "Free Accessibility Statement Template | Accessrank",
+      "description": "A free accessibility statement template for your store: what to say, what not to claim, and where to publish it on Shopify or any ecommerce site.",
+      "schema": [
+        "Article"
+      ],
+      "priority": "0.7",
+      "changefreq": "monthly",
+      "dateModified": "2026-11-15"
+    },
+    {
+      "file": "guide-shopify-ada-compliance.html",
+      "url": "/guide/shopify-ada-compliance",
+      "layout": "page",
+      "title": "Is My Shopify Store ADA Compliant? | Accessrank",
+      "description": "Shopify stores are not ADA compliant by default. What Shopify covers, what it leaves to you, the most common theme and app problems, and how to check.",
+      "schema": [
+        "Article"
+      ],
+      "priority": "0.7",
+      "changefreq": "monthly",
+      "dateModified": "2026-11-15"
+    },
+    {
+      "file": "guide-ada-compliance-checklist.html",
+      "url": "/guide/ada-compliance-checklist",
+      "layout": "page",
+      "title": "ADA Website Compliance Checklist | Accessrank",
+      "description": "A plain-language ADA website compliance checklist for online stores: images, color, keyboard, forms, cart and checkout, pop-ups, and records to keep.",
+      "schema": [
+        "Article"
+      ],
+      "priority": "0.7",
+      "changefreq": "monthly",
+      "dateModified": "2026-11-15"
+    },
+    {
+      "file": "guide-ai-shopping-assistants.html",
+      "url": "/guide/ai-shopping-assistants",
+      "layout": "page",
+      "title": "How to Get Products Recommended by ChatGPT | Accessrank",
+      "description": "How ChatGPT and other AI shopping assistants choose products, what Shopify sends them, and the product data to improve so they recommend yours.",
+      "schema": [
+        "Article"
+      ],
+      "priority": "0.7",
+      "changefreq": "monthly",
+      "dateModified": "2026-11-15"
     },
     {
       "file": "resources.html",
       "url": "/resources",
       "layout": "page",
-      "title": "Accessibility & SEO resources for DTC ecommerce | Accessrank",
+      "title": "ADA & Accessibility Guides for Online Stores | Accessrank",
       "description": "Plain-English explainers on WCAG 2.2 AA, ADA compliance, accessibility scoring, and how accessibility work affects organic search.",
       "priority": "0.6",
       "changefreq": "weekly",
-      "dateModified": "2026-11-04"
+      "dateModified": "2026-11-15"
     },
     {
       "file": "careers.html",
@@ -311,8 +363,8 @@
       "file": "contact-sales.html",
       "url": "/contact-sales",
       "layout": "page",
-      "title": "Talk to Accessrank sales — Shopify Plus & multi-brand",
-      "description": "Built for Shopify Plus and multi-brand catalogues. Most teams hear back within one business day.",
+      "title": "Talk to Accessrank sales — large and multi-brand stores",
+      "description": "Built for large, multi-brand and custom-built stores on any platform. Most teams hear back within one business day.",
       "priority": "0.7",
       "changefreq": "monthly",
       "dateModified": "2026-11-04"
@@ -449,7 +501,7 @@
       "type": "Full-time",
       "summary": "Lead remediation work on real storefronts: audit against WCAG 2.2 AA, write the patches, and prove the fix with automated and assistive-technology testing.",
       "responsibilities": [
-        "Audit Shopify, WooCommerce and custom storefronts against WCAG 2.2 AA",
+        "Audit Shopify, WooCommerce, BigCommerce, WordPress and custom-coded storefronts against WCAG 2.2 AA",
         "Write and ship remediation patches in Liquid, React and vanilla JS",
         "Verify fixes with screen readers (NVDA, VoiceOver) and keyboard-only testing",
         "Set up regression monitoring so a theme update cannot undo the work",

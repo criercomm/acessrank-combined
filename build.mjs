@@ -121,7 +121,7 @@ function structuredData(page) {
       provider: { '@id': `${SITE_URL}/#organization` },
       areaServed: 'US',
       description:
-        'Source-code remediation of ecommerce storefronts against WCAG 2.2 Level A and AA, with an Accessibility Compliance Record (dated baseline audit, remediation log, VPAT-format conformance report, human testing record), ongoing regression monitoring, and on-page SEO and AI readiness improvements.',
+        'Source-code remediation of ecommerce storefronts against WCAG 2.2 Level A and AA, with an Accessibility Evidence File (dated baseline audit, remediation log, conformance summary, monitoring certificates; a VPAT and human testing record when human testing is added), ongoing regression monitoring, and on-page SEO and AI readiness improvements.',
       audience: { '@type': 'BusinessAudience', audienceType: 'DTC ecommerce brands on Shopify, WooCommerce, BigCommerce and custom platforms' },
       url: `${SITE_URL}/#product`,
       hasOfferCatalog: {

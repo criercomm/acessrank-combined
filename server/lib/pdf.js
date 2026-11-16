@@ -361,7 +361,7 @@ export async function renderReportHtml(context) {
 export default { generateReportPdf, buildReportContext, renderReportHtml, describeCriteria, complaintPatterns, criteriaTable };
 
 /**
- * The ACR update as a dated PDF: the queued changes to apply to the client's current ACR draft,
+ * The Evidence File update as a dated PDF: the queued changes to apply to the client's current Evidence File draft,
  * each with the client's answer, who marked it live and when, and any team note. Self-contained
  * HTML (nothing remote), rendered by the same Chromium as the report.
  *
@@ -392,7 +392,7 @@ export async function generateAcrUpdatePdf(acr, meta) {
 
   function statementHtml(st) {
     if (st.missing) {
-      return `<div class="stmt"><h3>Statement text</h3><p class="none">The statement wording could not be found in the report. Copy the approved wording into the ACR by hand.</p></div>`;
+      return `<div class="stmt"><h3>Statement text</h3><p class="none">The statement wording could not be found in the report. Copy the approved wording into the Evidence File by hand.</p></div>`;
     }
     const parts = [];
     let list = [];
@@ -406,14 +406,14 @@ export async function generateAcrUpdatePdf(acr, meta) {
     return `<div class="stmt">
       <h3>${st.asProposed ? 'Statement text as proposed' : 'Approved statement text'}</h3>
       <p class="stmt-note">${st.asProposed
-        ? 'The client asked for changes (see their comment above). Apply those changes to this wording before it goes into the ACR.'
-        : 'Add this wording to the ACR word for word. It is the statement the client approved.'}</p>
+        ? 'The client asked for changes (see their comment above). Apply those changes to this wording before it goes into the Evidence File.'
+        : 'Add this wording to the Evidence File word for word. It is the statement the client approved.'}</p>
       ${st.placeholders.length ? `<p class="stmt-note"><strong>Fill in before publishing:</strong> ${e(st.placeholders.join(', '))}</p>` : ''}
       <div class="stmt-body">${parts.join('')}</div>
     </div>`;
   }
 
-  const html = `<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><title>ACR update for ${e(acr.client.name)}</title>
+  const html = `<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><title>Evidence File update for ${e(acr.client.name)}</title>
 <style>
   @page { size: Letter; margin: 0.8in 0.75in 0.9in; }
   body { font: 11pt/1.5 -apple-system, "Segoe UI", Helvetica, Arial, sans-serif; color: #23262F; margin: 0; }
@@ -438,11 +438,11 @@ export async function generateAcrUpdatePdf(acr, meta) {
   .stmt-body ul { margin: 0 0 5pt; padding-left: 16pt; }
   .stmt-body li { margin: 0 0 2pt; }
 </style></head><body>
-  <p class="kicker">Accessibility Compliance Record</p>
-  <h1>ACR update for ${e(acr.client.name)}</h1>
+  <p class="kicker">Accessibility Evidence File</p>
+  <h1>Evidence File update for ${e(acr.client.name)}</h1>
   <p class="meta">Built ${e(day(meta.builtAt))} by ${e(meta.builtBy)}</p>
-  <p class="meta">Applies to: ${draft ? `${e(draft.name)} (uploaded ${e(day(draft.createdAt))})` : 'no ACR draft on file'}</p>
-  <p class="intro">The changes below were approved by the client and marked as live on the store by the Accessrank team. Apply each one to the ACR draft named above, then publish the updated ACR to the client.</p>
+  <p class="meta">Applies to: ${draft ? `${e(draft.name)} (uploaded ${e(day(draft.createdAt))})` : 'no Evidence File draft on file'}</p>
+  <p class="intro">The changes below were approved by the client and marked as live on the store by the Accessrank team. Apply each one to the Evidence File draft named above, then publish the updated Evidence File to the client.</p>
   ${items || '<p class="none">No changes are queued.</p>'}
 </body></html>`;
 
@@ -458,7 +458,7 @@ export async function generateAcrUpdatePdf(acr, meta) {
       displayHeaderFooter: true,
       headerTemplate: '<span></span>',
       footerTemplate: `<div style="font-size:8px;color:#6A6F7D;width:100%;padding:0 0.75in;display:flex;justify-content:space-between;font-family:Helvetica,Arial,sans-serif">
-        <span>${e(acr.client.name)} · ACR update · ${e(day(meta.builtAt))}</span>
+        <span>${e(acr.client.name)} · Evidence File update · ${e(day(meta.builtAt))}</span>
         <span>Prepared by Accessrank.ai · Page <span class="pageNumber"></span> of <span class="totalPages"></span></span></div>`,
     });
   } finally {
@@ -467,7 +467,7 @@ export async function generateAcrUpdatePdf(acr, meta) {
 }
 
 /**
- * Print an ACR written as HTML (a merged draft) to PDF.
+ * Print an Evidence File written as HTML (a merged draft) to PDF.
  * The draft is team-written, but the renderer still loads nothing from the network:
  * images and fonts must be inlined (data: URLs), as they are in the drafts we build.
  * The draft may supply <template data-acr-pdf-header> / <template data-acr-pdf-footer>;
@@ -495,7 +495,7 @@ export async function generateAcrPdf(html, { header, footer, clientName, version
       });
     };
     const defaultFooter = `<div style="font-size:8px;color:#6A6F7D;width:100%;padding:0 0.75in;display:flex;justify-content:space-between;font-family:Helvetica,Arial,sans-serif">
-      <span>${e(clientName)} · Accessibility Compliance Record · Version ${e(version)} · ${e(dateText)}</span>
+      <span>${e(clientName)} · Accessibility Evidence File · Version ${e(version)} · ${e(dateText)}</span>
       <span>Prepared by Accessrank.ai · Page <span class="pageNumber"></span> of <span class="totalPages"></span></span></div>`;
     if (!html.includes('{{TOTAL}}')) return await print(html);
     // "Page 3 of {{TOTAL}}" in a CSS footer: print once to count the pages, then again with the count.

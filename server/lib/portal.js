@@ -583,7 +583,7 @@ function pgRepo(store) {
       return (await q('SELECT * FROM portal_approvals WHERE report_id = $1 ORDER BY created_at DESC, id DESC', [reportId])).rows;
     },
 
-    /* ---- work to do and ACR drafts (012) ---- */
+    /* ---- work to do and Evidence File drafts (012) ---- */
     async listWorkItems(clientId = null) {
       return clientId
         ? (await q('SELECT * FROM portal_work_items WHERE client_id = $1', [clientId])).rows
@@ -984,7 +984,7 @@ function memRepo(store) {
       return db.approvals.filter((a) => a.report_id === reportId).sort((a, b) => (a.created_at < b.created_at ? 1 : -1));
     },
 
-    /* ---- work to do and ACR drafts (012) ---- */
+    /* ---- work to do and Evidence File drafts (012) ---- */
     async listWorkItems(clientId = null) {
       return [...db.workItems.values()].filter((w) => !clientId || w.client_id === clientId);
     },
@@ -1908,13 +1908,13 @@ export async function adminApprovals(store, scope = null) {
     .sort((a, b) => String(b.progress.lastAt ?? b.createdAt).localeCompare(String(a.progress.lastAt ?? a.createdAt)));
 }
 
-/* ====================================================== work to do and the ACR (012) === */
+/* ====================================================== work to do and the Evidence File (012) === */
 /*
  * Approved report items become a team to-do list. Ticking one records that the change is live on
- * the client's store (who, when, an optional note and the ACR conformance entry). It can then be
- * queued for the next update of the client's Accessibility Compliance Record. The ACR itself is a
- * file the team uploads as a draft; "Build ACR update" exports the queued changes as a dated list
- * to apply to it, and "Publish" uploads the updated ACR to the client's Compliance files and marks
+ * the client's store (who, when, an optional note and the Evidence File conformance entry). It can then be
+ * queued for the next update of the client's Accessibility Evidence File. The Evidence File itself is a
+ * file the team uploads as a draft; "Build Evidence File update" exports the queued changes as a dated list
+ * to apply to it, and "Publish" uploads the updated Evidence File to the client's Compliance files and marks
  * the queued changes as applied. Everything here is staff-only.
  */
 
@@ -1953,7 +1953,7 @@ const acrDraftOut = (row) => ({
 
 /**
  * Tick or untick one approved item. { done, queue, note, criterion, conformance }.
- * queue = true puts it in the next ACR update, which needs an ACR draft on file.
+ * queue = true puts it in the next Evidence File update, which needs an Evidence File draft on file.
  */
 export async function setWorkItem(store, session, reportId, key, input = {}) {
   const repo = repoFor(store);
@@ -1973,7 +1973,7 @@ export async function setWorkItem(store, session, reportId, key, input = {}) {
   if (done && input.queue) {
     const drafts = await repo.listAcrDrafts(report.client_id);
     if (!drafts.length) {
-      throw new PortalError('Upload the ACR draft for this client first, so there is something to update.', { code: 'acr_draft_required', status: 409 });
+      throw new PortalError('Upload the Evidence File draft for this client first, so there is something to update.', { code: 'acr_draft_required', status: 409 });
     }
     acrState = have?.acr_state === 'applied' ? 'applied' : 'queued';
   } else if (done && have?.acr_state === 'applied') {
@@ -1988,7 +1988,7 @@ export async function setWorkItem(store, session, reportId, key, input = {}) {
     doneAt: done ? (have?.done && have.done_at ? have.done_at : new Date().toISOString()) : null,
     doneByName: done ? (have?.done ? have.done_by_name : String(session.name ?? '').slice(0, 120)) : '',
     doneByEmail: done ? (have?.done ? have.done_by_email : String(session.email ?? '').slice(0, 254)) : '',
-    // Fields left out keep what is on file, so a later "add to ACR" does not wipe the entry.
+    // Fields left out keep what is on file, so a later "add to Evidence File" does not wipe the entry.
     note: input.note === undefined ? (have?.note ?? '') : cleanText(input.note, 2000),
     criterion: input.criterion === undefined ? (have?.criterion ?? '') : cleanText(input.criterion, 200),
     conformance: input.conformance === undefined ? (have?.conformance ?? '') : conformance,
@@ -1998,7 +1998,7 @@ export async function setWorkItem(store, session, reportId, key, input = {}) {
   return workOut(row);
 }
 
-/** One client's ACR: its drafts (newest first) and the changes waiting for the next update. */
+/** One client's Evidence File: its drafts (newest first) and the changes waiting for the next update. */
 export async function clientAcr(store, clientId) {
   const repo = repoFor(store);
   const client = isUuid(clientId) ? await repo.getClient(clientId) : null;
@@ -2025,7 +2025,7 @@ export async function clientAcr(store, clientId) {
       };
     })
     .sort((x, y) => String(x.doneAt).localeCompare(String(y.doneAt)));
-  // An approved accessibility statement goes into the ACR word for word, taken from the report the client approved.
+  // An approved accessibility statement goes into the Evidence File word for word, taken from the report the client approved.
   const htmlCache = new Map();
   for (const w of queue) {
     if (!isStatementItem(w.key, w.title) || !['approve', 'changes'].includes(w.decision)) continue;
@@ -2045,7 +2045,7 @@ const day = (value) => (value ? new Date(value).toLocaleDateString('en-US', { da
 export function acrUpdateText(acr, session, now = new Date()) {
   const draft = acr.drafts[0];
   const lines = [
-    `ACR update for ${acr.client.name}`,
+    `Evidence File update for ${acr.client.name}`,
     `Built ${day(now)} by ${session.name || session.email || 'Accessrank'}`,
     `Apply to: ${draft ? `${draft.name} (uploaded ${day(draft.createdAt)})` : 'no draft on file'}`,
     '',
@@ -2062,7 +2062,7 @@ export function acrUpdateText(acr, session, now = new Date()) {
     if (w.note) lines.push(`   Team note: ${w.note}`);
     if (w.statement) {
       if (w.statement.missing) {
-        lines.push('   Statement text: not found in the report. Copy the approved wording into the ACR by hand.');
+        lines.push('   Statement text: not found in the report. Copy the approved wording into the Evidence File by hand.');
       } else {
         lines.push(w.statement.asProposed
           ? '   Statement text, as proposed (apply the client\'s requested changes above):'
@@ -2100,7 +2100,7 @@ async function packetWarnings(repo, clientId, html) {
   }
   const unused = [...have.entries()].filter(([k]) => !used.has(k));
   if (unused.length) {
-    warnings.push(`These answers are not used anywhere in the draft: ${unused.map(([, t]) => t).join('; ')}. Keep them out of the ACR update unless they belong in the remediation log.`);
+    warnings.push(`These answers are not used anywhere in the draft: ${unused.map(([, t]) => t).join('; ')}. Keep them out of the Evidence File update unless they belong in the remediation log.`);
   }
   return warnings;
 }
@@ -2130,7 +2130,7 @@ export async function acrPreview(store, session, clientId, now = new Date()) {
   return { mergeable: true, version: merged.version, draftName: draft.name, items, notes };
 }
 
-/** Store a new ACR draft for a client (team only). */
+/** Store a new Evidence File draft for a client (team only). */
 export async function addAcrDraft(store, session, clientId, { filename, data, published = false }) {
   const repo = repoFor(store);
   if (!isUuid(clientId) || !(await repo.getClient(clientId))) throw notFound('client');
@@ -2154,7 +2154,7 @@ export async function getAcrDraft(store, id) {
 }
 
 /**
- * Publish the updated ACR: it goes to the client's Compliance files (where they can see it),
+ * Publish the updated Evidence File: it goes to the client's Compliance files (where they can see it),
  * becomes the newest draft, and every queued change is marked as applied.
  */
 export async function publishAcr(store, session, clientId, { filename, data }) {
@@ -2183,12 +2183,12 @@ export async function mergedAcr(store, session, clientId, now = new Date()) {
     decisions: DECISION_LABEL,
     conformance: CONFORMANCE_LEVELS,
   });
-  const base = `${acr.client.name} Accessibility Compliance Record Version ${merged.version}`;
+  const base = `${acr.client.name} Accessibility Evidence File Version ${merged.version}`;
   return { acr, merged: { ...merged, ...pdfTemplates(merged.html), dateText: longDay(now), base } };
 }
 
 /**
- * Publish a merged ACR: the PDF goes to the client's Compliance files, the merged HTML
+ * Publish a merged Evidence File: the PDF goes to the client's Compliance files, the merged HTML
  * becomes the newest draft (so the next update builds on it), and the queue is marked applied.
  */
 export async function publishMergedAcr(store, session, clientId, { pdfName, pdf, htmlName, html }) {

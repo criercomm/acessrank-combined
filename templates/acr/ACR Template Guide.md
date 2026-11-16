@@ -1,8 +1,8 @@
-# ACR Template Guide
+# Evidence File Template Guide
 
-How to build an Accessibility Compliance Record (ACR) for a new client from **ACR Template.html**, and how the client portal completes it from the client's approvals.
+How to build an Accessibility Evidence File for a new client from **ACR Template.html** (the files keep their old ACR names so the portal and tests that load them keep working), and how the client portal completes it from the client's approvals.
 
-The template is the Freshé ACR (Version 1.0, issued November 12, 2026) with Freshé's facts taken out. Its look, sections and wording are the house standard for every client. Don't restyle it per client.
+The template is the Freshé Evidence File (Version 1.0, issued November 12, 2026) with Freshé's facts taken out. Its look, sections and wording are the house standard for every client. Don't restyle it per client.
 
 ---
 
@@ -13,7 +13,7 @@ The template is the Freshé ACR (Version 1.0, issued November 12, 2026) with Fre
 | `templates/acr/ACR Template.html` | The blank record. Copy it for each new client. Fonts (Inter) are built in, so the PDF carries them. |
 | `templates/acr/ACR Template Guide.md` | This guide. |
 
-The client's own ACR lives in the portal, not in the repo. Each published version is kept there as a PDF and an HTML file.
+The client's own Evidence File lives in the portal, not in the repo. Each published version is kept there as a PDF and an HTML file.
 
 ---
 
@@ -21,11 +21,11 @@ The client's own ACR lives in the portal, not in the repo. Each published versio
 
 1. **Baseline and remediation.** Run the baseline audit, fix the theme on a duplicate theme, publish it, and keep the dated remediation log.
 2. **Approval packet.** Publish the Accessibility Statement and Footer packet to the client in the portal (see section 5). The client answers it there.
-3. **Prepare the ACR draft.** Copy the template, fill in every blue `[[…]]` field (see section 4), and save it as `<Client> Accessibility Compliance Record Draft.html`.
-4. **Upload the draft.** In the portal, open the client, then **Accessibility Compliance Record → Upload new draft**. If the portal warns that fill-ins are left or markers are missing, fix the file and upload it again.
-5. **Make the approved changes live.** Publish the statement page, the footer and any other approved change on the live site. **No ACR is updated until the change is live.**
-6. **Tick the work.** In **Approvals → Work to do**, tick each live item **Done and live**, then choose **Add to ACR update**. Leave the WCAG criterion blank and the conformance as "Not part of the conformance report", unless the item really is a WCAG fix. Anything typed in Team note is printed in the ACR.
-7. **Build.** Click **Build updated ACR**. It downloads the record with every queued change merged in, as a PDF. Read it.
+3. **Prepare the Evidence File draft.** Copy the template, fill in every blue `[[…]]` field (see section 4), and save it as `<Client> Accessibility Evidence File Draft.html`.
+4. **Upload the draft.** In the portal, open the client, then **Accessibility Evidence File → Upload new draft**. If the portal warns that fill-ins are left or markers are missing, fix the file and upload it again.
+5. **Make the approved changes live.** Publish the statement page, the footer and any other approved change on the live site. **No Evidence File is updated until the change is live.**
+6. **Tick the work.** In **Approvals → Work to do**, tick each live item **Done and live**, then choose **Add to Evidence File update**. Leave the WCAG criterion blank and the conformance as "Not part of the conformance report", unless the item really is a WCAG fix. Anything typed in Team note is printed in the Evidence File.
+7. **Build.** Click **Build updated Evidence File**. It downloads the record with every queued change merged in, as a PDF. Read it.
 8. **Publish.** Click **Publish to client**. The PDF (fonts embedded) and the HTML both go to the client's Compliance files. The HTML becomes the next draft, and the queued items are marked as applied.
 9. **Close the approval.** Close the packet in the portal so it moves to Past approvals. Delete any older draft PDF from the client's Compliance files.
 
@@ -119,7 +119,7 @@ Keep these attributes. Build changes only what they mark. Everything else prints
 - [ ] Client name, domain and date also replaced in the `<style>` block.
 - [ ] Contents page numbers filled in.
 - [ ] Exhibit D matches the packet the client approves, word for word.
-- [ ] File name: `<Client> Accessibility Compliance Record Draft.html` (capitalized words, spaces, no underscores).
+- [ ] File name: `<Client> Accessibility Evidence File Draft.html` (capitalized words, spaces, no underscores).
 
 **Before ticking items in Work to do**
 - [ ] The change is live on the published theme, not just in a draft theme.
@@ -146,3 +146,42 @@ Keep these attributes. Build changes only what they mark. Everything else prints
 | The wrong contact paragraph shows | The `contacts` answer doesn't contain "Option 1", "Option 2" or "Option 3". Fix the packet's option labels. |
 | A field shows blank in the merged text | The packet's field label doesn't end with the label the template uses ("contact email" and so on). |
 | A section sits on the wrong page in the PDF | Re-render the draft and update the contents page numbers. |
+
+---
+
+## 9. The VPAT (Accessibility Conformance Report)
+
+The record and the VPAT are two different documents. Keep them apart.
+
+| | The record (this template) | The VPAT |
+|---|---|---|
+| What it answers | What was found, what was fixed and when, and whether the work continues | Where the site stands today, criterion by criterion |
+| Format | Ours (this template) | ITI's VPAT&reg; 2.5 form, WCAG edition. Use ITI's own Word file; the form and the VPAT name are ITI service marks and must not be altered without ITI's written permission |
+| Who reads it | The client's attorney or insurer | Buyers and procurement teams (government, universities, large retailers), and attorneys who want a current snapshot |
+| Shared how | With counsel; it holds the client's full history | Can be sent on its own, without the history |
+| Updated | After every round of work and every scan | When conformance changes materially, after each full manual test, and at least yearly |
+
+### When to issue one
+
+Only for clients who have bought human testing. The VPAT is part of the human-testing upsell, not the core service: most clients are on remediation and automated monitoring only, and their record's Exhibit C reads "Not part of this engagement." Their record still stands on its own as proof of the work: the baseline, every fix, the published statement and the monitoring certificates.
+
+Only after a person has tested the site with a keyboard and a screen reader (Section 6 of the record). Before that, most criteria can only be reported as "Not Evaluated", which reads badly and helps no one. Until then the record's Section 3 carries the automated summary and Exhibit C reads "After manual testing".
+
+### How to fill it in
+
+1. Download the current WCAG edition from itic.org/policy/accessibility/vpat. Check the version number each time; do not reuse an old copy.
+2. Title it "[Client] Accessibility Conformance Report" and keep ITI's "Based on VPAT® Version 2.5Rev" line.
+3. Product name: the website, by its address. Report date: the date the testing finished. Product description: what the site is and what is in scope.
+4. Evaluation methods used: name the automated tools and versions, the browsers, the screen readers and devices the tester used, the shopping flows tested, and who tested (name and credential).
+5. Fill Tables 1 (Level A) and 2 (Level AA) from `VPAT Worksheet.md`, one row per criterion: a conformance level and a plain explanation. Leave Level AAA as "Not Evaluated" unless the client asks for it.
+6. Notes: list what is out of scope (platform-hosted checkout and accounts, third-party widgets), and anything awaiting a client decision.
+7. Save as "[Client] Accessibility Conformance Report [Month YYYY].docx" and a PDF, file both in the client's Compliance files, and record the file name and date in Exhibit C of the record.
+
+### Rules for the conformance levels
+
+- **Supports** only when a person has confirmed it on every page in scope, not just an automated pass.
+- **Partially Supports** when some content meets it and some does not. Say which.
+- **Does Not Support** when most content fails it. Say what is planned.
+- **Not Applicable** when the site has no such content (for example, no live audio). Say why.
+- An item that is "Closed in code, manual check pending" in the remediation log is not yet **Supports**.
+- Never write "compliant" or "certified" anywhere in the report.

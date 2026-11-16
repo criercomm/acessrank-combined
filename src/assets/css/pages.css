@@ -197,6 +197,8 @@ select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmln
 .doc strong { color: var(--text-soft); font-weight: 600; }
 .doc .callout { background: var(--surface-2); border: 1px solid var(--keyline); border-radius: 10px; padding: 16px 18px; margin: 0 0 26px; }
 .doc .callout p { margin: 0; color: var(--text-soft); font-size: 14px; }
+.doc .template-text p + p { margin-top: 12px; }
+.doc .template-text { padding: 20px 22px; }
 /* ---- Methodology: weighting table and score formula ---- */
 .doc .weight-table { width: 100%; border-collapse: collapse; margin: 4px 0 26px; font-size: 14.5px; background: var(--surface-2); border: 1px solid var(--keyline); border-radius: 10px; overflow: hidden; }
 .doc .weight-table th, .doc .weight-table td { text-align: left; vertical-align: top; padding: 12px 16px; border-bottom: 1px solid var(--keyline); color: var(--text-muted); line-height: 1.45; }

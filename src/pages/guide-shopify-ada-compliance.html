@@ -1,0 +1,79 @@
+<section class="doc-main">
+  <article class="doc">
+    <a class="back-link" href="/home">
+      <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true" focusable="false"><path d="M8.5 3 L4 7 L8.5 11" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Back to site
+    </a>
+    <header class="doc-head">
+      <nav class="doc-section-nav" aria-label="Page sections">
+        <a class="eyebrow-pill eyebrow-link" href="/about">Why we exist</a>
+        <a class="eyebrow-pill eyebrow-link" href="/guide/ada-website-compliance">ADA guide</a>
+        <a class="eyebrow-pill eyebrow-link" href="/methodology">How we score</a>
+        <a class="eyebrow-pill eyebrow-link" href="/human-testing">Human testing</a>
+        <a class="eyebrow-pill eyebrow-link" href="/resources">Resources</a>
+      </nav>
+      <h1>Is my Shopify store ADA compliant?</h1>
+      <p class="updated">What Shopify covers, what it leaves to you, and how to check</p>
+    </header>
+
+    <p class="doc-lede">Not automatically. Shopify gives you a solid starting point, but the ADA applies to your store, not to Shopify, and most accessibility problems come from the theme, the design changes and the apps that each store adds. This page explains what Shopify does and doesn't cover, the problems we find most often on Shopify stores, and how to check your own.</p>
+
+    <nav class="doc-toc" aria-label="Contents">
+      <p class="doc-toc-label">Contents</p>
+      <ul>
+        <li><a href="#what-shopify-covers">1. What Shopify covers</a></li>
+        <li><a href="#common-problems">2. The problems we find most often</a></li>
+        <li><a href="#themes">3. Is there an ADA compliant Shopify theme?</a></li>
+        <li><a href="#apps">4. Will an accessibility app make my store compliant?</a></li>
+        <li><a href="#check">5. How to check your store</a></li>
+      </ul>
+    </nav>
+
+    <section id="what-shopify-covers">
+      <h2><span class="num">1.</span>What does Shopify cover?</h2>
+      <p>Shopify builds its checkout and its free themes with accessibility in mind, and it publishes Accessibility Conformance Reports for them. Those same reports describe its checkout and default Dawn theme as only "partially supporting" several WCAG Level AA criteria, including color contrast and visible keyboard focus, and Shopify does not warrant that any store meets accessibility standards.</p>
+      <p>Everything you add on top is yours: the theme you choose and every change to it, your colors and fonts, your product images and their descriptions, your videos, pop-ups, and every app that puts something on your storefront. Apps are not reviewed for accessibility to be listed in the Shopify App Store. If a demand letter arrives, it is addressed to your business.</p>
+    </section>
+
+    <section id="common-problems">
+      <h2><span class="num">2.</span>What problems do Shopify stores usually have?</h2>
+      <p>These are the barriers we see most often on Shopify stores, roughly in order:</p>
+      <ul>
+        <li><strong>Product images without useful descriptions.</strong> Missing alt text, or alt text that just repeats a file name, so a screen reader user can't tell products apart.</li>
+        <li><strong>Text that is too light.</strong> Pale gray text, or white text on a light brand color, that fails the contrast minimum.</li>
+        <li><strong>Size and color pickers.</strong> Variant swatches that can't be reached with a keyboard or don't say which option is selected.</li>
+        <li><strong>The cart drawer.</strong> A slide-out cart that opens without moving focus or announcing that an item was added, so a screen reader user doesn't know anything happened.</li>
+        <li><strong>Pop-ups.</strong> Email sign-up and discount pop-ups that can't be closed with a keyboard, trapping the shopper.</li>
+        <li><strong>Slideshows and carousels.</strong> Hero sliders that move on their own with no way to pause them, or controls without labels.</li>
+        <li><strong>App widgets.</strong> Reviews, chat, upsell and loyalty widgets that bring their own unlabeled buttons and forms.</li>
+      </ul>
+      <p>Several of these sit directly on the path to buying, which is why they show up in demand letters: a shopper who can't pick a size or open the cart can't complete a purchase.</p>
+    </section>
+
+    <section id="themes">
+      <h2><span class="num">3.</span>Is there an ADA compliant Shopify theme?</h2>
+      <p>No theme makes a store compliant on its own. A well-built theme reduces the work, and Shopify's own free themes are a better starting point than many. But compliance depends on the finished store: the content you add, the customizations, and the apps. A theme marketed as "accessible" can still fail once your logo colors, product photos and apps are in place, so check the store itself rather than the theme's sales page.</p>
+    </section>
+
+    <section id="apps">
+      <h2><span class="num">4.</span>Will an accessibility app make my store compliant?</h2>
+      <p>No. Accessibility apps that add a toolbar or widget, often called overlays, run on top of your store and leave the underlying code unchanged, so shoppers using a screen reader or keyboard meet the same barriers. Stores running these widgets are still sued; in 2025 the Federal Trade Commission ordered overlay vendor accessiBe to pay $1 million over claims that its product could make websites compliant. We explain this in more detail on <a href="/overlays">why a widget can't protect you</a>.</p>
+      <p>Apps that help you write alt text or check contrast can be useful tools. The difference is that they help you change the store itself.</p>
+    </section>
+
+    <section id="check">
+      <h2><span class="num">5.</span>How can I check my Shopify store?</h2>
+      <ul>
+        <li><strong>Run an automated check.</strong> Our <a href="/home#audit">free accessibility check</a> scores a page against the WCAG 2.2 Level A and AA checks that demand letters cite, in under a minute. Automated tools catch only part of the problems, so treat a good score as a start, not proof.</li>
+        <li><strong>Try it with only a keyboard.</strong> Put your mouse aside and use Tab, Shift+Tab, Enter and the arrow keys to find a product, choose a size, add it to the cart and reach checkout. If you get stuck or lose track of where you are, so does a keyboard user.</li>
+        <li><strong>Work through the checklist.</strong> Our <a href="/guide/ada-compliance-checklist">ADA website compliance checklist</a> lists what to check, in plain language.</li>
+        <li><strong>Publish an accessibility statement.</strong> Use our <a href="/guide/accessibility-statement-template">free accessibility statement template</a> so customers know how to reach you.</li>
+      </ul>
+      <p>When you're ready to fix what you find, Accessrank fixes the cause in your Shopify theme code and documents the work (we do the same for WooCommerce, BigCommerce, WordPress and custom-coded stores), so you have a record to show if you are ever served. See <a href="/guide/ada-website-compliance">our ADA website compliance guide</a> for what the law requires.</p>
+    </section>
+
+    <div class="callout" id="not-legal-advice">
+      <p><strong>This page is general information, not legal advice.</strong> It does not create an attorney–client relationship and is not a substitute for advice from a qualified attorney about your situation. See our <a href="/disclosure">Disclosure</a> for more.</p>
+    </div>
+  </article>
+</section>

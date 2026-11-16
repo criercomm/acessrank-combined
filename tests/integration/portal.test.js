@@ -1459,7 +1459,7 @@ test('ACR merge: an HTML draft gets the approved changes merged in, and publishi
   try {
     const built = await admin.get(`/api/portal/admin/clients/${a.client.id}/acr/update`);
     assert.equal(built.status, 200);
-    assert.match(decodeURIComponent(built.headers.get('content-disposition')), /Freshe Accessibility Compliance Record Version 1\.1\.pdf/);
+    assert.match(decodeURIComponent(built.headers.get('content-disposition')), /Freshe Accessibility Evidence File Version 1\.1\.pdf/);
     const pub = await admin.post(`/api/portal/admin/clients/${a.client.id}/acr/publish`);
     assert.equal(pub.status, 201, JSON.stringify(pub.body));
     assert.equal(pub.body.version, '1.1');
@@ -1469,11 +1469,11 @@ test('ACR merge: an HTML draft gets the approved changes merged in, and publishi
     delete app.locals.renderAcrPdf;
   }
   const files = (await a.person.get('/api/portal/me')).body.files;
-  assert.ok(files.some((f) => f.name === 'Freshe Accessibility Compliance Record Version 1.1.pdf' && f.area === 'compliance'));
-  assert.ok(files.some((f) => f.name === 'Freshe Accessibility Compliance Record Version 1.1.html' && f.area === 'compliance'), 'the HTML goes to the client too');
+  assert.ok(files.some((f) => f.name === 'Freshe Accessibility Evidence File Version 1.1.pdf' && f.area === 'compliance'));
+  assert.ok(files.some((f) => f.name === 'Freshe Accessibility Evidence File Version 1.1.html' && f.area === 'compliance'), 'the HTML goes to the client too');
   const after = (await admin.get(`/api/portal/admin/clients/${a.client.id}/acr`)).body;
   assert.equal(after.queue.length, 0);
-  assert.equal(after.drafts[0].name, 'Freshe Accessibility Compliance Record Version 1.1.html', 'the merged ACR is the next draft');
+  assert.equal(after.drafts[0].name, 'Freshe Accessibility Evidence File Version 1.1.html', 'the merged ACR is the next draft');
   assert.equal(after.drafts[0].mergeable, true);
   assert.equal((await admin.post(`/api/portal/admin/clients/${a.client.id}/acr/publish`)).status, 409, 'nothing queued');
 });
@@ -1667,7 +1667,7 @@ test('the portal logs its own events: packet, answers, work, draft, publish and 
   assert.equal(entries[0].title, 'Approval packet published: Statement and footer');
   assert.equal(entries[1].title, 'Client answered: Statement and footer');
   assert.equal(entries[1].authorName, 'Angie Moe');
-  assert.equal(entries[2].title, 'ACR draft uploaded: Seedco ACR Draft.html');
+  assert.equal(entries[2].title, 'Evidence File draft uploaded: Seedco ACR Draft.html');
   assert.equal(entries[3].title, 'Marked done and live: Accessibility statement text');
   assert.equal(entries[4].title, 'Approval closed: Statement and footer');
 });

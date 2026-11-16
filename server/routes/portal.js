@@ -426,7 +426,7 @@ admin.delete('/file-notes/:id', wrap(async (req, res) => {
 }));
 
 
-/* ------------------------------------------------- work to do and ACR --- */
+/* ------------------------------------------------- work to do and Evidence File --- */
 // Staff only (the whole admin router), and only for clients this person can reach.
 
 const workSchema = z.object({
@@ -437,13 +437,13 @@ const workSchema = z.object({
   conformance: z.enum(['', ...Object.keys(CONFORMANCE_LEVELS)]).optional(),
 });
 
-/** Tick or untick one approved item, and optionally queue it for the next ACR update. */
+/** Tick or untick one approved item, and optionally queue it for the next Evidence File update. */
 admin.put('/reports/:id/work/:key', wrap(async (req, res) => {
   const found = await getReport(await getStore(), req.params.id);
   await assertClient(req, found ? found.client_id : null);
   const input = parseOrThrow(workSchema, req.body);
   const work = await setWorkItem(await getStore(), req.portal, req.params.id, req.params.key, input);
-  // Logged once, when the item is first ticked (a later note or "add to ACR" keeps the first date).
+  // Logged once, when the item is first ticked (a later note or "add to Evidence File" keeps the first date).
   const logged = work.done && work.doneAt
     && (await listActivity(await getStore(), found.client_id)).some((e) => e.kind === 'work' && e.data.reportId === found.id && e.data.item === req.params.key && e.data.doneAt === work.doneAt);
   if (work.done && work.doneAt && !logged) {
@@ -475,14 +475,14 @@ const uploadedBytes = (req) => {
   throw new PortalError('Upload the file as application/octet-stream.', { code: 'bad_upload', status: 415 });
 };
 
-/** Upload a new ACR draft (team only; the client never sees drafts). */
+/** Upload a new Evidence File draft (team only; the client never sees drafts). */
 admin.post('/clients/:id/acr/drafts', rawUpload, wrap(async (req, res) => {
   await assertClient(req, req.params.id);
   const draft = await addAcrDraft(await getStore(), req.portal, req.params.id, {
     filename: typeof req.query.name === 'string' ? req.query.name : '', data: uploadedBytes(req),
   });
   log.info('portal acr draft uploaded', { draftId: draft.id, clientId: req.params.id, bytes: draft.size, by: req.portal.email });
-  await recordActivity(await getStore(), req.params.id, { kind: 'acr', title: `ACR draft uploaded: ${draft.name}`, by: req.portal });
+  await recordActivity(await getStore(), req.params.id, { kind: 'acr', title: `Evidence File draft uploaded: ${draft.name}`, by: req.portal });
   res.status(201).json({ ok: true, draft });
 }));
 
@@ -526,7 +526,7 @@ admin.get('/clients/:id/acr/update', wrap(async (req, res) => {
     return res.end(pdf);
   }
   const stamp = builtAt.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'America/Los_Angeles' }).replace(',', '');
-  const name = `${acr.client.name} ACR Update ${stamp}`;
+  const name = `${acr.client.name} Evidence File Update ${stamp}`;
   if (req.query.format === 'txt') {
     res.setHeader('Content-Type', 'text/plain; charset=utf-8');
     res.setHeader('Content-Disposition', contentDisposition(`${name}.txt`));
@@ -546,8 +546,8 @@ admin.get('/clients/:id/acr/update', wrap(async (req, res) => {
 }));
 
 /**
- * Publish the updated ACR to the client's Compliance files and mark the queued changes as applied.
- * With an HTML draft and no upload, the server merges and prints the ACR itself; otherwise the
+ * Publish the updated Evidence File to the client's Compliance files and mark the queued changes as applied.
+ * With an HTML draft and no upload, the server merges and prints the Evidence File itself; otherwise the
  * uploaded file is published as it is.
  */
 admin.post('/clients/:id/acr/publish', rawUpload, wrap(async (req, res) => {
@@ -564,7 +564,7 @@ admin.post('/clients/:id/acr/publish', rawUpload, wrap(async (req, res) => {
       });
       log.info('portal acr published', { clientId: req.params.id, fileId: out.file.id, applied: out.applied, version: merged.version, by: req.portal.email });
       await recordActivity(store, req.params.id, {
-        kind: 'acr', title: `ACR Version ${merged.version} published to the client`,
+        kind: 'acr', title: `Evidence File Version ${merged.version} published to the client`,
         details: `${out.file.name}. ${out.applied} approved change${out.applied === 1 ? '' : 's'} added to the record.`,
         data: { version: merged.version, applied: out.applied }, by: req.portal,
       });
@@ -575,7 +575,7 @@ admin.post('/clients/:id/acr/publish', rawUpload, wrap(async (req, res) => {
     filename: typeof req.query.name === 'string' ? req.query.name : '', data: uploadedBytes(req),
   });
   log.info('portal acr published', { clientId: req.params.id, fileId: out.file.id, applied: out.applied, by: req.portal.email });
-  await recordActivity(store, req.params.id, { kind: 'acr', title: `ACR published to the client: ${out.file.name}`, data: { applied: out.applied }, by: req.portal });
+  await recordActivity(store, req.params.id, { kind: 'acr', title: `Evidence File published to the client: ${out.file.name}`, data: { applied: out.applied }, by: req.portal });
   res.status(201).json({ ok: true, ...out });
 }));
 
@@ -595,7 +595,7 @@ const activitySchema = z.object({
 
 /**
  * The log, newest first. ?format=csv downloads it as a spreadsheet; ?format=kit-rows gives the
- * remediation log in the shape the ACR kit reads (rows.json).
+ * remediation log in the shape the Evidence File kit reads (rows.json).
  */
 admin.get('/clients/:id/activity', wrap(async (req, res) => {
   await assertClient(req, req.params.id);

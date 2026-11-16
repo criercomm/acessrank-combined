@@ -16,6 +16,7 @@ import { log, requestId } from './lib/logger.js';
 import api from './routes/api.js';
 import { isStaff, passMatches, setStaffCookie } from './lib/staff.js';
 import portal, { portalPageGate, loginPageGate, reportPage } from './routes/portal.js';
+import { reportCsp } from './lib/reportCsp.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const DIST = path.join(__dirname, '..', 'dist');
@@ -361,6 +362,27 @@ app.get('/', (req, res) => {
   const deckAvailable = fs.existsSync(DECK_HTML);
   return res.sendFile(wantsLongForm(req) || !deckAvailable ? HOME_HTML : DECK_HTML);
 });
+/**
+ * The sample Accessibility Evidence File is a self-contained document (its own
+ * inline styles and embedded fonts), like the reports in the portal, so it is served
+ * with the same per-document policy instead of the site-wide one.
+ */
+const SAMPLE_FILE = path.join(DIST, 'samples', 'accessibility-evidence-file.html');
+app.get(['/samples/accessibility-evidence-file', '/samples/accessibility-evidence-file.html'], (req, res, next) => {
+  if (!fs.existsSync(SAMPLE_FILE)) return next();
+  const page = fs.readFileSync(SAMPLE_FILE, 'utf8');
+  const base = res.getHeader('Content-Security-Policy');
+  if (typeof base === 'string') res.setHeader('Content-Security-Policy', reportCsp(base, page));
+  res.setHeader('Cache-Control', 'public, max-age=0, must-revalidate');
+  return res.type('text/html; charset=utf-8').send(page);
+});
+/** The sample was first published as the "Accessibility Compliance Record"; old links keep working. */
+app.get(['/samples/accessibility-compliance-record', '/samples/accessibility-compliance-record.html'], (req, res) => res.redirect(301, '/samples/accessibility-evidence-file'));
+app.get('/samples/accessibility-compliance-record.pdf', (req, res) => res.redirect(301, '/samples/accessibility-evidence-file.pdf'));
+
+/** The ADA guide moved from /guide/ada-eaa (Nov 2026); keep old links and search results working. */
+app.get(['/guide/ada-eaa', '/guide/ada-eaa/'], (req, res) => res.redirect(301, '/guide/ada-website-compliance'));
+
 app.get(['/home', '/home/'], (req, res) => {
   res.setHeader('Cache-Control', 'public, max-age=0, must-revalidate');
   return res.sendFile(HOME_HTML);

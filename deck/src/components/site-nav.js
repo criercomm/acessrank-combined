@@ -27,7 +27,7 @@ const MAIN_NAV = Object.values(import.meta.glob('../../../src/data/site.json', {
 const FALLBACK = [
   { label: 'Why we exist', href: '/about', menu: true, children: [
     { label: 'Why we exist', href: '/about' },
-    { label: 'ADA guide', href: '/guide/ada-eaa' },
+    { label: 'ADA guide', href: '/guide/ada-website-compliance' },
     { label: 'How we score', href: '/methodology' },
   ] },
   { label: 'Pricing', href: '/home#pricing' },
