@@ -471,6 +471,12 @@ select#new-op-role { min-height: 44px; }
 @media (prefers-reduced-motion: reduce) { .work-bar-fill { transition: none; } }
 .work-list { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--hairline); }
 .work-row { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 4px 14px; align-items: start; padding: 12px 0; border-bottom: 1px solid var(--hairline); }
+.services-block { margin: 0 0 22px; }
+.services-check { display: flex; align-items: center; gap: 10px; margin: 6px 0 10px; cursor: pointer; }
+.services-check input[type="checkbox"] { width: 20px; height: 20px; flex: 0 0 auto; margin: 0; }
+.services-vpat select { max-width: 520px; }
+.file-tag { font-weight: 600; }
+.vpat-pending { margin: 0; padding: 12px 22px 16px; }
 .work-row input[type="checkbox"] { width: 20px; height: 20px; margin: 2px 0 0; accent-color: #4ADE80; cursor: pointer; }
 .work-row label { display: grid; gap: 2px; cursor: pointer; min-width: 0; font-weight: 400; font-size: 14.5px; line-height: 1.45; color: var(--text-soft); }
 .work-row label .file-meta { font-weight: 400; }

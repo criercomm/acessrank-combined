@@ -136,6 +136,19 @@
         <p class="file-area-note field-hint">Each file lives in one list, and the client sees both lists in their portal. Add files with the buttons, or drag them onto a list. <strong>Move</strong> puts a file in the other list; <strong>Delete</strong> removes it.</p>
         <ul class="upload-queue" data-upload-queue aria-label="Uploads in progress"></ul>
 
+        <div class="services-block" data-services aria-labelledby="admin-services-heading" role="group">
+          <h4 class="files-subhead" id="admin-services-heading">Human testing and VPAT</h4>
+          <label class="services-check" for="services-human-testing">
+            <input type="checkbox" id="services-human-testing" data-human-testing>
+            Human testing is part of this client&rsquo;s plan
+          </label>
+          <div class="field services-vpat" data-vpat-field hidden>
+            <label for="services-vpat-file">VPAT file</label>
+            <select id="services-vpat-file" data-vpat-file aria-describedby="services-vpat-hint"></select>
+            <p class="field-hint" id="services-vpat-hint">Choose the VPAT from this client&rsquo;s Compliance files. The client sees it marked as their VPAT; until one is chosen, they see that it will follow their human testing. Clients without human testing see nothing about a VPAT.</p>
+          </div>
+        </div>
+
         <div class="files-head">
           <h4 class="files-subhead" id="admin-compliance-heading" tabindex="-1">Compliance files <span class="portal-count" data-compliance-count></span></h4>
           <label class="btn-small upload-button" for="upload-compliance">Add files</label>

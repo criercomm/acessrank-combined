@@ -37,10 +37,14 @@ The Accessrank score is the accessibility score and nothing else: how much of WC
 
 ## Pricing (USD)
 
-- Starter: $1,500 one-time onboarding, then $79/month (or $790/year). Single-line stores with up to 10 SKUs. Live in about 2 weeks.
-- Growth: $3,500 one-time onboarding, then $249/month (or $2,490/year). Growing brands with 10 to 100 SKUs. Live in 2 to 4 weeks. Most popular.
-- Enterprise: custom onboarding and monthly plan. Large and multi-brand catalogs, multiple storefronts, headless and custom builds, 100+ SKUs. 6 to 12 weeks.
-- Lawsuit response: from $5,900 one-time, about 7-day delivery, then Growth monitoring.
+Two levels: Deter (every plan: everything an automated scan can see, fixed and monitored) and Verify (human testing with a keyboard and screen reader, signed results and a VPAT; included on Growth and Scale, an add-on for Starter). Pricing has two parts: a one-time onboarding project that raises the accessibility score, then a monthly (or annual) plan that holds it. A free site audit places each store in a tier by theme customization and app count. Every plan includes source-code remediation against WCAG 2.2 AA, human-reviewed alt text, continuous monitoring with regressions fixed, the Accessibility Evidence File, and the SEO and AI-readiness gains from the fixes.
+
+- Starter: $1,500 onboarding, then $79/month (or $690/year). Stock theme with a handful of apps. Live in about 2 weeks. Regressions fixed in the next monthly cycle; human-written alt text for new products, up to 20 a month.
+- Growth: $3,500 onboarding, then $249/month (or $2,090/year). Customized theme with up to 15 apps. Live in 2 to 4 weeks. Regressions fixed within five business days; alt text up to 50 a month; app checks before install; product data rebuild and AI visibility across five assistants at 30 and 60 days; human testing once a year (up to 8 flows); if served, a letter response in two business days (one a year).
+- Scale: $6,500 onboarding, then $599/month (or $4,990/year). Heavily customized themes with 15 or more apps. Live in 4 to 6 weeks. Regressions fixed within two business days; alt text up to 150 a month; quarterly AI visibility re-runs; a named accessibility specialist; human testing twice a year (up to 16 flows); if served, the same letter response.
+- Enterprise: custom onboarding and plan, 8 to 12 weeks. Large and multi-brand catalogs, multiple storefronts, headless and custom-coded builds; fix window, human testing and procurement terms set by contract.
+- Already served ("Everything, now"): from $5,900 one-time, about 7 days: emergency audit, source-code fixes to the cited items, a barrier-by-barrier response for counsel, a signed human testing record with proof video and VPAT documentation, and a technical review of settlement terms. No need to be a client first.
+- Human testing added to any plan: focused walk (up to 6 flows) $1,500; full walk (up to 12 flows) $3,000. One-week turnaround adds 30%; a re-test after fixes is 40% of the original test. A VPAT (Accessibility Conformance Report) is issued only where human testing is part of the engagement.
 - Eligible small businesses may offset 50% of qualifying costs through the IRS Disabled Access Credit (Form 8826), up to $5,000 a year. Accessrank is not a tax advisor.
 
 ## Platforms

@@ -333,6 +333,7 @@ body.modal-open { overflow: hidden; }
 .sr-howto { margin: 16px 18px 0; padding-top: 14px; border-top: 1px solid var(--hairline); }
 .sr-howto h3 { margin: 0 0 6px; font-size: 14px; font-weight: 700; color: var(--text); text-align: left; }
 .sr-howto p { margin: 0; font-size: 13px; line-height: 1.6; color: var(--text-muted); }
+.sr-howto p + h3 { margin-top: 14px; }
 
 @media (prefers-reduced-motion: reduce) { .ar-bar-fill { transition: none; } }
 

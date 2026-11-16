@@ -1773,3 +1773,52 @@ test('an entry takes one evidence file, of a readable kind, and only the team ca
   const csv = (await admin.get(`${url}?format=csv`)).body.toString('utf8');
   assert.match(csv, /Seedco axe scan\.json/);
 });
+
+/* ---------------------------------------------- human testing and the VPAT --- */
+
+test('human testing and the VPAT: only clients with human testing see a VPAT, and it must be their own Compliance file', async () => {
+  const owner = await adminBrowser();
+  const a = await clientWithLogin(owner, 'Top Seedz', 'jordan@topseedz.test');
+  const b = await clientWithLogin(owner, 'Fresh Co', 'sam@fresh.test');
+  const files = `/api/portal/admin/clients/${a.client.id}/files`;
+  const vpat = (await owner.upload(`${files}?name=Top Seedz Accessibility Conformance Report.pdf&area=compliance`, PDF)).body.file;
+  const other = (await owner.upload(`${files}?name=Notes.pdf`, PDF)).body.file;
+  const theirs = (await owner.upload(`/api/portal/admin/clients/${b.client.id}/files?name=Theirs.pdf&area=compliance`, PDF)).body.file;
+  const services = `/api/portal/admin/clients/${a.client.id}/services`;
+
+  let me = await a.person.get('/api/portal/me');
+  assert.equal(me.body.client.humanTesting, false, 'off by default');
+  assert.equal(me.body.client.vpatFileId, null);
+
+  let r = await owner.patch(services, { humanTesting: true });
+  assert.equal(r.status, 200);
+  assert.equal(r.body.client.humanTesting, true);
+  assert.equal(r.body.client.vpatFileId, null, 'human testing on, VPAT not issued yet');
+
+  assert.equal((await owner.patch(services, { humanTesting: true, vpatFileId: other.id })).status, 400, 'not a Compliance file');
+  assert.equal((await owner.patch(services, { humanTesting: true, vpatFileId: theirs.id })).status, 400, 'another client’s file');
+
+  r = await owner.patch(services, { humanTesting: true, vpatFileId: vpat.id });
+  assert.equal(r.body.client.vpatFileId, vpat.id);
+  me = await a.person.get('/api/portal/me');
+  assert.equal(me.body.client.vpatFileId, vpat.id, 'the client is told which file is their VPAT');
+  assert.equal((await b.person.get('/api/portal/me')).body.client.humanTesting, false, 'other clients unaffected');
+
+  const overview = await owner.get('/api/portal/admin/clients');
+  const row = overview.body.clients.find((c) => c.id === a.client.id);
+  assert.equal(row.humanTesting, true);
+  assert.equal(row.vpatFileId, vpat.id);
+
+  r = await owner.patch(services, { humanTesting: false, vpatFileId: vpat.id });
+  assert.equal(r.body.client.humanTesting, false);
+  assert.equal(r.body.client.vpatFileId, null, 'turning human testing off clears the VPAT');
+
+  await owner.patch(services, { humanTesting: true, vpatFileId: vpat.id });
+  assert.equal((await owner.del(`/api/portal/admin/files/${vpat.id}`)).status, 200);
+  me = await a.person.get('/api/portal/me');
+  assert.equal(me.body.client.vpatFileId, null, 'deleting the file clears the VPAT');
+  assert.equal(me.body.client.humanTesting, true);
+
+  assert.ok([401, 403, 404].includes((await a.person.patch(services, { humanTesting: false })).status), 'clients cannot change it');
+  assert.equal((await a.person.get('/api/portal/me')).body.client.humanTesting, true);
+});

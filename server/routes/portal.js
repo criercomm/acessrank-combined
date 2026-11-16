@@ -7,7 +7,7 @@ import { hashIp, clientIp } from '../lib/identity.js';
 import { parseOrThrow } from '../lib/validate.js';
 import {
   PortalError, signIn, signOut, sessionFor, setSessionCookie, clearSessionCookie,
-  adminOverview, createClient, renameClient, deleteClient,
+  adminOverview, createClient, renameClient, deleteClient, setClientServices, clientServices,
   createLogin, createClientWithSetup, resetLoginPassword, deleteLogin, changeOwnPassword,
   listClientFiles, addFile, getFile, deleteFile, setFileArea, addFileNote, fileNoteClientId, updateFileNote, deleteFileNote, contentDisposition, PASSWORD_MAX,
   listTeamFiles, addTeamFile, replaceTeamFile, getTeamFile, deleteTeamFile, listTeamNotes, addTeamNote, updateTeamNote, deleteTeamNote,
@@ -125,7 +125,7 @@ router.get('/me', requireSession(), wrap(async (req, res) => {
     ok: true,
     role: 'client',
     user: { email: portal.email, name: portal.name, passwordSetBy: portal.passwordSetBy },
-    client: { id: portal.clientId, name: portal.clientName },
+    client: { id: portal.clientId, name: portal.clientName, ...(await clientServices(await getStore(), portal.clientId)) },
     files: await listClientFiles(await getStore(), portal.clientId),
     reports: await listReports(await getStore(), portal.clientId),
   });
@@ -268,6 +268,17 @@ admin.post('/clients', requireSession('master'), wrap(async (req, res) => {
 admin.patch('/clients/:id', requireSession('master'), wrap(async (req, res) => {
   const { name } = parseOrThrow(clientSchema, req.body);
   res.json({ ok: true, client: await renameClient(await getStore(), req.params.id, name) });
+}));
+
+const servicesSchema = z.object({ humanTesting: z.boolean(), vpatFileId: z.string().uuid().nullable().optional() });
+
+/** Whether the client has bought human testing, and which Compliance file is their VPAT. */
+admin.patch('/clients/:id/services', wrap(async (req, res) => {
+  await assertClient(req, req.params.id);
+  const input = parseOrThrow(servicesSchema, req.body);
+  const client = await setClientServices(await getStore(), req.params.id, input);
+  log.info('portal client services updated', { clientId: req.params.id, humanTesting: client.humanTesting, vpat: Boolean(client.vpatFileId), by: req.portal.email });
+  res.json({ ok: true, client });
 }));
 
 admin.delete('/clients/:id', requireSession('master'), wrap(async (req, res) => {

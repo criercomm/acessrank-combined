@@ -207,7 +207,10 @@ export function contentDisposition(filename) {
 
 const iso = (value) => (value == null ? null : new Date(value).toISOString());
 
-const clientOut = (row) => ({ id: row.id, name: row.name, createdAt: iso(row.created_at) });
+const clientOut = (row) => ({
+  id: row.id, name: row.name, createdAt: iso(row.created_at),
+  humanTesting: Boolean(row.human_testing), vpatFileId: row.vpat_file_id ?? null,
+});
 const userOut = (row) => ({
   id: row.id,
   clientId: row.client_id,
@@ -256,16 +259,19 @@ function pgRepo(store) {
   const q = (text, params) => store.query(text, params);
   return {
     async listClients() {
-      return (await q('SELECT id, name, created_at FROM portal_clients ORDER BY lower(name), created_at')).rows;
+      return (await q('SELECT id, name, created_at, human_testing, vpat_file_id FROM portal_clients ORDER BY lower(name), created_at')).rows;
     },
     async getClient(id) {
-      return (await q('SELECT id, name, created_at FROM portal_clients WHERE id = $1', [id])).rows[0] ?? null;
+      return (await q('SELECT id, name, created_at, human_testing, vpat_file_id FROM portal_clients WHERE id = $1', [id])).rows[0] ?? null;
     },
     async insertClient(name) {
-      return (await q('INSERT INTO portal_clients (name) VALUES ($1) RETURNING id, name, created_at', [name])).rows[0];
+      return (await q('INSERT INTO portal_clients (name) VALUES ($1) RETURNING id, name, created_at, human_testing, vpat_file_id', [name])).rows[0];
     },
     async renameClient(id, name) {
-      return (await q('UPDATE portal_clients SET name = $2 WHERE id = $1 RETURNING id, name, created_at', [id, name])).rows[0] ?? null;
+      return (await q('UPDATE portal_clients SET name = $2 WHERE id = $1 RETURNING id, name, created_at, human_testing, vpat_file_id', [id, name])).rows[0] ?? null;
+    },
+    async setClientServices(id, humanTesting, vpatFileId) {
+      return (await q('UPDATE portal_clients SET human_testing = $2, vpat_file_id = $3 WHERE id = $1 RETURNING id, name, created_at, human_testing, vpat_file_id', [id, humanTesting, vpatFileId])).rows[0] ?? null;
     },
     async deleteClient(id) {
       return (await q('DELETE FROM portal_clients WHERE id = $1', [id])).rowCount > 0;
@@ -663,7 +669,7 @@ function memRepo(store) {
     },
     async getClient(id) { return db.clients.get(id) ?? null; },
     async insertClient(name) {
-      const row = { id: crypto.randomUUID(), name, created_at: now() };
+      const row = { id: crypto.randomUUID(), name, created_at: now(), human_testing: false, vpat_file_id: null };
       db.clients.set(row.id, row);
       return row;
     },
@@ -671,6 +677,13 @@ function memRepo(store) {
       const row = db.clients.get(id);
       if (!row) return null;
       row.name = name;
+      return row;
+    },
+    async setClientServices(id, humanTesting, vpatFileId) {
+      const row = db.clients.get(id);
+      if (!row) return null;
+      row.human_testing = humanTesting;
+      row.vpat_file_id = vpatFileId;
       return row;
     },
     async deleteClient(id) {
@@ -766,6 +779,8 @@ function memRepo(store) {
       const removed = db.files.delete(id);
       // Notes go with their file, as ON DELETE CASCADE does in Postgres.
       if (removed) db.fileNotes = db.fileNotes.filter((n) => n.file_id !== id);
+      // A deleted VPAT file stops being the client's VPAT, as ON DELETE SET NULL does in Postgres.
+      if (removed) for (const c of db.clients.values()) if (c.vpat_file_id === id) c.vpat_file_id = null;
       return removed;
     },
     async setFileArea(id, area) {
@@ -1260,6 +1275,32 @@ export async function renameClient(store, id, rawName) {
   const row = await repoFor(store).renameClient(id, cleanClientName(rawName));
   if (!row) throw notFound('client');
   return clientOut(row);
+}
+
+/**
+ * Human testing and the VPAT for one client. Only clients who have bought human testing are
+ * owed a VPAT, so turning human testing off also clears the VPAT file. The VPAT must be one of
+ * the client's own Compliance files.
+ */
+export async function setClientServices(store, id, { humanTesting, vpatFileId = null }) {
+  if (!isUuid(id)) throw notFound('client');
+  const repo = repoFor(store);
+  if (!(await repo.getClient(id))) throw notFound('client');
+  const wantsTesting = Boolean(humanTesting);
+  let fileId = wantsTesting && vpatFileId ? String(vpatFileId) : null;
+  if (fileId) {
+    const file = isUuid(fileId) ? await repo.getFile(fileId) : null;
+    if (!file || file.client_id !== id || file.area !== 'compliance') {
+      throw new PortalError('Choose one of this client\u2019s Compliance files as the VPAT.', { code: 'vpat_file_invalid', status: 400 });
+    }
+  }
+  return clientOut(await repo.setClientServices(id, wantsTesting, fileId));
+}
+
+/** What a client login is told about its own services: whether human testing is included, and which file is the VPAT. */
+export async function clientServices(store, clientId) {
+  const row = isUuid(clientId) ? await repoFor(store).getClient(clientId) : null;
+  return row ? { humanTesting: Boolean(row.human_testing), vpatFileId: row.vpat_file_id ?? null } : { humanTesting: false, vpatFileId: null };
 }
 
 export async function deleteClient(store, id) {
@@ -2278,7 +2319,7 @@ export async function deleteFileNote(store, id) {
 export default {
   PortalError, hashPassword, verifyPassword, generatePassword,
   signIn, signOut, sessionFor, setSessionCookie, clearSessionCookie,
-  adminOverview, createClient, createClientWithSetup, renameClient, deleteClient,
+  adminOverview, createClient, createClientWithSetup, renameClient, deleteClient, setClientServices, clientServices,
   createLogin, resetLoginPassword, deleteLogin, changeOwnPassword,
   listClientFiles, addFile, getFile, deleteFile, setFileArea, addFileNote, fileNoteClientId, updateFileNote, deleteFileNote,
   listTeamFiles, addTeamFile, replaceTeamFile, getTeamFile, deleteTeamFile, listTeamNotes, addTeamNote, updateTeamNote, deleteTeamNote,

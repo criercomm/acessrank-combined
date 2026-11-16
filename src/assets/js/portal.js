@@ -264,6 +264,14 @@
     ]);
   }
 
+  /** Marks a Compliance file as the client's VPAT, in both the client's and the team's lists. */
+  function markVpat(li, client, file) {
+    if (!client || !client.vpatFileId || client.vpatFileId !== file.id) return li;
+    var meta = li.querySelector('.file-meta');
+    if (meta) meta.insertBefore(h('span', { class: 'file-tag', text: 'VPAT (Accessibility Conformance Report)' }), meta.firstChild);
+    return li;
+  }
+
   function bindLogout(root) {
     var button = root.querySelector('[data-portal-logout]');
     if (!button) return;
@@ -432,7 +440,7 @@
     return li;
   }
 
-  function renderPortalSections(root, reports, allFiles, team) {
+  function renderPortalSections(root, reports, allFiles, team, client) {
     var rowActions = function (file) { return team ? [team.deleteButton(file)] : []; };
     var openReports = reports.filter(function (r) { return r.status !== 'closed'; });
     var pastReports = reports.filter(function (r) { return r.status === 'closed'; });
@@ -454,8 +462,11 @@
     var compliance = allFiles.filter(function (f) { return f.area === 'compliance'; });
     var complianceList = root.querySelector('[data-compliance-list]');
     clear(complianceList);
-    compliance.forEach(function (file) { complianceList.appendChild(fileRow(file, rowActions(file))); });
+    var vpatId = client && client.humanTesting && compliance.some(function (f) { return f.id === client.vpatFileId; }) ? client.vpatFileId : null;
+    compliance.forEach(function (file) { complianceList.appendChild(markVpat(fileRow(file, rowActions(file)), { vpatFileId: vpatId }, file)); });
     complianceList.hidden = compliance.length === 0;
+    var vpatPending = root.querySelector('[data-vpat-pending]');
+    if (vpatPending) vpatPending.hidden = !(client && client.humanTesting && !vpatId);
     root.querySelector('[data-compliance-empty]').hidden = compliance.length > 0;
     root.querySelector('[data-compliance-count]').textContent = compliance.length ? plural(compliance.length, 'file') : '';
 
@@ -505,7 +516,7 @@
 
       if (nudge) nudge.hidden = asMatch ? true : data.user.passwordSetBy !== 'admin';
 
-      renderPortalSections(root, data.reports || [], data.files || [], team);
+      renderPortalSections(root, data.reports || [], data.files || [], team, data.client);
     }
 
     /** The team bar above the client's own page: who you are looking at, and the way back. */
@@ -1802,6 +1813,9 @@
     var complianceList = root.querySelector('[data-compliance-list]');
     var complianceEmpty = root.querySelector('[data-compliance-empty]');
     var complianceCount = root.querySelector('[data-compliance-count]');
+    var servicesTesting = root.querySelector('[data-human-testing]');
+    var vpatField = root.querySelector('[data-vpat-field]');
+    var vpatSelect = root.querySelector('[data-vpat-file]');
 
     function selected() {
       return state.clients.filter(function (c) { return c.id === state.selectedId; })[0] || null;
@@ -1858,6 +1872,48 @@
       pastCount.textContent = total ? plural(total, 'record') : '';
     }
 
+    /* ---- human testing and the VPAT: only clients who bought human testing are owed a VPAT ---- */
+
+    function renderServices(client) {
+      if (!servicesTesting) return;
+      var compliance = client.files.filter(function (f) { return f.area === 'compliance'; });
+      if (client.vpatFileId && !compliance.some(function (f) { return f.id === client.vpatFileId; })) client.vpatFileId = null;
+      servicesTesting.checked = !!client.humanTesting;
+      vpatField.hidden = !client.humanTesting;
+      clear(vpatSelect);
+      vpatSelect.appendChild(h('option', { value: '', text: 'Not issued yet' }));
+      compliance.forEach(function (f) {
+        vpatSelect.appendChild(h('option', { value: f.id, text: f.name, selected: f.id === client.vpatFileId ? true : null }));
+      });
+      vpatSelect.value = client.vpatFileId || '';
+    }
+
+    function saveServices(client, changes) {
+      var body = { humanTesting: 'humanTesting' in changes ? changes.humanTesting : !!client.humanTesting, vpatFileId: 'vpatFileId' in changes ? changes.vpatFileId : (client.vpatFileId || null) };
+      servicesTesting.disabled = true; vpatSelect.disabled = true;
+      return api('PATCH', '/api/portal/admin/clients/' + encodeURIComponent(client.id) + '/services', body).then(function (data) {
+        client.humanTesting = data.client.humanTesting;
+        client.vpatFileId = data.client.vpatFileId;
+        renderFiles(client);
+        setStatus(status, !client.humanTesting
+          ? 'Human testing is off for ' + client.name + '. They see nothing about a VPAT.'
+          : client.vpatFileId
+            ? 'The VPAT is set for ' + client.name + '. They see it marked in their Compliance files.'
+            : 'Human testing is on for ' + client.name + '. They see that their VPAT will follow their human testing.', 'success');
+      }).catch(function (e) { renderServices(client); fail(e); }).then(function () {
+        servicesTesting.disabled = false; vpatSelect.disabled = false;
+      });
+    }
+
+    if (servicesTesting) {
+      servicesTesting.addEventListener('change', function () {
+        var client = selected(); if (client) saveServices(client, { humanTesting: servicesTesting.checked, vpatFileId: servicesTesting.checked ? (client.vpatFileId || null) : null });
+      });
+      vpatSelect.addEventListener('change', function () {
+        var client = selected(); if (client) saveServices(client, { vpatFileId: vpatSelect.value || null });
+      });
+    }
+
     function renderFiles(client) {
       var compliance = client.files.filter(function (f) { return f.area === 'compliance'; });
       var other = client.files.filter(function (f) { return f.area === 'files'; });
@@ -1867,8 +1923,9 @@
       filesEmpty.hidden = other.length > 0;
       fileList.hidden = other.length === 0;
       clear(complianceList);
-      compliance.forEach(function (file) { complianceList.appendChild(fileRow(file, [moveFileButton(client, file, 'files'), deleteFileButton(client, file)])); });
+      compliance.forEach(function (file) { complianceList.appendChild(markVpat(fileRow(file, [moveFileButton(client, file, 'files'), deleteFileButton(client, file)]), client, file)); });
       complianceEmpty.hidden = compliance.length > 0;
+      renderServices(client);
       complianceList.hidden = compliance.length === 0;
       complianceCount.textContent = compliance.length ? plural(compliance.length, 'file') : '';
       clear(approvalFileList);

@@ -58,7 +58,7 @@ const OG_HTML = `<!doctype html><html><head><meta charset="utf-8"><style>
     <div class="brand"><span class="mark">${MARK}</span><span class="name">Accessrank</span></div>
     <div>
       <h1>Higher rank.<br><em>Wider reach.</em></h1>
-      <p>WCAG 2.2 AA remediation in your source code — not an overlay widget — for DTC ecommerce.</p>
+      <p>WCAG 2.2 AA fixes in your store’s source code, not an overlay widget. Shopify, WooCommerce, BigCommerce or custom-built.</p>
     </div>
     <div class="foot">
       <span class="pill">Free accessibility check</span>

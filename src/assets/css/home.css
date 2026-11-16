@@ -860,3 +860,21 @@ html:not([data-theme="light"]) .overlay-content p strong { background: var(--bra
   .site .risk-links { border-bottom: 0; padding-bottom: 0; }
   .site .top-stack .hero-copy { border-top: 0; border-bottom: 0; }
 }
+
+/* ---- Deter / Verify: two open columns with a rule between, no boxes ---- */
+.levels { padding: 56px var(--edge) 8px; }
+.levels .section-sub { max-width: 860px; }
+.levels-cols { display: grid; grid-template-columns: 1fr 1fr; max-width: 980px; margin: 0 auto; border-top: 1px solid var(--keyline); border-bottom: 1px solid var(--keyline); }
+.levels-col { padding: 26px 32px 24px; }
+.levels-col + .levels-col { border-left: 1px solid var(--keyline); }
+.levels-tag { font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--brand-text); font-weight: 600; margin: 0 0 8px; }
+.levels-title { font-size: 28px; font-weight: 750; letter-spacing: -.5px; color: var(--text); margin: 0 0 6px; }
+.levels-goal { font-size: 16px; color: var(--text); margin: 0 0 14px; line-height: 1.45; }
+.levels-list { margin: 0; padding-left: 18px; color: var(--text-soft); font-size: 15px; line-height: 1.55; }
+.levels-list li { margin: 0 0 6px; }
+.levels-note { max-width: 980px; margin: 18px auto 0; font-size: 14px; color: var(--text-soft); text-align: center; }
+@media (max-width: 767px) {
+  .levels-cols { grid-template-columns: 1fr; }
+  .levels-col { padding: 22px 4px 18px; }
+  .levels-col + .levels-col { border-left: 0; border-top: 1px solid var(--keyline); }
+}
