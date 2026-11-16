@@ -141,7 +141,7 @@
 /* Date under the lawsuit statistics. The figures are kept current; without a
  * date nothing on the page says so, to a reader or to a crawler. Update the
  * <time> value and dateModified in site.json together when the numbers change. */
-.risk-asof { font-size: 13px; line-height: 1.5; color: var(--text-muted); text-align: center; margin: 16px auto 0; max-width: 1020px; }
+.risk-asof { font-size: 13px; line-height: 1.5; color: var(--text-muted); text-align: center; margin: 24px auto 0; max-width: 1020px; }
 @media (max-width: 900px) {
   .hero-split { flex-direction: column; align-items: stretch; gap: 32px; }
   .hero-title { font-size: 32px; }

@@ -48,7 +48,7 @@
   .site[data-page="/"] .risk-link-urgent:hover { color: var(--text); }
 
   /* ---- Hero stats: skewed tiles with a slow, flickering hot edge ---- */
-  .site[data-page="/"] .risk-stats { padding: 40px var(--edge) 32px; }
+  .site[data-page="/"] .risk-stats { padding: 40px var(--edge) 48px; }
   .site[data-page="/"] .risk-grid {
     grid-template-columns: 1.2fr 1fr 1fr; gap: 64px; padding: 0 8px; max-width: 1020px; margin-inline: auto;
   }
@@ -104,7 +104,7 @@
   .site[data-page="/"] .hero-sub { font-size: 19px; line-height: 1.65; max-width: none; }
   .site[data-page="/"] .hero-def-q { font-size: 19px; margin: 20px 0 6px; }
   .site[data-page="/"] .hero-def { font-size: 17px; line-height: 1.7; max-width: none; }
-  .site[data-page="/"] .risk-asof { margin-top: 18px; }
+  .site[data-page="/"] .risk-asof { margin-top: 34px; }
   .site[data-page="/"] .hero-audit .audit-card { background: none; border: 0; box-shadow: none; border-radius: 0; padding: 0; margin: 0; }
   .site[data-page="/"] .hero-audit .audit-top { display: block; }
   .site[data-page="/"] .hero-audit .audit-intro, .site[data-page="/"] .hero-audit .audit-action { max-width: none; min-width: 0; }
@@ -352,7 +352,7 @@
     .site[data-page="/"] .risk-card .rgl { filter: blur(14px); }
   }
   /* Phone sizing, after the desktop rules above so it wins. */
-  .site[data-page="/"] .risk-stats { padding: 20px var(--edge) 12px; }
+  .site[data-page="/"] .risk-stats { padding: 20px var(--edge) 24px; }
   .site[data-page="/"] .risk-grid { display: grid; grid-template-columns: 1fr; gap: 36px; padding: 0 6px; max-width: 440px; margin-inline: auto; border-top: 0; }
   .site[data-page="/"] .risk-card { border-bottom: 0; }
   .site[data-page="/"] .risk-card .rgl, .site[data-page="/"] .risk-card .redge { display: block; }
