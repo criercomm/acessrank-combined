@@ -1295,7 +1295,7 @@
     Array.prototype.forEach.call(nav.querySelectorAll('[data-tab]'), function (link) {
       var path = link.getAttribute('href');
       // The client workspace belongs to the Clients tab.
-      if (path === here || (path === '/portal/clients' && here === '/portal/client')) link.setAttribute('aria-current', 'page');
+      if (path === here || (path === '/portal/clients' && (here === '/portal/client' || here === '/portal/vpat'))) link.setAttribute('aria-current', 'page');
     });
 
     var badge = nav.querySelector('[data-approvals-badge]');
@@ -1886,6 +1886,8 @@
         vpatSelect.appendChild(h('option', { value: f.id, text: f.name, selected: f.id === client.vpatFileId ? true : null }));
       });
       vpatSelect.value = client.vpatFileId || '';
+      var builder = root.querySelector('[data-vpat-builder]');
+      if (builder) builder.href = '/portal/vpat?client=' + encodeURIComponent(client.id);
     }
 
     function saveServices(client, changes) {
@@ -3054,6 +3056,283 @@
     api('GET', '/api/portal/operators').then(function (data) { return (data.operators || []).filter(function (op) { return op.role !== 'master'; }); }, function () { return []; }).then(stepOne);
   }
 
+  /* ------------------------------------------------------- VPAT builder --- */
+  /*
+   * Team only. One client's VPAT draft: the 55 WCAG 2.2 A and AA criteria, each with its level,
+   * remarks and evidence, plus the report details. Notes copied from the Evidence File are shown
+   * with each criterion but never count as an answer. Issue is enabled only when the server says
+   * the draft is ready.
+   */
+  function initVpat(root) {
+    var status = root.querySelector('[data-portal-status]');
+    var main = root.querySelector('[data-vpat]');
+    var missing = root.querySelector('[data-vpat-missing]');
+    var title = root.querySelector('[data-vpat-title]');
+    var back = root.querySelector('[data-vpat-back]');
+    var startSection = root.querySelector('[data-vpat-start]');
+    var startButton = root.querySelector('[data-vpat-start-button]');
+    var draftSection = root.querySelector('[data-vpat-draft]');
+    var counts = root.querySelector('[data-vpat-counts]');
+    var readyLine = root.querySelector('[data-vpat-ready]');
+    var blocking = root.querySelector('[data-vpat-blocking]');
+    var blockerList = root.querySelector('[data-vpat-blockers]');
+    var blockersMore = root.querySelector('[data-vpat-blockers-more]');
+    var importInput = root.querySelector('[data-vpat-import]');
+    var importLabel = root.querySelector('label[for="vpat-import-input"]');
+    var importResult = root.querySelector('[data-vpat-import-result]');
+    var previewLink = root.querySelector('[data-vpat-preview]');
+    var refreshButton = root.querySelector('[data-vpat-refresh]');
+    var issueButton = root.querySelector('[data-vpat-issue]');
+    var discardButton = root.querySelector('[data-vpat-discard]');
+    var sourceLine = root.querySelector('[data-vpat-source]');
+    var details = root.querySelector('[data-vpat-details]');
+    var rowsForm = root.querySelector('[data-vpat-rows]');
+    var dirtyLine = root.querySelector('[data-vpat-dirty]');
+    var issuedSection = root.querySelector('[data-vpat-issued-section]');
+    var issuedList = root.querySelector('[data-vpat-issued]');
+    var filterChips = root.querySelectorAll('[data-vpat-filter]');
+
+    var clientId = new URLSearchParams(location.search).get('client') || '';
+    var base = '/api/portal/admin/clients/' + encodeURIComponent(clientId) + '/vpat';
+    var state = { data: null, dirty: {}, filter: 'all', showAllBlockers: false };
+
+    var SOURCE_TEXT = { vendor: 'From the testing results', team: 'Entered by the team', evidence: 'Evidence File notes only', '': 'No result yet' };
+    var day = function (iso) { return iso ? new Date(iso).toLocaleDateString('en-US', { dateStyle: 'medium' }) : ''; };
+
+    function fail(error) {
+      if (error.code !== 'signed_out') setStatus(status, error.message, 'error');
+      throw error;
+    }
+
+    function rowState(c) {
+      var r = state.data.draft.rows[c.id] || {};
+      var d = state.dirty[c.id] || {};
+      return {
+        level: 'level' in d ? d.level : (r.level || ''),
+        remarks: 'remarks' in d ? d.remarks : (r.remarks || ''),
+        evidence: 'evidence' in d ? d.evidence : (r.evidence || ''),
+        flow: r.flow || '', testedWith: r.testedWith || '', tester: r.tester || '', testedOn: r.testedOn || '',
+        source: r.source || '', prefill: r.prefill || []
+      };
+    }
+
+    function markDirty(id, key, value) {
+      state.dirty[id] = state.dirty[id] || {};
+      state.dirty[id][key] = value;
+      var n = Object.keys(state.dirty).length;
+      dirtyLine.textContent = n ? criteria(n) + ' changed, not saved yet' : '';
+    }
+
+    function criterionRow(c) {
+      var r = rowState(c);
+      var idBase = 'vpat-' + c.id.replace(/\./g, '-');
+      var select = h('select', { id: idBase + '-level', 'aria-describedby': idBase + '-source' });
+      select.appendChild(h('option', { value: '', text: 'No result yet' }));
+      Object.keys(state.data.levels).forEach(function (key) {
+        select.appendChild(h('option', { value: key, text: state.data.levels[key], selected: key === r.level ? true : null }));
+      });
+      select.value = r.level;
+      select.addEventListener('change', function () { markDirty(c.id, 'level', select.value); });
+      var remarks = h('textarea', { id: idBase + '-remarks', rows: '2', maxlength: '2000' });
+      remarks.value = r.remarks;
+      remarks.addEventListener('input', function () { markDirty(c.id, 'remarks', remarks.value); });
+      var evidence = h('input', { type: 'text', id: idBase + '-evidence', maxlength: '400' });
+      evidence.value = r.evidence;
+      evidence.addEventListener('input', function () { markDirty(c.id, 'evidence', evidence.value); });
+
+      var tested = [r.flow, r.testedWith, r.tester, r.testedOn].filter(Boolean).join(' · ');
+      var li = h('li', { class: 'vpat-row', 'data-level': r.level || 'open' }, [
+        h('div', { class: 'vpat-row-head' }, [
+          h('h4', { class: 'vpat-row-title', text: c.id + ' ' + c.name }),
+          h('p', { class: 'vpat-row-source file-meta', id: idBase + '-source', text: SOURCE_TEXT[r.source] || SOURCE_TEXT[''] }),
+        ]),
+        h('div', { class: 'vpat-row-fields' }, [
+          h('div', { class: 'field' }, [h('label', { for: idBase + '-level', text: 'Conformance level' }), select]),
+          h('div', { class: 'field vpat-remarks' }, [h('label', { for: idBase + '-remarks', text: 'Remarks and explanations' }), remarks]),
+          h('div', { class: 'field' }, [h('label', { for: idBase + '-evidence', text: 'Evidence (team only)' }), evidence]),
+        ]),
+        tested ? h('p', { class: 'file-meta', text: 'Tested: ' + tested }) : null,
+      ]);
+      if (r.prefill.length) {
+        var notes = h('details', { class: 'vpat-prefill' }, [h('summary', { text: 'Evidence File notes (' + r.prefill.length + ')' })]);
+        var list = h('ul', {});
+        r.prefill.forEach(function (p) { list.appendChild(h('li', {}, [p.section ? h('span', { class: 'file-meta', text: p.section + ': ' }) : null, document.createTextNode(p.text)])); });
+        notes.appendChild(list);
+        li.appendChild(notes);
+      }
+      return li;
+    }
+
+    function applyFilter() {
+      Array.prototype.forEach.call(rowsForm.querySelectorAll('.vpat-row'), function (li) {
+        var level = li.getAttribute('data-level');
+        li.hidden = state.filter === 'open' ? level !== 'open'
+          : state.filter === 'gaps' ? !(level === 'partially_supports' || level === 'does_not_support')
+          : false;
+      });
+    }
+
+    function renderBlockers(readiness) {
+      clear(blockerList);
+      var items = readiness.blockers;
+      var shown = state.showAllBlockers ? items : items.slice(0, 8);
+      shown.forEach(function (b) { blockerList.appendChild(h('li', { text: b.text })); });
+      blockersMore.hidden = items.length <= 8;
+      blockersMore.textContent = state.showAllBlockers ? 'Show fewer' : 'Show all ' + items.length;
+      blocking.hidden = items.length === 0;
+      readyLine.hidden = !readiness.ready;
+      issueButton.disabled = !readiness.ready;
+    }
+
+    function criteria(n) { return n + (n === 1 ? ' criterion' : ' criteria'); }
+
+    function render(keepDirty) {
+      var data = state.data;
+      main.hidden = false;
+      title.textContent = 'VPAT for ' + data.client.name;
+      document.title = 'VPAT builder: ' + data.client.name + ' — Accessrank team';
+      back.textContent = '← ' + data.client.name;
+      back.href = '/portal/client#client=' + encodeURIComponent(data.client.id);
+      startSection.hidden = !!data.draft;
+      draftSection.hidden = !data.draft;
+
+      clear(issuedList);
+      data.issued.forEach(function (v) {
+        issuedList.appendChild(h('li', { text: 'Issued ' + day(v.issuedAt) + (v.issuedByName ? ' by ' + v.issuedByName : '') + (v.testDates ? ' · tested ' + v.testDates : '') + (v.issuedFileId ? '' : ' · its PDF has since been deleted from the client’s files') }));
+      });
+      issuedSection.hidden = data.issued.length === 0;
+      if (!data.draft) return;
+
+      var d = data.draft;
+      var c = d.readiness.counts;
+      counts.textContent = c.supports + ' Supports · ' + c.partially_supports + ' Partially Supports · ' + c.does_not_support + ' Does Not Support · ' + c.not_applicable + ' Not Applicable · ' + c.open + ' with no result yet';
+      renderBlockers(d.readiness);
+      previewLink.href = base + '/preview';
+      sourceLine.textContent = (d.evidenceSource ? 'Evidence File notes from ' + d.evidenceSource.name + ' (uploaded ' + day(d.evidenceSource.createdAt) + ').' : 'No Evidence File HTML draft on file, so there are no notes to start from.') +
+        ' Draft started ' + day(d.createdAt) + (d.createdByName ? ' by ' + d.createdByName : '') + '; last saved ' + day(d.updatedAt) + (d.updatedByName ? ' by ' + d.updatedByName : '') + '.';
+
+      Object.keys(d.meta).forEach(function (key) {
+        var field = details.elements[key];
+        if (field && document.activeElement !== field) field.value = d.meta[key] || '';
+      });
+
+      if (!keepDirty) { state.dirty = {}; dirtyLine.textContent = ''; }
+      ['A', 'AA'].forEach(function (level) {
+        var list = rowsForm.querySelector('[data-vpat-level="' + level + '"]');
+        clear(list);
+        data.criteria.filter(function (crit) { return crit.level === level; }).forEach(function (crit) { list.appendChild(criterionRow(crit)); });
+      });
+      applyFilter();
+    }
+
+    function showImport(summary) {
+      clear(importResult);
+      importResult.appendChild(h('p', { text: 'Imported ' + summary.filename + ': ' + criteria(summary.filled) + ' filled in.' + (summary.skipped.length ? ' ' + plural(summary.skipped.length, 'row') + ' could not be used:' : '') }));
+      if (summary.skipped.length) {
+        var ul = h('ul', {});
+        summary.skipped.forEach(function (s) { ul.appendChild(h('li', { text: 'Row ' + s.row + ' (' + s.criterion + '): ' + s.reason })); });
+        importResult.appendChild(ul);
+      }
+      importResult.hidden = false;
+    }
+
+    function load() {
+      if (!/^[0-9a-f-]{36}$/i.test(clientId)) { missing.hidden = false; return Promise.resolve(); }
+      return api('GET', base).then(function (data) { state.data = data; render(); }).catch(function (e) {
+        if (e.status === 404) { missing.hidden = false; main.hidden = true; return; }
+        fail(e);
+      });
+    }
+
+    startButton.addEventListener('click', function () {
+      startButton.disabled = true;
+      var settle = working(startButton, 'Starting…');
+      api('POST', base).then(function (data) {
+        state.data = data; render();
+        setStatus(status, 'Draft started. Notes from the Evidence File are shown under each criterion they mention.', 'success');
+        title.focus();
+      }).catch(fail).catch(function () {}).then(function () { settle(); startButton.disabled = false; });
+    });
+
+    importInput.addEventListener('change', function () {
+      var file = importInput.files && importInput.files[0];
+      if (!file) return;
+      var settle = working(importLabel, 'Importing…');
+      setStatus(status, 'Importing ' + file.name + '…', 'busy');
+      file.arrayBuffer().then(function (buf) {
+        return api('POST', base + '/import?name=' + encodeURIComponent(file.name), null, buf);
+      }).then(function (data) {
+        state.data = data; render(); showImport(data.summary);
+        setStatus(status, 'Imported ' + file.name + '.', 'success');
+      }).catch(fail).catch(function () {}).then(function () { settle(); importInput.value = ''; });
+    });
+
+    refreshButton.addEventListener('click', function () {
+      refreshButton.disabled = true;
+      api('POST', base + '/refresh').then(function (data) {
+        state.data = data; render();
+        setStatus(status, 'Evidence File notes refreshed from the newest draft. Results were not changed.', 'success');
+      }).catch(fail).catch(function () {}).then(function () { refreshButton.disabled = false; });
+    });
+
+    blockersMore.addEventListener('click', function () { state.showAllBlockers = !state.showAllBlockers; renderBlockers(state.data.draft.readiness); });
+
+    Array.prototype.forEach.call(filterChips, function (chip) {
+      chip.addEventListener('click', function () {
+        state.filter = chip.getAttribute('data-vpat-filter');
+        Array.prototype.forEach.call(filterChips, function (c) { c.setAttribute('aria-pressed', c === chip ? 'true' : 'false'); });
+        applyFilter();
+      });
+    });
+
+    details.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var meta = {};
+      Array.prototype.forEach.call(details.elements, function (el) { if (el.name) meta[el.name] = el.value; });
+      var button = details.querySelector('button[type="submit"]');
+      button.disabled = true;
+      api('PUT', base, { meta: meta }).then(function (data) {
+        state.data = data; render(true);
+        setStatus(status, 'Report details saved.', 'success');
+      }).catch(fail).catch(function () {}).then(function () { button.disabled = false; });
+    });
+
+    rowsForm.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var ids = Object.keys(state.dirty);
+      if (!ids.length) { setStatus(status, 'Nothing has changed since the last save.', 'success'); return; }
+      var button = rowsForm.querySelector('[data-vpat-save]');
+      button.disabled = true;
+      api('PUT', base, { rows: state.dirty }).then(function (data) {
+        state.data = data; render();
+        setStatus(status, 'Saved ' + criteria(ids.length) + '.', 'success');
+      }).catch(fail).catch(function () {}).then(function () { button.disabled = false; });
+    });
+
+    confirmable(issueButton, 'Confirm: issue to the client', function () {
+      if (Object.keys(state.dirty).length) { setStatus(status, 'Save your changes to the results first.', 'error'); return Promise.resolve(); }
+      setStatus(status, 'Building the PDF…', 'busy');
+      return api('POST', base + '/issue').then(function (data) {
+        state.data = data; render();
+        setStatus(status, 'Issued. ' + data.file.name + ' is in ' + data.client.name + '’s Compliance files, marked as their VPAT.', 'success');
+        title.focus();
+      }).catch(fail);
+    });
+
+    confirmable(discardButton, 'Confirm: discard this draft', function () {
+      return api('DELETE', base).then(function (data) {
+        state.data = data; render();
+        setStatus(status, 'Draft discarded. Issued VPATs are kept.', 'success');
+      }).catch(fail);
+    });
+
+    window.addEventListener('beforeunload', function (e) {
+      if (state.data && Object.keys(state.dirty).length) { e.preventDefault(); e.returnValue = ''; }
+    });
+
+    return { load: load };
+  }
+
   /* --------------------------------------------------------------- boot --- */
 
   var views = {};
@@ -3064,6 +3343,7 @@
   var clientViewRoot = document.querySelector('[data-portal-client-view]');
   var approvalsRoot = document.querySelector('[data-portal-approvals]');
   var repositoryRoot = document.querySelector('[data-portal-repository]');
+  var vpatRoot = document.querySelector('[data-portal-vpat]');
 
   if (loginForm) views.login = initLogin(loginForm);
   if (filesRoot) views.files = initFiles(filesRoot);
@@ -3072,6 +3352,7 @@
   if (clientViewRoot) views.clientView = initClientsList(clientViewRoot);
   if (approvalsRoot) views.approvals = initApprovals(approvalsRoot);
   if (repositoryRoot) views.repository = initRepository(repositoryRoot);
+  if (vpatRoot) views.vpat = initVpat(vpatRoot);
 
   A.portalTeam = initTeamNav();
 

@@ -1,6 +1,7 @@
 import test, { before, after, beforeEach } from 'node:test';
 import assert from 'node:assert/strict';
 import http from 'node:http';
+import fs from 'node:fs';
 
 /**
  * End-to-end test of the client portal over real HTTP against the real app:
@@ -1821,4 +1822,117 @@ test('human testing and the VPAT: only clients with human testing see a VPAT, an
 
   assert.ok([401, 403, 404].includes((await a.person.patch(services, { humanTesting: false })).status), 'clients cannot change it');
   assert.equal((await a.person.get('/api/portal/me')).body.client.humanTesting, true);
+});
+
+/* ------------------------------------------------------------ VPAT builder --- */
+
+test('VPAT builder: Evidence File pre-fill, vendor import, readiness, issue to the client; team only', async () => {
+  const owner = await adminBrowser();
+  const a = await clientWithLogin(owner, 'Top Seedz', 'jordan@topseedz.test');
+  const base = `/api/portal/admin/clients/${a.client.id}/vpat`;
+  const evidence = `<html><body><h2>Remediation log</h2><table><tr><td>Nov 4</td><td>1.4.3 Contrast: headings over photos fixed</td></tr></table>
+    <h2>Conformance summary</h2><table data-acr="conformance"><tr><td>2.5.8 Target size</td><td>Measured buttons</td><td>Pass</td></tr></table></body></html>`;
+  assert.equal((await owner.upload(`/api/portal/admin/clients/${a.client.id}/acr/drafts?name=${encodeURIComponent('Top Seedz Evidence File.html')}`, Buffer.from(evidence))).status, 201);
+
+  let r = await owner.get(base);
+  assert.equal(r.status, 200);
+  assert.equal(r.body.draft, null);
+  assert.equal(r.body.criteria.length, 55);
+
+  r = await owner.post(base);
+  assert.equal(r.status, 201);
+  const draft = r.body.draft;
+  assert.equal(draft.rows['1.4.3'].prefill[0].section, 'Remediation log');
+  assert.equal(draft.rows['2.5.8'].prefill.length, 1);
+  assert.equal(draft.rows['1.4.3'].level, '', 'a passage suggests; it never answers');
+  assert.equal(draft.readiness.ready, false);
+  assert.equal((await owner.post(base)).status, 409, 'one open draft per client');
+
+  // Not ready: issuing is refused, and nothing reaches the client.
+  assert.equal((await owner.post(`${base}/issue`)).status, 409);
+
+  // The client can reach none of it.
+  for (const call of [() => a.person.get(base), () => a.person.post(base), () => a.person.get(`${base}/preview`)]) {
+    assert.ok([401, 403, 404].includes((await call()).status));
+  }
+
+  // Not Evaluated is refused for A and AA.
+  assert.equal((await owner.put(base, { rows: { '1.1.1': { level: 'Not Evaluated' } } })).status, 400);
+
+  // Import the vendor's sheet.
+  const sheet = fs.readFileSync(new URL('../fixtures/vpat-results-sample.xlsx', import.meta.url));
+  r = await owner.upload(`${base}/import?name=${encodeURIComponent('Top Seedz VPAT Results Nov 2026.xlsx')}`, sheet);
+  assert.equal(r.status, 200);
+  assert.equal(r.body.summary.filled, 55);
+  assert.deepEqual(r.body.summary.skipped, [], '4.1.1 is passed over quietly');
+  let d = r.body.draft;
+  assert.equal(d.rows['4.1.3'].level, 'partially_supports');
+  assert.equal(d.rows['4.1.3'].source, 'vendor');
+  assert.equal(d.rows['4.1.3'].evidence, 'flow4-nvda.mp4 at 02:14');
+  assert.equal(d.rows['1.1.1'].testedOn, '2026-11-20');
+  assert.equal(d.rows['1.4.3'].prefill.length, 1, 'the Evidence File notes stay with the row');
+  assert.equal(d.meta.signedBy, 'Test Tester');
+  assert.match(d.meta.evaluationMethods, /Devices and software: Computer: Dell XPS/);
+  // Still blocked: product description and contact are the team's to write, and human testing is off.
+  assert.deepEqual(d.readiness.blockers.map((b) => b.field || 'other').sort(), ['contact', 'description', 'other']);
+
+  assert.equal((await owner.patch(`/api/portal/admin/clients/${a.client.id}/services`, { humanTesting: true })).status, 200);
+  r = await owner.put(base, { meta: { description: 'The Top Seedz online store.', contact: 'Accessrank, info@accessrank.ai' }, rows: { '1.2.2': { remarks: 'No video on the tested pages.' } } });
+  assert.equal(r.status, 200);
+  d = r.body.draft;
+  assert.equal(d.rows['1.2.2'].source, 'team');
+  assert.equal(d.readiness.ready, true, JSON.stringify(d.readiness.blockers));
+
+  // An evidence pointer edit keeps the vendor's answer as the vendor's; a level edit makes it the team's.
+  r = await owner.put(base, { rows: { '4.1.3': { evidence: 'flow4-nvda.mp4 at 02:20' } } });
+  assert.equal(r.body.draft.rows['4.1.3'].source, 'vendor');
+  // A results row with remarks but no level adds the remarks and keeps the level.
+  r = await owner.upload(`${base}/import?name=extra.csv`, Buffer.from('Criterion,Conformance level,Remarks\n4.1.3 Status Messages,,Re-checked after the fix: still not announced in the cart drawer.\n'));
+  assert.equal(r.status, 200);
+  assert.equal(r.body.draft.rows['4.1.3'].level, 'partially_supports');
+  assert.match(r.body.draft.rows['4.1.3'].remarks, /^Re-checked/);
+  assert.equal(r.body.draft.readiness.ready, true, JSON.stringify(r.body.draft.readiness.blockers));
+
+  // Preview: the team sees a self-contained page marked DRAFT.
+  const preview = await owner.get(`${base}/preview`);
+  assert.equal(preview.status, 200);
+  assert.match(preview.headers.get('content-security-policy'), /default-src 'none'/);
+  assert.match(preview.body.toString(), /DRAFT for Accessrank review/);
+
+  const rendered = [];
+  app.locals.renderAcrPdf = async (h, opts) => { rendered.push({ h, opts }); return Buffer.from('%PDF-1.4 vpat'); };
+  try {
+    r = await owner.post(`${base}/issue`);
+  } finally {
+    delete app.locals.renderAcrPdf;
+  }
+  assert.equal(r.status, 201);
+  assert.match(r.body.file.name, /^Top Seedz VPAT Accessibility Conformance Report [A-Z][a-z]{2} \d{1,2} \d{4}\.pdf$/);
+  assert.equal(r.body.draft, null);
+  assert.equal(r.body.issued.length, 1);
+  assert.ok(!rendered[0].h.includes('DRAFT'));
+  assert.match(rendered[0].opts.footer, /Accessibility Conformance Report/);
+
+  // The client now sees the PDF as their VPAT.
+  const me = await a.person.get('/api/portal/me');
+  assert.equal(me.body.client.vpatFileId, r.body.file.id);
+  assert.ok(me.body.files.some((f) => f.id === r.body.file.id && f.area === 'compliance'));
+
+  // The Nov 18 layout of the sheet (Setup labels "Screen readers on computer…", "Methods and limitations…", and a 4.1.1 row) imports the same way.
+  r = await owner.post(base);
+  assert.equal(r.status, 201);
+  r = await owner.upload(`${base}/import?name=${encodeURIComponent('Top Seedz VPAT Results Nov 2026.xlsx')}`, fs.readFileSync(new URL('../fixtures/vpat-results-nov18.xlsx', import.meta.url)));
+  assert.equal(r.status, 200);
+  assert.equal(r.body.summary.filled, 55);
+  assert.deepEqual(r.body.summary.skipped, []);
+  assert.match(r.body.draft.meta.evaluationMethods, /^TEST DATA: keyboard and NVDA walks/);
+  assert.match(r.body.draft.meta.evaluationMethods, /Screen readers on computer: NVDA 2025\.3/);
+  assert.equal((await owner.del(base)).status, 200);
+
+  // A new draft carries the report details over for the next round of testing.
+  r = await owner.post(base);
+  assert.equal(r.body.draft.meta.description, 'The Top Seedz online store.');
+  assert.equal(r.body.draft.rows['4.1.3'].level, '', 'results do not carry over: each VPAT needs its own testing');
+  assert.equal((await owner.del(base)).status, 200);
+  assert.equal((await owner.get(base)).body.draft, null);
 });

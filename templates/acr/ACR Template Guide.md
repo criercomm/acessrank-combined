@@ -156,7 +156,7 @@ The record and the VPAT are two different documents. Keep them apart.
 | | The record (this template) | The VPAT |
 |---|---|---|
 | What it answers | What was found, what was fixed and when, and whether the work continues | Where the site stands today, criterion by criterion |
-| Format | Ours (this template) | ITI's VPAT&reg; 2.5 form, WCAG edition. Use ITI's own Word file; the form and the VPAT name are ITI service marks and must not be altered without ITI's written permission |
+| Format | Ours (this template) | ITI's VPAT&reg; 2.5Rev form, WCAG edition, built in the portal's VPAT builder. It keeps ITI's essential requirements: the "Based on VPAT® Version 2.5Rev" line with the ® mark, ITI's conformance terms and their definitions, and the report sections in ITI's order |
 | Who reads it | The client's attorney or insurer | Buyers and procurement teams (government, universities, large retailers), and attorneys who want a current snapshot |
 | Shared how | With counsel; it holds the client's full history | Can be sent on its own, without the history |
 | Updated | After every round of work and every scan | When conformance changes materially, after each full manual test, and at least yearly |
@@ -167,15 +167,17 @@ Only for clients who have bought human testing. The VPAT is part of the human-te
 
 Only after a person has tested the site with a keyboard and a screen reader (Section 6 of the record). Before that, most criteria can only be reported as "Not Evaluated", which reads badly and helps no one. Until then the record's Section 3 carries the automated summary and Exhibit C reads "After manual testing".
 
-### How to fill it in
+### How to build it (portal: client > Files > Human testing and VPAT > Open VPAT builder)
 
-1. Download the current WCAG edition from itic.org/policy/accessibility/vpat. Check the version number each time; do not reuse an old copy.
-2. Title it "[Client] Accessibility Conformance Report" and keep ITI's "Based on VPAT® Version 2.5Rev" line.
-3. Product name: the website, by its address. Report date: the date the testing finished. Product description: what the site is and what is in scope.
-4. Evaluation methods used: name the automated tools and versions, the browsers, the screen readers and devices the tester used, the shopping flows tested, and who tested (name and credential).
-5. Fill Tables 1 (Level A) and 2 (Level AA) from `VPAT Worksheet.md`, one row per criterion: a conformance level and a plain explanation. Leave Level AAA as "Not Evaluated" unless the client asks for it.
-6. Notes: list what is out of scope (platform-hosted checkout and accounts, third-party widgets), and anything awaiting a client decision.
-7. Save as "[Client] Accessibility Conformance Report [Month YYYY].docx" and a PDF, file both in the client's Compliance files, and record the file name and date in Exhibit C of the record.
+1. Send the testing vendor the Human Testing Brief and a copy of the VPAT Human Testing Results Sheet. Fill in the Setup tab's client, website and flows first.
+2. Start a VPAT draft. All 55 WCAG 2.2 Level A and AA criteria are listed. Anything the newest Evidence File HTML draft (and the changes queued for it) says about a criterion is shown under it as notes. Notes are not answers.
+3. When the vendor's sheet comes back, import it (.xlsx, or the Results tab as .csv). Each row they filled in becomes that criterion's level, remarks and evidence; their Setup tab fills in the testers, dates, evaluation methods and sign-off. Rows that cannot be used are listed with the reason (for example "Not Evaluated", which ITI allows only for Level AAA).
+4. Check every row against the vendor's notes and our own records. A level or remark the team enters counts as the team's answer, so only enter what hands-on testing found.
+5. Fill in the report details: product name and version, website, product description, and the contact a buyer should use (the client's published accessibility contact).
+6. Preview the draft. Issue becomes available only when every A and AA row has a level from human testing, every gap has a remark and every failure has evidence, and the testers, dates, methods and sign-off are filled in.
+7. Issue. The portal prints "[Client] VPAT Accessibility Conformance Report [Mon D YYYY]" as a PDF and an HTML page, files both in the client's Compliance files and marks the PDF as their VPAT. Record the file name and date in Exhibit C of the record.
+
+The report date is the day it is issued; the test dates are stated under Evaluation Methods Used. Level AAA is reported as not included. A re-test starts a new draft: the product details carry over, the results do not.
 
 ### Rules for the conformance levels
 

@@ -1,0 +1,103 @@
+<section class="portal-main" data-portal-vpat>
+  <div class="portal-wrap portal-wrap--wide">
+    {{> team-nav }}
+
+    <p class="back-link"><a href="/portal/clients" data-vpat-back>&larr; All clients</a></p>
+
+    <p class="form-status portal-status" data-portal-status role="status" aria-live="polite"></p>
+
+    <p class="portal-empty" data-vpat-missing hidden>That client no longer exists, or you do not work on it. <a href="/portal/clients">Back to Clients</a>.</p>
+
+    <div data-vpat hidden>
+      <header class="portal-head">
+        <div class="portal-head-text">
+          <p class="portal-kicker">VPAT builder</p>
+          <h1 data-vpat-title tabindex="-1">VPAT</h1>
+          <p class="portal-meta">Builds this client&rsquo;s Accessibility Conformance Report on ITI&rsquo;s VPAT&reg; 2.5Rev form, WCAG edition, from their Accessibility Evidence File and their human testing results. Team only: the client sees nothing here, only the PDF once it is issued.</p>
+        </div>
+      </header>
+
+      <section class="portal-section vpat-start" data-vpat-start hidden aria-labelledby="vpat-start-heading">
+        <h2 id="vpat-start-heading">Start a VPAT draft</h2>
+        <p>A draft lists all 55 WCAG 2.2 Level A and AA criteria. Anything the latest Evidence File says about a criterion is copied in as notes to start from. Notes are not answers: every level has to come from human testing, imported from the testing vendor&rsquo;s results sheet or entered here.</p>
+        <button class="btn-small btn-small--brand" type="button" data-vpat-start-button>Start VPAT draft</button>
+      </section>
+
+      <div data-vpat-draft hidden>
+        <section class="portal-section" aria-labelledby="vpat-stand-heading">
+          <h2 id="vpat-stand-heading">Where it stands</h2>
+          <p class="vpat-counts" data-vpat-counts></p>
+          <p class="vpat-ready" data-vpat-ready hidden>Ready to issue. Preview it once more, then issue.</p>
+          <div data-vpat-blocking hidden>
+            <h3 class="vpat-subhead">Still to do before it can be issued</h3>
+            <ul class="vpat-blockers" data-vpat-blockers></ul>
+            <button class="btn-small" type="button" data-vpat-blockers-more hidden>Show all</button>
+          </div>
+          <div class="row-actions vpat-actions">
+            <label class="btn-small btn-small--brand upload-button" for="vpat-import-input">Import testing results</label>
+            <input class="visually-hidden" type="file" id="vpat-import-input" accept=".xlsx,.csv" data-vpat-import>
+            <a class="btn-small" href="/portal/vpat" target="_blank" rel="noopener" data-vpat-preview>Preview draft</a>
+            <button class="btn-small" type="button" data-vpat-refresh>Refresh Evidence File notes</button>
+            <button class="btn-small" type="button" data-vpat-issue disabled>Issue VPAT to client</button>
+            <button class="btn-small btn-small--danger" type="button" data-vpat-discard>Discard draft</button>
+          </div>
+          <p class="field-hint">Import the vendor&rsquo;s copy of the VPAT Human Testing Results Sheet (.xlsx, or its Results tab as .csv). Rows they filled in replace what is here; rows they left blank are kept. Issue puts the PDF and its HTML page in the client&rsquo;s Compliance files and marks the PDF as their VPAT.</p>
+          <div class="vpat-import-result" data-vpat-import-result hidden></div>
+          <p class="file-meta" data-vpat-source></p>
+        </section>
+
+        <section class="portal-section" aria-labelledby="vpat-details-heading">
+          <h2 id="vpat-details-heading">Report details</h2>
+          <p class="field-hint">These print at the top of the report. The tester names, dates, evaluation methods and sign-off fill in from the Setup tab when results are imported; check them here.</p>
+          <form class="vpat-details" data-vpat-details novalidate>
+            <div class="vpat-details-row">
+              <div class="field"><label for="vpat-productName">Name of product</label><input type="text" id="vpat-productName" name="productName" maxlength="200"></div>
+              <div class="field"><label for="vpat-productVersion">Version</label><input type="text" id="vpat-productVersion" name="productVersion" maxlength="200" aria-describedby="vpat-productVersion-hint"><p class="field-hint" id="vpat-productVersion-hint">For example: live site as tested November 2026.</p></div>
+              <div class="field"><label for="vpat-productUrl">Website</label><input type="text" id="vpat-productUrl" name="productUrl" maxlength="300" inputmode="url"></div>
+            </div>
+            <div class="field"><label for="vpat-description">Product description</label><textarea id="vpat-description" name="description" rows="3" maxlength="2000"></textarea></div>
+            <div class="field"><label for="vpat-contact">Contact information</label><textarea id="vpat-contact" name="contact" rows="2" maxlength="600" aria-describedby="vpat-contact-hint"></textarea><p class="field-hint" id="vpat-contact-hint">Who a buyer should contact about this report. Use the client&rsquo;s published accessibility contact.</p></div>
+            <div class="field"><label for="vpat-evaluationMethods">Evaluation methods used</label><textarea id="vpat-evaluationMethods" name="evaluationMethods" rows="5" maxlength="4000"></textarea></div>
+            <div class="vpat-details-row">
+              <div class="field"><label for="vpat-testers">Tested by</label><input type="text" id="vpat-testers" name="testers" maxlength="400"></div>
+              <div class="field"><label for="vpat-testDates">Test dates</label><input type="text" id="vpat-testDates" name="testDates" maxlength="200"></div>
+            </div>
+            <div class="vpat-details-row">
+              <div class="field"><label for="vpat-signedBy">Tester sign-off</label><input type="text" id="vpat-signedBy" name="signedBy" maxlength="200"></div>
+              <div class="field"><label for="vpat-signedOn">Signed on</label><input type="text" id="vpat-signedOn" name="signedOn" maxlength="40"></div>
+            </div>
+            <div class="field"><label for="vpat-notes">Notes</label><textarea id="vpat-notes" name="notes" rows="3" maxlength="4000" aria-describedby="vpat-notes-hint"></textarea><p class="field-hint" id="vpat-notes-hint">Optional. Left empty, the report says it covers the site as tested and that untested pages, platform checkout and third-party services are covered only where the remarks say so.</p></div>
+            <button class="btn-small btn-small--brand" type="submit">Save report details</button>
+          </form>
+        </section>
+
+        <section class="portal-section" aria-labelledby="vpat-results-heading">
+          <div class="portal-section-head">
+            <h2 id="vpat-results-heading" tabindex="-1">Results by criterion</h2>
+          </div>
+          <div class="chip-row" role="group" aria-label="Show">
+            <button type="button" class="chip" data-vpat-filter="all" aria-pressed="true">All 55</button>
+            <button type="button" class="chip" data-vpat-filter="open" aria-pressed="false">No result yet</button>
+            <button type="button" class="chip" data-vpat-filter="gaps" aria-pressed="false">Not fully supported</button>
+          </div>
+          <p class="field-hint">A level you choose or a remark you write here counts as the team&rsquo;s answer. Only enter a level that hands-on testing found.</p>
+          <form data-vpat-rows novalidate>
+            <h3 class="vpat-subhead">Level A</h3>
+            <ol class="vpat-rows" data-vpat-level="A"></ol>
+            <h3 class="vpat-subhead">Level AA</h3>
+            <ol class="vpat-rows" data-vpat-level="AA"></ol>
+            <div class="vpat-save-bar">
+              <button class="btn-small btn-small--brand" type="submit" data-vpat-save>Save results</button>
+              <span class="file-meta" data-vpat-dirty></span>
+            </div>
+          </form>
+        </section>
+      </div>
+
+      <section class="portal-section" data-vpat-issued-section hidden aria-labelledby="vpat-issued-heading">
+        <h2 id="vpat-issued-heading">Issued VPATs</h2>
+        <ul class="vpat-issued" data-vpat-issued></ul>
+      </section>
+    </div>
+  </div>
+</section>

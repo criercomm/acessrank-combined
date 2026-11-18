@@ -20,6 +20,7 @@ import {
 import { notifyApprovals } from '../lib/email.js';
 import { reportCsp, withReturnLink } from '../lib/reportCsp.js';
 import { generateAcrUpdatePdf, generateAcrPdf } from '../lib/pdf.js';
+import { clientVpat, startVpat, refreshPrefill, saveVpat, importResults, discardVpat, vpatPreview, issueVpat, META_FIELDS } from '../lib/vpat.js';
 import { ACTIVITY_KINDS, WRITABLE_KINDS, EVIDENCE_TYPES, listActivity, addActivity, recordActivity, activityCsv, kitRows, withStates, attachEvidence, activityClientId, getEvidence } from '../lib/activity.js';
 
 /**
@@ -590,6 +591,91 @@ admin.post('/clients/:id/acr/publish', rawUpload, wrap(async (req, res) => {
   res.status(201).json({ ok: true, ...out });
 }));
 
+/* ----------------------------------------------------------- VPAT builder --- */
+// Team only. Builds a client's VPAT (Accessibility Conformance Report) from their Evidence File
+// and their human testing results. The client sees only the issued PDF, in their Compliance files.
+
+admin.get('/clients/:id/vpat', wrap(async (req, res) => {
+  await assertClient(req, req.params.id);
+  res.json({ ok: true, ...(await clientVpat(await getStore(), req.params.id)) });
+}));
+
+admin.post('/clients/:id/vpat', wrap(async (req, res) => {
+  await assertClient(req, req.params.id);
+  const store = await getStore();
+  const out = await startVpat(store, req.portal, req.params.id);
+  log.info('portal vpat draft started', { clientId: req.params.id, by: req.portal.email });
+  await recordActivity(store, req.params.id, { kind: 'acr', title: 'VPAT draft started from the Evidence File', by: req.portal });
+  res.status(201).json({ ok: true, ...out });
+}));
+
+admin.post('/clients/:id/vpat/refresh', wrap(async (req, res) => {
+  await assertClient(req, req.params.id);
+  res.json({ ok: true, ...(await refreshPrefill(await getStore(), req.portal, req.params.id)) });
+}));
+
+const vpatRowSchema = z.object({
+  level: z.string().max(40).optional(),
+  remarks: z.string().max(4000).optional(),
+  evidence: z.string().max(800).optional(),
+  flow: z.string().max(800).optional(),
+}).strict();
+const vpatSchema = z.object({
+  meta: z.object(Object.fromEntries(Object.keys(META_FIELDS).map((k) => [k, z.string().max(8000).optional()]))).strict().optional(),
+  rows: z.record(z.string().regex(/^\d\.\d{1,2}\.\d{1,2}$/), vpatRowSchema).optional(),
+}).strict();
+
+admin.put('/clients/:id/vpat', wrap(async (req, res) => {
+  await assertClient(req, req.params.id);
+  const input = parseOrThrow(vpatSchema, req.body);
+  if (input.rows && Object.keys(input.rows).length > 60) throw new PortalError('Too many rows in one save.', { code: 'too_many_rows' });
+  res.json({ ok: true, ...(await saveVpat(await getStore(), req.portal, req.params.id, input)) });
+}));
+
+/** Import the testing vendor's results sheet (.xlsx or .csv). */
+admin.post('/clients/:id/vpat/import', rawUpload, wrap(async (req, res) => {
+  await assertClient(req, req.params.id);
+  const store = await getStore();
+  const { summary, vpat } = await importResults(store, req.portal, req.params.id, {
+    filename: typeof req.query.name === 'string' ? req.query.name : '', data: uploadedBytes(req),
+  });
+  log.info('portal vpat results imported', { clientId: req.params.id, filled: summary.filled, skipped: summary.skipped.length, by: req.portal.email });
+  await recordActivity(store, req.params.id, {
+    kind: 'acr', title: `Human testing results imported into the VPAT draft: ${summary.filename}`,
+    details: `${summary.filled} criteria filled${summary.skipped.length ? `, ${summary.skipped.length} rows skipped` : ''}.`, by: req.portal,
+  });
+  res.json({ ok: true, summary, ...vpat });
+}));
+
+/** The draft as a page, marked DRAFT. Self-contained: no script, no outside requests. */
+admin.get('/clients/:id/vpat/preview', wrap(async (req, res) => {
+  await assertClient(req, req.params.id);
+  const html = await vpatPreview(await getStore(), req.params.id);
+  res.setHeader('Content-Type', 'text/html; charset=utf-8');
+  res.setHeader('Content-Security-Policy', "default-src 'none'; style-src 'unsafe-inline'; img-src data:; base-uri 'none'; form-action 'none'; frame-ancestors 'self'");
+  res.end(html);
+}));
+
+admin.post('/clients/:id/vpat/issue', wrap(async (req, res) => {
+  await assertClient(req, req.params.id);
+  const store = await getStore();
+  const render = (html, { footer, clientName, dateText }) => (req.app.locals.renderAcrPdf ?? generateAcrPdf)(html, {
+    header: '', footer, clientName, version: '', dateText,
+  });
+  const out = await issueVpat(store, req.portal, req.params.id, { render });
+  log.info('portal vpat issued', { clientId: req.params.id, fileId: out.file.id, by: req.portal.email });
+  await recordActivity(store, req.params.id, { kind: 'acr', title: `VPAT issued to the client: ${out.file.name}`, by: req.portal });
+  res.status(201).json({ ok: true, file: out.file, htmlFile: out.htmlFile, ...out.vpat });
+}));
+
+admin.delete('/clients/:id/vpat', wrap(async (req, res) => {
+  await assertClient(req, req.params.id);
+  const store = await getStore();
+  const out = await discardVpat(store, req.params.id);
+  await recordActivity(store, req.params.id, { kind: 'acr', title: 'VPAT draft discarded', by: req.portal });
+  res.json({ ok: true, ...out });
+}));
+
 /* --------------------------------------------------------- activity log --- */
 // One running record per client. Append-only: there is no route that edits or deletes an entry.
 
@@ -933,7 +1019,7 @@ export const portalPageGate = wrap(async (req, res, next) => {
   if (req.path === '/admin' || req.path === '/admin/') {
     return res.redirect(302, isStaff(session) ? '/portal/approvals' : '/portal');
   }
-  const staffPage = /^\/(approvals|clients|client|repository|operators)(\/|$)/.test(req.path);
+  const staffPage = /^\/(approvals|clients|client|vpat|repository|operators)(\/|$)/.test(req.path);
   if (staffPage && !isStaff(session)) return res.redirect(302, '/portal');
   // Repository and Operators are for master operators; everyone else lands on Approvals.
   if (/^\/(repository|operators)(\/|$)/.test(req.path) && !session.isMaster) {

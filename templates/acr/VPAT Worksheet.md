@@ -1,6 +1,6 @@
 # VPAT Worksheet: WCAG 2.2 Level A and AA
 
-Working sheet for one client's Accessibility Conformance Report. Copy it into the client's folder, fill it from the record's remediation log, Section 3 and the manual test results, then transfer each row into ITI's VPAT® 2.5 WCAG edition form (see section 9 of `ACR Template Guide.md`).
+Manual fallback only. The portal's VPAT builder (section 9 of `ACR Template Guide.md`) now builds the report from the vendor's results sheet. Use this sheet only if the builder is unavailable: fill it from the record's remediation log, Section 3 and the manual test results, then transfer each row into a VPAT® 2.5Rev WCAG edition report.
 
 Conformance level: Supports · Partially Supports · Does Not Support · Not Applicable. Remarks: what was tested, how, and anything that falls short, in plain words. Source: the log entry, test step or scan the result comes from.
 
